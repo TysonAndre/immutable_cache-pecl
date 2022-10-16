@@ -77,33 +77,17 @@ static apc_iterator_item_t* apc_iterator_item_ctor(
 		ZVAL_LONG(&zv, entry->nhits);
 		zend_hash_add_new(ht, apc_str_num_hits, &zv);
 	}
-	if (APC_ITER_MTIME & iterator->format) {
-		ZVAL_LONG(&zv, entry->mtime);
-		zend_hash_add_new(ht, apc_str_mtime, &zv);
-	}
 	if (APC_ITER_CTIME & iterator->format) {
 		ZVAL_LONG(&zv, entry->ctime);
 		zend_hash_add_new(ht, apc_str_creation_time, &zv);
-	}
-	if (APC_ITER_DTIME & iterator->format) {
-		ZVAL_LONG(&zv, entry->dtime);
-		zend_hash_add_new(ht, apc_str_deletion_time, &zv);
 	}
 	if (APC_ITER_ATIME & iterator->format) {
 		ZVAL_LONG(&zv, entry->atime);
 		zend_hash_add_new(ht, apc_str_access_time, &zv);
 	}
-	if (APC_ITER_REFCOUNT & iterator->format) {
-		ZVAL_LONG(&zv, entry->ref_count);
-		zend_hash_add_new(ht, apc_str_ref_count, &zv);
-	}
 	if (APC_ITER_MEM_SIZE & iterator->format) {
 		ZVAL_LONG(&zv, entry->mem_size);
 		zend_hash_add_new(ht, apc_str_mem_size, &zv);
-	}
-	if (APC_ITER_TTL & iterator->format) {
-		ZVAL_LONG(&zv, entry->ttl);
-		zend_hash_add_new(ht, apc_str_ttl, &zv);
 	}
 
 	return item;
@@ -196,19 +180,6 @@ static int apc_iterator_search_match(apc_iterator_t *iterator, apc_cache_entry_t
 }
 /* }}} */
 
-/* {{{ apc_iterator_check_expiry */
-static int apc_iterator_check_expiry(apc_cache_t* cache, apc_cache_entry_t *entry, time_t t)
-{
-	if (entry->ttl) {
-		if ((time_t) (entry->ctime + entry->ttl) < t) {
-			return 0;
-		}
-	}
-
-	return 1;
-}
-/* }}} */
-
 /* {{{ apc_iterator_fetch_active */
 static size_t apc_iterator_fetch_active(apc_iterator_t *iterator) {
 	size_t count = 0;
@@ -241,42 +212,6 @@ static size_t apc_iterator_fetch_active(apc_iterator_t *iterator) {
 			iterator->slot_idx++;
 		}
 	} php_apc_finally {
-		iterator->stack_idx = 0;
-		apc_cache_runlock(apc_user_cache);
-	} php_apc_end_try();
-
-	return count;
-}
-/* }}} */
-
-/* {{{ apc_iterator_fetch_deleted */
-static size_t apc_iterator_fetch_deleted(apc_iterator_t *iterator) {
-	size_t count = 0;
-	apc_iterator_item_t *item;
-
-	if (!apc_cache_rlock(apc_user_cache)) {
-		return count;
-	}
-
-	php_apc_try {
-		apc_cache_entry_t *entry = apc_user_cache->header->gc;
-		while (entry && count <= iterator->slot_idx) {
-			count++;
-			entry = entry->next;
-		}
-		count = 0;
-		while (entry && count < iterator->chunk_size) {
-			if (apc_iterator_search_match(iterator, entry)) {
-				count++;
-				item = apc_iterator_item_ctor(iterator, entry);
-				if (item) {
-					apc_stack_push(iterator->stack, item);
-				}
-			}
-			entry = entry->next;
-		}
-	} php_apc_finally {
-		iterator->slot_idx += count;
 		iterator->stack_idx = 0;
 		apc_cache_runlock(apc_user_cache);
 	} php_apc_end_try();
@@ -330,8 +265,6 @@ void apc_iterator_obj_init(apc_iterator_t *iterator, zval *search, zend_long for
 
 	if (list == APC_LIST_ACTIVE) {
 		iterator->fetch = apc_iterator_fetch_active;
-	} else if (list == APC_LIST_DELETED) {
-		iterator->fetch = apc_iterator_fetch_deleted;
 	} else {
 		apc_warning("APCUIterator invalid list type");
 		return;
@@ -545,13 +478,10 @@ int apc_iterator_init(int module_number) {
 	REGISTER_LONG_CONSTANT("APC_ITER_KEY", APC_ITER_KEY, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("APC_ITER_VALUE", APC_ITER_VALUE, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("APC_ITER_NUM_HITS", APC_ITER_NUM_HITS, CONST_PERSISTENT | CONST_CS);
-	REGISTER_LONG_CONSTANT("APC_ITER_MTIME", APC_ITER_MTIME, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("APC_ITER_CTIME", APC_ITER_CTIME, CONST_PERSISTENT | CONST_CS);
-	REGISTER_LONG_CONSTANT("APC_ITER_DTIME", APC_ITER_DTIME, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("APC_ITER_ATIME", APC_ITER_ATIME, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("APC_ITER_REFCOUNT", APC_ITER_REFCOUNT, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("APC_ITER_MEM_SIZE", APC_ITER_MEM_SIZE, CONST_PERSISTENT | CONST_CS);
-	REGISTER_LONG_CONSTANT("APC_ITER_TTL", APC_ITER_TTL, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("APC_ITER_NONE", APC_ITER_NONE, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("APC_ITER_ALL", APC_ITER_ALL, CONST_PERSISTENT | CONST_CS);
 
@@ -568,36 +498,6 @@ int apc_iterator_init(int module_number) {
 int apc_iterator_shutdown(int module_number) {
 	return SUCCESS;
 }
-
-/* {{{ apc_iterator_delete */
-int apc_iterator_delete(zval *zobj) {
-	apc_iterator_t *iterator;
-	zend_class_entry *ce = Z_OBJCE_P(zobj);
-	apc_iterator_item_t *item;
-
-	if (!ce || !instanceof_function(ce, apc_iterator_ce)) {
-		apc_error("apc_delete object argument must be instance of APCUIterator.");
-		return 0;
-	}
-	iterator = apc_iterator_fetch(zobj);
-
-	if (iterator->initialized == 0) {
-		zend_throw_error(NULL, "Trying to use uninitialized APCUIterator");
-		return 0;
-	}
-
-	while (iterator->fetch(iterator)) {
-		while (iterator->stack_idx < apc_stack_size(iterator->stack)) {
-			item = apc_stack_get(iterator->stack, iterator->stack_idx++);
-			apc_cache_delete(
-				apc_user_cache, item->key);
-		}
-	}
-
-	return 1;
-}
-/* }}} */
-
 
 /*
  * Local variables:

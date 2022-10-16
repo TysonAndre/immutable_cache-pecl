@@ -46,9 +46,6 @@ static apc_signal_info_t apc_signal_info = {0};
 static int apc_register_signal(int signo, void (*handler)(int, siginfo_t*, void*));
 static void apc_rehandle_signal(int signo, siginfo_t *siginfo, void *context);
 static void apc_core_unmap(int signo, siginfo_t *siginfo, void *context);
-#if defined(SIGUSR1) && defined(APC_CLEAR_SIGNAL)
-static void apc_clear_cache(int signo, siginfo_t *siginfo, void *context);
-#endif
 
 extern apc_cache_t* apc_user_cache;
 
@@ -69,23 +66,6 @@ static void apc_core_unmap(int signo, siginfo_t *siginfo, void *context)
 #endif
 } /* }}} */
 
-
-#if defined(SIGUSR1) && defined(APC_CLEAR_SIGNAL)
-/* {{{ apc_reload_cache */
-static void apc_clear_cache(int signo, siginfo_t *siginfo, void *context) {
-	if (apc_user_cache) {
-		apc_cache_clear(apc_user_cache);
-	}
-
-	apc_rehandle_signal(signo, siginfo, context);
-
-#if !defined(WIN32) && !defined(NETWARE)
-	kill(getpid(), signo);
-#else
-	raise(signo);
-#endif
-} /* }}} */
-#endif
 
 /* {{{ apc_rehandle_signal
  *  Call the previously registered handler for a signal

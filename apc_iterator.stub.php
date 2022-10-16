@@ -5,7 +5,11 @@
  * @generate-legacy-arginfo
  */
 
-class APCUIterator implements Iterator {
+/**
+ * @strict-properties
+ * @not-serializable
+ */
+final class APCUIterator implements Iterator {
     /** @param array|string|null $search */
     public function __construct(
         $search = null,

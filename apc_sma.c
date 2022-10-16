@@ -288,7 +288,7 @@ static APC_HOTSPOT size_t sma_deallocate(void* shmaddr, size_t offset)
 /* }}} */
 
 /* {{{ APC SMA API */
-PHP_APCU_API void apc_sma_init(apc_sma_t* sma, void** data, apc_sma_expunge_f expunge, int32_t num, size_t size, char *mask) {
+PHP_APCU_API void apc_sma_init(apc_sma_t* sma, int32_t num, size_t size, char *mask) {
 	int32_t i;
 
 	if (sma->initialized) {
@@ -296,8 +296,6 @@ PHP_APCU_API void apc_sma_init(apc_sma_t* sma, void** data, apc_sma_expunge_f ex
 	}
 
 	sma->initialized = 1;
-	sma->expunge = expunge;
-	sma->data = data;
 
 #if APC_MMAP
 	/*
@@ -447,13 +445,6 @@ restart:
 		SMA_UNLOCK(sma, i);
 	}
 
-	/* Expunge cache in hope of freeing up memory, but only once */
-	if (!nuked) {
-		sma->expunge(*sma->data, n+fragment);
-		nuked = 1;
-		goto restart;
-	}
-
 	return NULL;
 }
 
@@ -601,6 +592,7 @@ PHP_APCU_API apc_sma_info_t *apc_sma_info(apc_sma_t* sma, zend_bool limited) {
 	return info;
 }
 
+/* TODO remove? */
 PHP_APCU_API void apc_sma_free_info(apc_sma_t *sma, apc_sma_info_t *info) {
 	int i;
 

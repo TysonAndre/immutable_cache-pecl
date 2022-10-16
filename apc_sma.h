@@ -62,15 +62,9 @@ struct apc_sma_info_t {
 };
 /* }}} */
 
-typedef void (*apc_sma_expunge_f)(void *pointer, size_t size); /* }}} */
-
 /* {{{ struct definition: apc_sma_t */
 typedef struct _apc_sma_t {
 	zend_bool initialized;         /* flag to indicate this sma has been initialized */
-
-	/* callback */
-	apc_sma_expunge_f expunge;     /* expunge */
-	void** data;                   /* expunge data */
 
 	/* info */
 	int32_t  num;                  /* number of segments */
@@ -87,7 +81,7 @@ typedef struct _apc_sma_t {
 * should be called once per allocator per process
 */
 PHP_APCU_API void apc_sma_init(
-		apc_sma_t* sma, void** data, apc_sma_expunge_f expunge,
+		apc_sma_t* sma,
 		int32_t num, size_t size, char *mask);
 
 /*

@@ -17,7 +17,7 @@ class Test {
 }
 
 $test = new Test;
-apcu_store('foo', 'bar');
+apcu_add('foo', 'bar');
 apcu_fetch('foo', $test->bool);
 var_dump($test->bool);
 try {

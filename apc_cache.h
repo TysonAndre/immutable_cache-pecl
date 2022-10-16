@@ -49,15 +49,12 @@ struct apc_cache_slam_key_t {
 /* {{{ struct definition: apc_cache_entry_t */
 typedef struct apc_cache_entry_t apc_cache_entry_t;
 struct apc_cache_entry_t {
+    /* TODO Can this be made interned and const, similar to opcache */
 	zend_string *key;        /* entry key */
 	zval val;                /* the zval copied at store time */
 	apc_cache_entry_t *next; /* next entry in linked list */
-	zend_long ttl;           /* the ttl on this specific entry */
-	zend_long ref_count;     /* the reference count of this entry */
 	zend_long nhits;         /* number of hits to this entry */
 	time_t ctime;            /* time entry was initialized */
-	time_t mtime;            /* the mtime of this cached entry */
-	time_t dtime;            /* time entry was removed from cache */
 	time_t atime;            /* time entry was last accessed */
 	zend_long mem_size;      /* memory used */
 };
@@ -81,6 +78,7 @@ typedef struct _apc_cache_header_t {
 
 /* {{{ struct definition: apc_cache_t */
 typedef struct _apc_cache_t {
+	// FIXME when is this process local?
 	void* shmaddr;                /* process (local) address of shared cache */
 	apc_cache_header_t* header;   /* cache header (stored in SHM) */
 	apc_cache_entry_t** slots;    /* array of cache slots (stored in SHM) */
@@ -112,22 +110,9 @@ typedef zend_bool (*apc_cache_atomic_updater_t)(apc_cache_t*, zend_long*, void* 
  * size_hint is a "hint" at the total number entries that will be expected.
  * It determines the physical size of the hash table. Passing 0 for
  * this argument will use a reasonable default value
- *
- * gc_ttl is the maximum time a cache entry may speed on the garbage
- * collection list. This is basically a work around for the inherent
- * unreliability of our reference counting mechanism (see apc_cache_release).
- *
- * ttl is the maximum time a cache entry can idle in a slot in case the slot
- * is needed.  This helps in cleaning up the cache and ensuring that entries
- * hit frequently stay cached and ones not hit very often eventually disappear.
- *
- * for an explanation of smart, see apc_cache_default_expunge
- *
- * defend enables/disables slam defense for this particular cache
  */
 PHP_APCU_API apc_cache_t* apc_cache_create(
-        apc_sma_t* sma, apc_serializer_t* serializer, zend_long size_hint,
-        zend_long gc_ttl, zend_long ttl, zend_long smart, zend_bool defend);
+        apc_sma_t* sma, apc_serializer_t* serializer, zend_long size_hint);
 /*
 * apc_cache_preload preloads the data at path into the specified cache
 */
@@ -149,22 +134,13 @@ PHP_APCU_API void apc_cache_clear(apc_cache_t* cache);
  * apc_cache_store creates key, entry and context in which to make an insertion of val into the specified cache
  */
 PHP_APCU_API zend_bool apc_cache_store(
-        apc_cache_t* cache, zend_string *key, const zval *val,
-        const int32_t ttl, const zend_bool exclusive);
+        apc_cache_t* cache, zend_string *key, const zval *val);
 /*
  * apc_cache_update updates an entry in place. The updater function must not bailout.
  * The update is performed under write-lock and doesn't have to be atomic.
  */
 PHP_APCU_API zend_bool apc_cache_update(
 		apc_cache_t *cache, zend_string *key, apc_cache_updater_t updater, void *data,
-		zend_bool insert_if_not_found, zend_long ttl);
-
-/*
- * apc_cache_atomic_update_long updates an integer entry in place. The updater function must
- * perform the update atomically, as the update is performed under read-lock.
- */
-PHP_APCU_API zend_bool apc_cache_atomic_update_long(
-		apc_cache_t *cache, zend_string *key, apc_cache_atomic_updater_t updater, void *data,
 		zend_bool insert_if_not_found, zend_long ttl);
 
 /*
@@ -185,11 +161,6 @@ PHP_APCU_API zend_bool apc_cache_fetch(apc_cache_t* cache, zend_string *key, tim
  * and returns whether the entry exists.
  */
 PHP_APCU_API zend_bool apc_cache_exists(apc_cache_t* cache, zend_string *key, time_t t);
-
-/*
- * apc_cache_delete and apc_cache_delete finds an entry in the cache and deletes it.
- */
-PHP_APCU_API zend_bool apc_cache_delete(apc_cache_t* cache, zend_string *key);
 
 /* apc_cache_fetch_zval copies a cache entry value to be usable at runtime.
  */
@@ -218,64 +189,11 @@ PHP_APCU_API zend_bool apc_cache_info(zval *info, apc_cache_t *cache, zend_bool 
 PHP_APCU_API void apc_cache_stat(apc_cache_t *cache, zend_string *key, zval *stat);
 
 /*
-* apc_cache_defense: guard against slamming a key
-*  will return true if the following conditions are met:
-*	the key provided has a matching hash and length to the last key inserted into cache
-*   the last key has a different owner
-* in ZTS mode, TSRM determines owner
-* in non-ZTS mode, PID determines owner
-* Note: this function sets the owner of key during execution
-*/
-PHP_APCU_API zend_bool apc_cache_defense(apc_cache_t *cache, zend_string *key, time_t t);
-
-/*
 * apc_cache_serializer
 * sets the serializer for a cache, and by proxy contexts created for the cache
 * Note: this avoids race conditions between third party serializers and APCu
 */
 PHP_APCU_API void apc_cache_serializer(apc_cache_t* cache, const char* name);
-
-/*
-* The remaining functions allow a third party to reimplement expunge
-*
-* Look at the source of apc_cache_default_expunge for what is expected of this function
-*
-* The default behaviour of expunge is explained below, should no combination of those options
-* be suitable, you will need to reimplement apc_cache_default_expunge and pass it to your
-* call to apc_sma_api_impl, this will replace the default functionality.
-* The functions below you can use during your own implementation of expunge to gain more
-* control over how the expunge process works ...
-*
-* Note: beware of locking (copy it exactly), setting states is also important
-*/
-
-/* {{{ apc_cache_default_expunge
-* Where smart is not set:
-*  Where no ttl is set on cache:
-*   1) Perform cleanup of stale entries
-*   2) Expunge if available memory is less than sma->size/2
-*  Where ttl is set on cache:
-*   1) Perform cleanup of stale entries
-*   2) If available memory if less than the size requested, run full expunge
-*
-* Where smart is set:
-*  Where no ttl is set on cache:
-*   1) Perform cleanup of stale entries
-*   2) Expunge is available memory is less than size * smart
-*  Where ttl is set on cache:
-*   1) Perform cleanup of stale entries
-*   2) If available memory if less than the size requested, run full expunge
-*
-* The TTL of an entry takes precedence over the TTL of a cache
-*/
-PHP_APCU_API void apc_cache_default_expunge(apc_cache_t* cache, size_t size);
-
-/*
-* apc_cache_entry: generate and create or fetch an entry
-*
-* @see https://github.com/krakjoe/apcu/issues/142
-*/
-PHP_APCU_API void apc_cache_entry(apc_cache_t *cache, zend_string *key, zend_fcall_info *fci, zend_fcall_info_cache *fcc, zend_long ttl, zend_long now, zval *return_value);
 
 /* apcu_entry() holds a write lock on the cache while executing user code.
  * That code may call other apcu_* functions, which also try to acquire a

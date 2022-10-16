@@ -72,13 +72,21 @@ apc_segment_t apc_mmap(char *file_mask, size_t size)
 		remap = 0;
 #endif
 #endif
+
+#if 0
+	// This conflicts with apcu
 	} else if(!strcmp(file_mask,"/dev/zero")) {
+		/* See https://man7.org/linux/man-pages/man2/mmap.2.html for description of mmap options
+		 * When pages are read, they're read as 0, and nothing is written to the file.
+		 * This version would conflict with apcu */
 		fd = open("/dev/zero", O_RDWR, S_IRUSR | S_IWUSR);
 		if(fd == -1) {
 			zend_error_noreturn(E_CORE_ERROR, "apc_mmap: open on /dev/zero failed");
 		}
 #ifdef APC_MEMPROTECT
 		remap = 0; /* cannot remap */
+#endif
+
 #endif
 	} else {
 		/*

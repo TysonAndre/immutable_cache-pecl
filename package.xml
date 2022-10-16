@@ -150,8 +150,6 @@
    <file name="apc_signal.h" role="src" />
    <file name="apc_sma.c" role="src" />
    <file name="apc_sma.h" role="src" />
-   <file name="apc_stack.c" role="src" />
-   <file name="apc_stack.h" role="src" />
    <file name="apc_strings.h" role="src" />
    <file name="apc_time.c" role="src" />
    <file name="apc_time.h" role="src" />
@@ -718,7 +716,7 @@ and unpersisting values.
   - Bring back spinlocks, various issues (Joe)
   - Fixed symbol clashing, windows debug mode, again (Anatol)
   - apcu_key_info / apc_cache_stat functions (Joe)
-  
+
    </notes>
   </release>
   <release>

@@ -35,13 +35,10 @@
 #define APC_ITER_KEY        (1 << 1)
 #define APC_ITER_VALUE      (1 << 2)
 #define APC_ITER_NUM_HITS   (1 << 3)
-#define APC_ITER_MTIME      (1 << 4)
 #define APC_ITER_CTIME      (1 << 5)
-#define APC_ITER_DTIME      (1 << 6)
 #define APC_ITER_ATIME      (1 << 7)
 #define APC_ITER_REFCOUNT   (1 << 8)
 #define APC_ITER_MEM_SIZE   (1 << 9)
-#define APC_ITER_TTL        (1 << 10)
 
 #define APC_ITER_NONE       0
 #define APC_ITER_ALL        (0xffffffffL)
@@ -91,7 +88,6 @@ PHP_APCU_API zend_class_entry* apc_iterator_get_ce(void);
 PHP_APCU_API int apc_iterator_init(int module_number);
 PHP_APCU_API int apc_iterator_shutdown(int module_number);
 
-extern int apc_iterator_delete(zval *key);
 #endif
 
 /*
