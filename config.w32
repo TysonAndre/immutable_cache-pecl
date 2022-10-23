@@ -1,32 +1,33 @@
 // vim:ft=javascript
 
-ARG_ENABLE('apcu', 'Whether to enable APCu support', 'no');
-ARG_ENABLE('apcu-debug', 'Whether to enable APCu debugging', 'no');
+ARG_ENABLE('immutable-cache', 'Whether to enable immutable_cache support', 'no');
+ARG_ENABLE('immutable-cache-debug', 'Whether to enable immutable_cache debugging', 'no');
 
-if(PHP_APCU != 'no')
+if(PHP_IMMUTABLE_CACHE != 'no')
 {
-	var apc_sources = 	'apc.c apc_lock.c apc_windows_srwlock_kernel.c php_apc.c ' +
-						'apc_cache.c ' +
-						'apc_mmap.c ' +
-						'apc_shm.c ' +
-						'apc_sma.c ' +
-						'apc_stack.c ' +
-						'apc_signal.c ' +
-						'apc_time.c ' +
-						'apc_iterator.c ' +
-						'apc_persist.c'; 
+	var immutable_cache_sources =
+                        'immutable_cache.c immutable_cache_lock.c immutable_cache_windows_srwlock_kernel.c php_immutable_cache.c ' +
+						'immutable_cache_cache.c ' +
+						'immutable_cache_mmap.c ' +
+						'immutable_cache_shm.c ' +
+						'immutable_cache_sma.c ' +
+						'immutable_cache_stack.c ' +
+						'immutable_cache_signal.c ' +
+						'immutable_cache_time.c ' +
+						'immutable_cache_iterator.c ' +
+						'immutable_cache_persist.c';
 
-	if(PHP_APCU_DEBUG != 'no')
+	if(PHP_IMMUTABLE_CACHE_DEBUG != 'no')
 	{
-		ADD_FLAG('CFLAGS_APC', '/D APC_DEBUG=1');
+		ADD_FLAG('CFLAGS_IMMUTABLE_CACHE', '/D IMMUTABLE_CACHE_DEBUG=1');
 	}
 
 	/* XXX srwlock kernel as most BC compatible for now */
-	AC_DEFINE('APC_SRWLOCK_KERNEL', 1);
-	AC_DEFINE('HAVE_APCU', 1);
-	ADD_FLAG('CFLAGS_APCU', '/D WIN32_ONLY_COMPILER=1 /DAPC_SRWLOCK_KERNEL=1');
-	PHP_INSTALL_HEADERS("ext/apcu", "php_apc.h apc.h apc_api.h apc_cache.h apc_globals.h apc_iterator.h apc_lock.h apc_mutex.h apc_sma.h apc_serializer.h apc_stack.h apc_windows_srwlock_kernel.h apc_arginfo.h php_apc_legacy_arginfo.h");
+	AC_DEFINE('IMMUTABLE_CACHE_SRWLOCK_KERNEL', 1);
+	AC_DEFINE('HAVE_IMMUTABLE_CACHE', 1);
+	ADD_FLAG('CFLAGS_IMMUTABLE_CACHE', '/D WIN32_ONLY_COMPILER=1 /DIMMUTABLE_CACHE_SRWLOCK_KERNEL=1');
+	PHP_INSTALL_HEADERS("ext/immutable__cache", "php_immutable_cache.h immutable_cache.h immutable_cache_api.h immutable_cache_cache.h immutable_cache_globals.h immutable_cache_iterator.h immutable_cache_lock.h immutable_cache_mutex.h immutable_cache_sma.h immutable_cache_serializer.h immutable_cache_stack.h immutable_cache_windows_srwlock_kernel.h immutable_cache_arginfo.h php_immutable_cache_legacy_arginfo.h");
 
-	EXTENSION('apcu', apc_sources, PHP_APCU_SHARED, "/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
+	EXTENSION('immutable__cache', immutable_cache_sources, PHP_IMMUTABLE_CACHE_SHARED, "/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
 }
 
