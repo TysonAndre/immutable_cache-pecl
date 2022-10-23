@@ -192,7 +192,10 @@ static zend_bool immutable_cache_persist_calc_serialize(immutable_cache_persist_
 	return 1;
 }
 
+/* Returns true if it is safe to store this zval in immutable_cache */
 static zend_bool immutable_cache_persist_calc_zval(immutable_cache_persist_context_t *ctxt, const zval *zv) {
+	/* TODO: Check if the value being referred to is already an immutable cache entry? */
+
 	if (Z_TYPE_P(zv) < IS_STRING) {
 		/* No data apart from the zval itself */
 		return 1;
@@ -291,6 +294,7 @@ static inline zend_string *immutable_cache_persist_copy_zstr(
 
 static zend_reference *immutable_cache_persist_copy_ref(
 		immutable_cache_persist_context_t *ctxt, const zend_reference *orig_ref) {
+	/* Allocates a persistent copy of the PHP reference group in shared memory, setting a reference count of 1 */
 	zend_reference *ref = ALLOC(sizeof(zend_reference));
 	immutable_cache_persist_add_already_allocated(ctxt, orig_ref, ref);
 
@@ -317,6 +321,7 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 	GC_SET_PERSISTENT_TYPE(ht, GC_ARRAY);
 
 	/* Immutable arrays from opcache may lack a dtor and the apply protection flag. */
+	/* FIXME this is an immutable cache. This won't get called? */
 	ht->pDestructor = ZVAL_PTR_DTOR;
 #if PHP_VERSION_ID < 70300
 	ht->u.flags |= HASH_FLAG_APPLY_PROTECTION;
@@ -414,6 +419,7 @@ static void immutable_cache_persist_copy_zval_impl(immutable_cache_persist_conte
 			if (!ptr) ptr = immutable_cache_persist_copy_ht(ctxt, Z_ARRVAL_P(zv));
 			ZVAL_ARR(zv, ptr);
 			return;
+		/* TODO handle unserializing references, test that modifying references doesn't change the original. Add flags to array to indicate the array needs to be copied? */
 		case IS_REFERENCE:
 			if (!ptr) ptr = immutable_cache_persist_copy_ref(ctxt, Z_REF_P(zv));
 			ZVAL_REF(zv, ptr);
