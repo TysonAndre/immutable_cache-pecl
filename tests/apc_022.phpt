@@ -14,8 +14,8 @@ apc.ttl=0
 <?php
 
 $ttl = 1;
-apcu_store("a", 0, $ttl);
-apcu_store("b", 0, $ttl);
+apcu_add("a", 0, $ttl);
+apcu_add("b", 0, $ttl);
 
 for ($i = 0; $i < 6; $i++) {
     echo "T+$i:\n";

@@ -1,8 +1,8 @@
 --TEST--
-APC: apcu_store/fetch with objects
+APC: apcu_add/fetch with objects
 --SKIPIF--
 <?php
-require_once(dirname(__FILE__) . '/skipif.inc'); 
+require_once(dirname(__FILE__) . '/skipif.inc');
 if (PHP_VERSION_ID >= 80100) die("skip For PHP < 8.1");
 ?>
 --INI--
@@ -14,7 +14,7 @@ apc.enable_cli=1
 class foo { }
 $foo = new foo;
 var_dump($foo);
-apcu_store('foo',$foo);
+apcu_add('foo',$foo);
 unset($foo);
 $bar = apcu_fetch('foo');
 var_dump($bar);
@@ -26,12 +26,12 @@ class bar extends foo
 	public    $pub = 'bar';
 	protected $pro = 'bar';
 	private   $pri = 'bar'; // we don't see this, we'd need php 5.1 new serialization
-	
+
 	function __construct()
 	{
 		$this->bar = true;
 	}
-	
+
 	function change()
 	{
 		$this->pri = 'mod';
@@ -53,7 +53,7 @@ $baz = new baz;
 var_dump($baz);
 $baz->change();
 var_dump($baz);
-apcu_store('baz', $baz);
+apcu_add('baz', $baz);
 unset($baz);
 var_dump(apcu_fetch('baz'));
 

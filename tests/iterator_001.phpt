@@ -10,9 +10,10 @@ apc.enable_cli=1
 $it = new APCuIterator();
 
 for($i = 0; $i < 41; $i++) {
-  apcu_store("key$i", "value$i");
+  apcu_add("key$i", "value$i");
 }
 
+$keys = [];
 foreach($it as $key=>$value) {
   $keys[$key] = $value['key'];
 }

@@ -1,5 +1,5 @@
 --TEST--
-APC: APCIterator formats 
+APC: APCIterator formats
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -8,20 +8,15 @@ apc.enable_cli=1
 apc.user_entries_hint=4096
 --FILE--
 <?php
-$formats = array( 
+$formats = array(
                   APC_ITER_KEY,
                   APC_ITER_VALUE,
                   APC_ITER_NUM_HITS,
-                  APC_ITER_MTIME,
                   APC_ITER_CTIME,
-                  APC_ITER_DTIME,
                   APC_ITER_ATIME,
-                  APC_ITER_REFCOUNT,
                   APC_ITER_MEM_SIZE,
-                  APC_ITER_TTL,
                   APC_ITER_NONE,
                   APC_ITER_ALL & ~APC_ITER_TYPE,
-                  APC_ITER_ALL & ~APC_ITER_TTL & ~APC_ITER_TYPE,
                   APC_ITER_KEY | APC_ITER_NUM_HITS | APC_ITER_MEM_SIZE,
                 );
 
@@ -32,7 +27,7 @@ foreach ($formats as $idx => $format) {
 }
 
 for($i = 0; $i < 11; $i++) {
-  apcu_store("key$i", "value$i");
+  apcu_add("key$i", "value$i");
 }
 
 foreach ($it_array as $idx => $it) {

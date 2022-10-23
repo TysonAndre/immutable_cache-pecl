@@ -7,6 +7,7 @@ error_reporting=E_ALL&~E_DEPRECATED
 --FILE--
 <?php
 
+// @phan-suppress-next-line PhanCompatibleSerializeInterfaceDeprecated
 class Session implements \Serializable
 {
   public $session;
@@ -19,7 +20,7 @@ class Session implements \Serializable
 $session = ['user' => ['enabled' => True], 'authenticated' => False];
 $session['user']['authenticated'] = &$session['authenticated'];
 
-apcu_store('session', $session);
+apcu_add('session', $session);
 
 // After serializing / deserializing, session checks out as authenticated.
 print unserialize(serialize(new Session())) -> session['authenticated'] === True ? 'Authenticated.' : 'Not Authenticated.';

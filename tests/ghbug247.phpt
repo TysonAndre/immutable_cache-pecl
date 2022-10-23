@@ -7,7 +7,7 @@ apc.enabled=1
 apc.enable_cli=1
 --FILE--
 <?php
-apcu_store(array("a\0b" => 'foo'));
+apcu_add(array("a\0b" => 'foo'));
 var_dump(apcu_fetch(array("a\0b"))["a\0b"]);
 ?>
 --EXPECT--

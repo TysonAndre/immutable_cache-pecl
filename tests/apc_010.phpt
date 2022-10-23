@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_store/fetch/add with array of key/value pairs.
+APC: apcu_add/fetch/add with array of key/value pairs.
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -14,7 +14,7 @@ $entries['key2'] = 'value2';
 $entries['key3'] = array('value3a','value3b');
 $entries['key4'] = 4;
 
-var_dump(apcu_store($entries));
+var_dump(apcu_add($entries));
 $cached_values = apcu_fetch(array_keys($entries));
 var_dump($cached_values);
 

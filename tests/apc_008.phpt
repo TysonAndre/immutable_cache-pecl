@@ -7,7 +7,7 @@ apc.enabled=1
 apc.enable_cli=1
 --FILE--
 <?php
-apcu_store('foobar',2);
+apcu_add('foobar',2);
 echo "\$foobar = 2\n";
 echo "\$foobar == 1 ? 2 : 1 = ".(apcu_cas('foobar', 1, 2)?"ok":"fail")."\n";
 echo "\$foobar == 2 ? 1 : 2 = ".(apcu_cas('foobar', 2, 1)?"ok":"fail")."\n";
@@ -15,7 +15,7 @@ echo "\$foobar = ".apcu_fetch("foobar")."\n";
 
 echo "\$f__bar == 1 ? 2 : 1 = ".(apcu_cas('f__bar', 1, 2)?"ok":"fail")."\n";
 
-apcu_store('perfection', "xyz");
+apcu_add('perfection', "xyz");
 echo "\$perfection == 2 ? 1 : 2 = ".(apcu_cas('perfection', 2, 1)?"ok":"epic fail")."\n";
 
 echo "\$foobar = ".apcu_fetch("foobar")."\n";

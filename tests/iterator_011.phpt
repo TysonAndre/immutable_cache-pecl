@@ -8,9 +8,9 @@ apc.enable_cli=1
 --FILE--
 <?php
 
-apcu_store("key1", "value1");
+var_dump(apcu_add("key1", "value1"));
 
-$it = new APCuIterator(null, APC_ITER_VALUE);
+$it = new APCUIterator(null, APC_ITER_VALUE);
 var_dump($it->key());
 var_dump($it->current());
 $it->next();

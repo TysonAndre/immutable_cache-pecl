@@ -9,7 +9,7 @@ apc.enable_cli=1
 <?php
 $kyes = "testkey";
 $kno  = "keytest";
-apcu_store($kyes, 1);
+apcu_add($kyes, 1);
 var_dump(apcu_exists($kyes));
 var_dump(apcu_exists($kno));
 var_dump(apcu_exists([$kyes, $kno]));

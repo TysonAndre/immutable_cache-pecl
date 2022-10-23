@@ -9,7 +9,8 @@ apc.serializer=default
 
 $key = 'key';
 $a = [$key => null];
-apcu_store($key, $a);
+var_dump(apcu_add($key, $a));
+var_dump(apcu_fetch($key));
 
 ?>
 --EXPECT--

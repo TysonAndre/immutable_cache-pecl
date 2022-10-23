@@ -9,7 +9,7 @@ apc.enable_cli=1
 <?php
 $items = array('bar', 'baz');
 
-apcu_store('test', $items);
+apcu_add('test', $items);
 
 $back = apcu_fetch('test');
 

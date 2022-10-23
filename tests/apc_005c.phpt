@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_store/fetch with arrays with two object references
+APC: apcu_add/fetch with arrays with two object references
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -13,7 +13,7 @@ $foo = array(&$o, &$o);
 
 var_dump($foo);
 
-apcu_store('foo',$foo);
+apcu_add('foo',$foo);
 
 $bar = apcu_fetch('foo');
 var_dump($foo);

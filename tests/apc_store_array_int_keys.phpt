@@ -1,5 +1,5 @@
 --TEST--
-apcu_store() with int keys in array should convert them to string
+apcu_add() with int keys in array should convert them to string
 --SKIPIF--
 <?php
 require_once(__DIR__ . '/skipif.inc');
@@ -11,7 +11,7 @@ apc.enable_cli=1
 <?php
 
 var_dump(apcu_add(["123" => "test"]));
-var_dump(apcu_store(["123" => "test"]));
+// no store option
 var_dump(apcu_add(["123" => "test"]));
 
 ?>

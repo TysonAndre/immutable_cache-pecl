@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_store/fetch with objects
+APC: apcu_add/fetch with objects
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -12,7 +12,7 @@ apc.enable_cli=1
 class foo { }
 $foo = new foo;
 var_dump($foo);
-apcu_store('foo',$foo);
+apcu_add('foo',$foo);
 unset($foo);
 $bar = apcu_fetch('foo');
 var_dump($bar);

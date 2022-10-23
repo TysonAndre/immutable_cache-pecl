@@ -9,13 +9,13 @@ apc.enable_cli=1
 <?php
 $key = "testkey";
 
-apcu_store($key, PHP_INT_MAX);
+apcu_add($key, PHP_INT_MAX);
 var_dump($i = apcu_inc($key, 1));
 var_dump($j = apcu_fetch($key));
 var_dump($i == $j);
 var_dump($j == PHP_INT_MIN);
 
-apcu_store($key, PHP_INT_MIN);
+apcu_add($key, PHP_INT_MIN);
 var_dump($i = apcu_dec($key, 1));
 var_dump($j = apcu_fetch($key));
 var_dump($i == $j);

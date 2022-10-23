@@ -11,7 +11,7 @@ apc.serializer=default
 
 $array = [1, 2, 3];
 next($array);
-apcu_store("ary", $array);
+apcu_add("ary", $array);
 $array = apcu_fetch("ary");
 var_dump(current($array));
 

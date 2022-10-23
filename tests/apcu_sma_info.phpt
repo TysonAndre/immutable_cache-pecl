@@ -7,7 +7,7 @@ apc.shm_segments=1
 --FILE--
 <?php
 
-apcu_store("key", "value");
+apcu_add("key", "value");
 var_dump(apcu_sma_info(true));
 var_dump(apcu_sma_info());
 

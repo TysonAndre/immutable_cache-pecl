@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_store/fetch with strings
+APC: apcu_add/fetch with strings
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -9,13 +9,13 @@ apc.enable_cli=1
 <?php
 $foo = 'hello world';
 var_dump($foo);
-apcu_store('foo',$foo);
+apcu_add('foo',$foo);
 $bar = apcu_fetch('foo');
 var_dump($bar);
 $bar = 'nice';
 var_dump($bar);
 
-apcu_store('foo\x00bar', $foo);
+apcu_add('foo\x00bar', $foo);
 $bar = apcu_fetch('foo\x00bar');
 var_dump($bar);
 

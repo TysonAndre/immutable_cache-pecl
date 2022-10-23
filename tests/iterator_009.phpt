@@ -1,5 +1,5 @@
 --TEST--
-APC: APCIterator key invalidated between key() calls
+APC: APCIterator key invalidated between key() calls (changed for immutable)
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -8,12 +8,12 @@ apc.enable_cli=1
 --FILE--
 <?php
 
-apcu_store("foo", 0);
+var_dump(apcu_add("foo", 0));
 $it = new APCuIterator();
 $it->rewind();
 var_dump($it->key());
-apcu_delete("foo");
-apcu_store("bar", 0);
+echo "add not repeat\n";
+var_dump(apcu_add("bar", 0));
 var_dump($it->key());
 
 ?>

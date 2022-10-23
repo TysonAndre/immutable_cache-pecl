@@ -36,8 +36,7 @@ class MyClass {
 }
 
 function setup() {
-    apcu_delete('mytestkey');
-    apcu_store('mytestkey', build_array());
+    apcu_add('mytestkey', build_array());
 }
 
 function test_apcu_fetch() {

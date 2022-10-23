@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_store/fetch with bools
+APC: apcu_add/fetch with bools
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -10,7 +10,7 @@ apc.enable_cli=1
 
 $foo = false;
 var_dump($foo);     /* false */
-apcu_store('foo',$foo);
+apcu_add('foo',$foo);
 //$success = "some string";
 
 $bar = apcu_fetch('foo', $success);

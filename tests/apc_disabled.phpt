@@ -16,29 +16,15 @@ var_dump(apcu_cache_info());
 var_dump(apcu_sma_info());
 
 echo "\nstore/add/exists/fetch/key_info/delete\n";
-var_dump(apcu_store("key", "value"));
 var_dump(apcu_add("key", "value"));
 var_dump(apcu_exists("key"));
 var_dump(apcu_fetch("key"));
 var_dump(apcu_key_info("key"));
-var_dump(apcu_delete("key"));
 
 echo "\nstore/add/exists/fetch/delete array\n";
-var_dump(apcu_store(["key" => "value"]));
 var_dump(apcu_add(["key" => "value"]));
 var_dump(apcu_exists(["key"]));
 var_dump(apcu_fetch(["key"]));
-var_dump(apcu_delete(["key"]));
-
-echo "\ninc/dec/cas\n";
-var_dump(apcu_inc("key", 1, $succ_inc));
-var_dump($succ_inc);
-var_dump(apcu_dec("key", 1, $succ_dec));
-var_dump($succ_dec);
-var_dump(apcu_cas("key", 10, 20));
-
-echo "\nentry\n";
-var_dump(apcu_entry("key", function() { return 42; }));
 
 echo "\niterator\n";
 try {

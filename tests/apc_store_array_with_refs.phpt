@@ -7,7 +7,7 @@ apc.serializer=default
 --FILE--
 <?php
 
-apcu_store('test', [&$x, &$x]);
+apcu_add('test', [&$x, &$x]);
 var_dump(apcu_fetch('test'));
 
 ?>

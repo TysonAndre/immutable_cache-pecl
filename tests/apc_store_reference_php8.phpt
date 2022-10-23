@@ -14,7 +14,7 @@ apc.serializer=default
  * I believe this is a bug in the php serializer. */
 
 $value = [&$value];
-apcu_store(["key" => &$value]);
+apcu_add(["key" => &$value]);
 $result = apcu_fetch("key");
 var_dump($result);
 

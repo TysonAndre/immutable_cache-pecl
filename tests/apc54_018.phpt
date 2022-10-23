@@ -2,7 +2,7 @@
 APC: Bug #59938 APCIterator fails with large user cache
 --SKIPIF--
 <?php
-require_once(dirname(__FILE__) . '/skipif.inc'); 
+require_once(dirname(__FILE__) . '/skipif.inc');
 if (PHP_OS == "WINNT") die("skip not on windows");
 if (getenv('USE_ZEND_ALLOC') === '0') die("skip not for valgrind");
 ?>
@@ -16,7 +16,7 @@ $file = <<<FL
 //to fill apc cache (~40MB):
 for(\$i=0;\$i<10000;\$i++) {
     \$value = str_repeat(md5(microtime()), 100);
-    apcu_store('test-niko-asdfasdfasdfkjasdflkasjdfasf'.\$i, \$value);
+    apcu_add('test-niko-asdfasdfasdfkjasdflkasjdfasf'.\$i, \$value);
 }
 
 //then later (usually after a few minutes) this won't work correctly:
@@ -38,6 +38,7 @@ for ($i = 0; $i < 3; $i++) {
 }
 echo 'done';
 
+?>
 --EXPECTF--
 int(10000)
 array(11) {

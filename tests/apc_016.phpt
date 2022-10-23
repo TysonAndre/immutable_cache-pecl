@@ -8,7 +8,7 @@ apc.enable_cli=1
 --FILE--
 <?php
 $array = ['foo', 'bar'];
-var_dump(apcu_store('foo', 'baz'));
+var_dump(apcu_add('foo', 'baz'));
 var_dump(apcu_fetch($array));
 var_dump(error_get_last());
 array_walk($array, function(&$item) {});
