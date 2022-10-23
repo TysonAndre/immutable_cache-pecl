@@ -9,11 +9,8 @@ indent_style = space
 [*.xml]
 indent_size = 1
 indent_style = space
-[*.yml]
-indent_size = 2
-indent_style = space
 [*.w32]
 charset = utf-8
 end_of_line = crlf
-indent_style = space
+indent_style = tab
 indent_size = 2
