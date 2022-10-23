@@ -66,7 +66,9 @@ typedef struct _apc_persist_context_t {
 #define ADD_SIZE(sz) ctxt->size += ZEND_MM_ALIGNED_SIZE(sz)
 #define ADD_SIZE_STR(len) ADD_SIZE(_ZSTR_STRUCT_SIZE(len))
 
+/* Allocate a region of length sz bytes in shared memory */
 #define ALLOC(sz) immutable_cache_persist_alloc(ctxt, sz)
+/* Copy a value val (of length sz bytes) into shared memory */
 #define COPY(val, sz) immutable_cache_persist_alloc_copy(ctxt, val, sz)
 
 static zend_bool immutable_cache_persist_calc_zval(immutable_cache_persist_context_t *ctxt, const zval *zv);
@@ -252,6 +254,7 @@ static inline void *immutable_cache_persist_alloc(immutable_cache_persist_contex
 
 static inline void *immutable_cache_persist_alloc_copy(
 		immutable_cache_persist_context_t *ctxt, const void *val, size_t size) {
+    /* TODO is it safe to reuse this if it's already in shared memory */
 	void *ptr = immutable_cache_persist_alloc(ctxt, size);
 	memcpy(ptr, val, size);
 	return ptr;
@@ -334,6 +337,8 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 
 	ht->nNextFreeElement = 0;
 	ht->nInternalPointer = HT_INVALID_IDX;
+    /* NOTE: In opcache, APCu, and immutable_cache,
+     * they only need to allocate memory for the buckets that are used in shared memory */
 	HT_SET_DATA_ADDR(ht, COPY(HT_GET_DATA_ADDR(ht), HT_USED_SIZE(ht)));
 #if PHP_VERSION_ID >= 80200
 	if (HT_IS_PACKED(ht)) {

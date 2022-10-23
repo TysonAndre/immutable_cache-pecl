@@ -47,6 +47,7 @@
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
+- Initial release
 - Create immutable_cache based on APCu 5.1.23dev
 - Change the extension name, all ini settings, header/source files and symbols
   to avoid conflicting with the installation of APCu on all OSes
