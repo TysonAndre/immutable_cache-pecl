@@ -61,4 +61,4 @@ array(2) {
 }
 Resources:
 
-Warning: immutable_cache_add(): Cannot store resources in apcu cache in %s on line %d
+Warning: immutable_cache_add(): Cannot store resources in immutable_cache cache in %s on line %d

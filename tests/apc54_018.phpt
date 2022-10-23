@@ -26,9 +26,9 @@ var_dump(\$it->current()); //returns false on error
 FL;
 
 $args = array(
-	'apc.enabled=1',
-	'apc.enable_cli=1',
-	'apc.shm_size=64M',
+	'immutable_cache.enabled=1',
+	'immutable_cache.enable_cli=1',
+	'immutable_cache.shm_size=64M',
 );
 
 server_start($file, $args);
