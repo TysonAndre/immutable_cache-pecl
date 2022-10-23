@@ -44,9 +44,11 @@ array(4) {
   ["key4"]=>
   int(4)
 }
-array(2) {
+array(4) {
   ["key1"]=>
   string(6) "value1"
+  ["key2"]=>
+  string(6) "value2"
   ["key3"]=>
   array(2) {
     [0]=>
@@ -54,11 +56,17 @@ array(2) {
     [1]=>
     string(7) "value3b"
   }
+  ["key4"]=>
+  int(4)
 }
-array(2) {
+array(4) {
   ["key1"]=>
   int(-1)
+  ["key2"]=>
+  int(-1)
   ["key3"]=>
+  int(-1)
+  ["key4"]=>
   int(-1)
 }
 array(4) {

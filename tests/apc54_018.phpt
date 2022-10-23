@@ -37,11 +37,10 @@ for ($i = 0; $i < 3; $i++) {
 	run_test_simple();
 }
 echo 'done';
-
 ?>
 --EXPECTF--
 int(10000)
-array(11) {
+array(7) {
   ["type"]=>
   string(4) "user"
   ["key"]=>
@@ -50,23 +49,15 @@ array(11) {
   string(%d) "%s"
   ["num_hits"]=>
   int(0)
-  ["mtime"]=>
-  int(%d)
   ["creation_time"]=>
   int(%d)
-  ["deletion_time"]=>
-  int(0)
   ["access_time"]=>
   int(%d)
-  ["ref_count"]=>
-  int(0)
   ["mem_size"]=>
   int(%d)
-  ["ttl"]=>
-  int(0)
 }
 int(10000)
-array(11) {
+array(7) {
   ["type"]=>
   string(4) "user"
   ["key"]=>
@@ -75,23 +66,15 @@ array(11) {
   string(%d) "%s"
   ["num_hits"]=>
   int(0)
-  ["mtime"]=>
-  int(%d)
   ["creation_time"]=>
   int(%d)
-  ["deletion_time"]=>
-  int(0)
   ["access_time"]=>
   int(%d)
-  ["ref_count"]=>
-  int(0)
   ["mem_size"]=>
   int(%d)
-  ["ttl"]=>
-  int(0)
 }
 int(10000)
-array(11) {
+array(7) {
   ["type"]=>
   string(4) "user"
   ["key"]=>
@@ -100,23 +83,15 @@ array(11) {
   string(%d) "%s"
   ["num_hits"]=>
   int(0)
-  ["mtime"]=>
-  int(%d)
   ["creation_time"]=>
   int(%d)
-  ["deletion_time"]=>
-  int(0)
   ["access_time"]=>
   int(%d)
-  ["ref_count"]=>
-  int(0)
   ["mem_size"]=>
   int(%d)
-  ["ttl"]=>
-  int(0)
 }
 int(10000)
-array(11) {
+array(7) {
   ["type"]=>
   string(4) "user"
   ["key"]=>
@@ -125,23 +100,15 @@ array(11) {
   string(%d) "%s"
   ["num_hits"]=>
   int(0)
-  ["mtime"]=>
-  int(%d)
   ["creation_time"]=>
   int(%d)
-  ["deletion_time"]=>
-  int(0)
   ["access_time"]=>
   int(%d)
-  ["ref_count"]=>
-  int(0)
   ["mem_size"]=>
   int(%d)
-  ["ttl"]=>
-  int(0)
 }
 int(10000)
-array(11) {
+array(7) {
   ["type"]=>
   string(4) "user"
   ["key"]=>
@@ -150,23 +117,15 @@ array(11) {
   string(%d) "%s"
   ["num_hits"]=>
   int(0)
-  ["mtime"]=>
-  int(%d)
   ["creation_time"]=>
   int(%d)
-  ["deletion_time"]=>
-  int(0)
   ["access_time"]=>
   int(%d)
-  ["ref_count"]=>
-  int(0)
   ["mem_size"]=>
   int(%d)
-  ["ttl"]=>
-  int(0)
 }
 int(10000)
-array(11) {
+array(7) {
   ["type"]=>
   string(4) "user"
   ["key"]=>
@@ -175,23 +134,15 @@ array(11) {
   string(%d) "%s"
   ["num_hits"]=>
   int(0)
-  ["mtime"]=>
-  int(%d)
   ["creation_time"]=>
   int(%d)
-  ["deletion_time"]=>
-  int(0)
   ["access_time"]=>
   int(%d)
-  ["ref_count"]=>
-  int(0)
   ["mem_size"]=>
   int(%d)
-  ["ttl"]=>
-  int(0)
 }
 int(10000)
-array(11) {
+array(7) {
   ["type"]=>
   string(4) "user"
   ["key"]=>
@@ -200,23 +151,15 @@ array(11) {
   string(%d) "%s"
   ["num_hits"]=>
   int(0)
-  ["mtime"]=>
-  int(%d)
   ["creation_time"]=>
   int(%d)
-  ["deletion_time"]=>
-  int(0)
   ["access_time"]=>
   int(%d)
-  ["ref_count"]=>
-  int(0)
   ["mem_size"]=>
   int(%d)
-  ["ttl"]=>
-  int(0)
 }
 int(10000)
-array(11) {
+array(7) {
   ["type"]=>
   string(4) "user"
   ["key"]=>
@@ -225,23 +168,15 @@ array(11) {
   string(%d) "%s"
   ["num_hits"]=>
   int(0)
-  ["mtime"]=>
-  int(%d)
   ["creation_time"]=>
   int(%d)
-  ["deletion_time"]=>
-  int(0)
   ["access_time"]=>
   int(%d)
-  ["ref_count"]=>
-  int(0)
   ["mem_size"]=>
   int(%d)
-  ["ttl"]=>
-  int(0)
 }
 int(10000)
-array(11) {
+array(7) {
   ["type"]=>
   string(4) "user"
   ["key"]=>
@@ -250,19 +185,11 @@ array(11) {
   string(%d) "%s"
   ["num_hits"]=>
   int(0)
-  ["mtime"]=>
-  int(%d)
   ["creation_time"]=>
   int(%d)
-  ["deletion_time"]=>
-  int(0)
   ["access_time"]=>
   int(%d)
-  ["ref_count"]=>
-  int(0)
   ["mem_size"]=>
   int(%d)
-  ["ttl"]=>
-  int(0)
 }
 done

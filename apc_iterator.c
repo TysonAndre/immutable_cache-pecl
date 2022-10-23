@@ -463,6 +463,10 @@ int apc_iterator_init(int module_number) {
 	INIT_CLASS_ENTRY(ce, "APCUIterator", class_APCUIterator_methods);
 	apc_iterator_ce = zend_register_internal_class(&ce);
 	apc_iterator_ce->create_object = apc_iterator_create;
+#ifndef ZEND_ACC_NO_DYNAMIC_PROPERTIES
+#define ZEND_ACC_NO_DYNAMIC_PROPERTIES 0
+#endif
+	apc_iterator_ce->ce_flags |= ZEND_ACC_FINAL | ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	zend_class_implements(apc_iterator_ce, 1, zend_ce_iterator);
 
 	REGISTER_LONG_CONSTANT("APC_LIST_ACTIVE", APC_LIST_ACTIVE, CONST_PERSISTENT | CONST_CS);
