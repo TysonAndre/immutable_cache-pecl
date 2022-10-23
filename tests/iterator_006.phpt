@@ -3,9 +3,9 @@ APC: APCIterator formats
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
-apc.enabled=1
-apc.enable_cli=1
-apc.user_entries_hint=4096
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
+immutable_cache.user_entries_hint=4096
 --FILE--
 <?php
 $formats = array(

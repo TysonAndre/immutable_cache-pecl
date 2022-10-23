@@ -1,9 +1,9 @@
 --TEST--
 The outermost value should always be a value, not a reference
 --INI--
-apc.enabled=1
-apc.enable_cli=1
-apc.serializer=default
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
+immutable_cache.serializer=default
 --SKIPIF--
 <?php if (PHP_VERSION_ID >= 80000) die('skip Requires PHP < 8.0.0'); ?>
 --FILE--

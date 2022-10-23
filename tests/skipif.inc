@@ -1,3 +1,3 @@
 <?php
-if (!extension_loaded("apcu")) die("skip APCU extension not loaded");
+if (!extension_loaded("immutable_cache")) die("skip immutable_cache extension not loaded");
 ?>

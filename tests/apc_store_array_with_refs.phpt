@@ -1,9 +1,9 @@
 --TEST--
 Store array that references same value twice
 --INI--
-apc.enabled=1
-apc.enable_cli=1
-apc.serializer=default
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
+immutable_cache.serializer=default
 --FILE--
 <?php
 

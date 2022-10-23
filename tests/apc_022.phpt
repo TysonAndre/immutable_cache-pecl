@@ -6,10 +6,10 @@ require_once(__DIR__ . '/skipif.inc');
 if (!function_exists('immutable_cache_inc_request_time')) die('skip APC debug build required');
 ?>
 --INI--
-apc.enabled=1
-apc.enable_cli=1
-apc.use_request_time=1
-apc.ttl=0
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
+immutable_cache.use_request_time=1
+immutable_cache.ttl=0
 --FILE--
 <?php
 

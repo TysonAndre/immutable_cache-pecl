@@ -5,8 +5,8 @@ immutable_cache_add() with int keys in array should convert them to string
 require_once(__DIR__ . '/skipif.inc');
 ?>
 --INI--
-apc.enabled=1
-apc.enable_cli=1
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
 --FILE--
 <?php
 

@@ -1,9 +1,9 @@
 --TEST--
 Basic immutable_cache_sma_info() test
 --INI--
-apc.enabled=1
-apc.enable_cli=1
-apc.shm_segments=1
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
+immutable_cache.shm_segments=1
 --FILE--
 <?php
 

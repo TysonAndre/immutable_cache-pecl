@@ -3,8 +3,8 @@ GH Bug #247: when a NUL char is used as key, immutable_cache_fetch(array) trunca
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
-apc.enabled=1
-apc.enable_cli=1
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
 --FILE--
 <?php
 immutable_cache_add(array("a\0b" => 'foo'));

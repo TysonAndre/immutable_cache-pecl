@@ -1,10 +1,10 @@
 --TEST--
 Error if cache structures cannot be allocated in SHM
 --INI--
-apc.enabled=1
-apc.enable_cli=1
-apc.shm_size=1M
-apc.entries_hint=1000000
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
+immutable_cache.shm_size=1M
+immutable_cache.entries_hint=1000000
 --FILE--
 Irrelevant
 --EXPECTF--

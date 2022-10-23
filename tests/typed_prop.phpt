@@ -6,8 +6,8 @@ require_once(dirname(__FILE__) . '/skipif.inc');
 version_compare(PHP_VERSION, '7.4.0dev', '>=') or die('skip Requires PHP >= 7.4');
 ?>
 --INI--
-apc.enabled=1
-apc.enable_cli=1
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
 --FILE--
 <?php
 

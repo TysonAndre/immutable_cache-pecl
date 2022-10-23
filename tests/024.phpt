@@ -3,9 +3,9 @@ Looped regression test (may take a while) (from tests/lang/024.phpt)
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
-apc.enabled=1
-apc.cache_by_default=1
-apc.enable_cli=1
+immutable_cache.enabled=1
+immutable_cache.cache_by_default=1
+immutable_cache.enable_cli=1
 --FILE--
 <?php 
 for ($jdk=0; $jdk<50; $jdk++) {

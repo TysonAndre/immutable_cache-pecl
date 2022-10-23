@@ -3,9 +3,9 @@ GH Bug #248: immutable_cache_fetch may return values causing zend_mm_corruption 
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
-apc.enabled=1
-apc.enable_cli=1
-apc.serializer=default
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
+immutable_cache.serializer=default
 --FILE--
 <?php
 

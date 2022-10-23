@@ -3,8 +3,8 @@ Using empty string as key
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
-apc.enabled=1
-apc.enable_cli=1
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
 --FILE--
 <?php
 

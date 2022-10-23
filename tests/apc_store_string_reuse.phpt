@@ -1,9 +1,9 @@
 --TEST--
 The same string is used as the cache key and an array key
 --INI--
-apc.enabled=1
-apc.enable_cli=1
-apc.serializer=default
+immutable_cache.enabled=1
+immutable_cache.enable_cli=1
+immutable_cache.serializer=default
 --FILE--
 <?php
 
