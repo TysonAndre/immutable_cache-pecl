@@ -10,7 +10,7 @@ apc.enable_cli=1
 
 var_dump(immutable_cache_add("key1", "value1"));
 
-$it = new APCUIterator(null, APC_ITER_VALUE);
+$it = new APCUIterator(null, IMMUTABLE_CACHE_ITER_VALUE);
 var_dump($it->key());
 var_dump($it->current());
 $it->next();

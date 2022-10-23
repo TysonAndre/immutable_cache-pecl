@@ -9,13 +9,13 @@
  * @strict-properties
  * @not-serializable
  */
-final class APCUIterator implements Iterator {
+final class ImmutableCacheIterator implements Iterator {
     /** @param array|string|null $search */
     public function __construct(
         $search = null,
-        int $format = APC_ITER_ALL,
+        int $format = IMMUTABLE_CACHE_ITER_ALL,
         int $chunk_size = 0,
-        int $list = APC_LIST_ACTIVE);
+        int $list = IMMUTABLE_CACHE_LIST_ACTIVE);
 
     public function rewind(): void;
 

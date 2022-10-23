@@ -39,7 +39,7 @@ function setup() {
     immutable_cache_add('mytestkey', build_array());
 }
 
-function test_apcu_fetch() {
+function test_immutable_cache_fetch() {
     // Or store second?
     $value = immutable_cache_fetch('mytestkey');
     echo "Fetching the value initially stored into apcu:\n";
@@ -55,7 +55,7 @@ function test_apcu_fetch() {
 }
 
 setup();
-test_apcu_fetch();
+test_immutable_cache_fetch();
 ?>
 --EXPECT--
 Fetching the value initially stored into apcu:

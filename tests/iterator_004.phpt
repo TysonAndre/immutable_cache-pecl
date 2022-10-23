@@ -7,7 +7,7 @@ apc.enabled=1
 apc.enable_cli=1
 --FILE--
 <?php
-$it = new APCuIterator('/key[0-9]0/', APC_ITER_ALL, 1, APC_LIST_ACTIVE);
+$it = new APCuIterator('/key[0-9]0/', IMMUTABLE_CACHE_ITER_ALL, 1, IMMUTABLE_CACHE_LIST_ACTIVE);
 for($i = 0; $i < 41; $i++) {
   immutable_cache_add("key$i", "value$i");
 }

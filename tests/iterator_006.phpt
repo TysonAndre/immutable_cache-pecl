@@ -9,15 +9,15 @@ apc.user_entries_hint=4096
 --FILE--
 <?php
 $formats = array(
-                  APC_ITER_KEY,
-                  APC_ITER_VALUE,
-                  APC_ITER_NUM_HITS,
-                  APC_ITER_CTIME,
-                  APC_ITER_ATIME,
-                  APC_ITER_MEM_SIZE,
-                  APC_ITER_NONE,
-                  APC_ITER_ALL & ~APC_ITER_TYPE,
-                  APC_ITER_KEY | APC_ITER_NUM_HITS | APC_ITER_MEM_SIZE,
+                  IMMUTABLE_CACHE_ITER_KEY,
+                  IMMUTABLE_CACHE_ITER_VALUE,
+                  IMMUTABLE_CACHE_ITER_NUM_HITS,
+                  IMMUTABLE_CACHE_ITER_CTIME,
+                  IMMUTABLE_CACHE_ITER_ATIME,
+                  IMMUTABLE_CACHE_ITER_MEM_SIZE,
+                  IMMUTABLE_CACHE_ITER_NONE,
+                  IMMUTABLE_CACHE_ITER_ALL & ~IMMUTABLE_CACHE_ITER_TYPE,
+                  IMMUTABLE_CACHE_ITER_KEY | IMMUTABLE_CACHE_ITER_NUM_HITS | IMMUTABLE_CACHE_ITER_MEM_SIZE,
                 );
 
 $it_array = array();

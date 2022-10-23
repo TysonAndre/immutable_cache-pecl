@@ -34,7 +34,7 @@ class MyApc
         $ret =  immutable_cache_add($key, $data, $ttl);
 
         if (true !== $ret) {
-            throw new \UnexpectedValueException("apc_store call failed");
+            throw new \UnexpectedValueException("immutable_cache_store call failed");
         }
 
         return $ret;
