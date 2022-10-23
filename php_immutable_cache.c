@@ -159,7 +159,7 @@ static PHP_MINFO_FUNCTION(immutable_cache)
 {
 	php_info_print_table_start();
 	php_info_print_table_row(2, "APCu Support", IMMUTABLE_CACHE_G(enabled) ? "Enabled" : "Disabled");
-	php_info_print_table_row(2, "Version", PHP_APCU_VERSION);
+	php_info_print_table_row(2, "Version", PHP_IMMUTABLE_CACHE_VERSION);
 #ifdef IMMUTABLE_CACHE_DEBUG
 	php_info_print_table_row(2, "APCu Debugging", "Enabled");
 #else
@@ -583,14 +583,14 @@ PHP_FUNCTION(immutable_cache_exists) {
 
 zend_module_entry immutable_cache_module_entry = {
 	STANDARD_MODULE_HEADER,
-	PHP_APCU_EXTNAME,
+	PHP_IMMUTABLE_CACHE_EXTNAME,
 	ext_functions,
 	PHP_MINIT(immutable_cache),
 	PHP_MSHUTDOWN(immutable_cache),
 	PHP_RINIT(immutable_cache),
 	NULL,
 	PHP_MINFO(immutable_cache),
-	PHP_APCU_VERSION,
+	PHP_IMMUTABLE_CACHE_VERSION,
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */

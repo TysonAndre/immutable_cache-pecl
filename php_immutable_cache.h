@@ -27,27 +27,27 @@
 
  */
 
-#ifndef PHP_APCU_H
-#define PHP_APCU_H
+#ifndef PHP_IMMUTABLE_CACHE_H
+#define PHP_IMMUTABLE_CACHE_H
 
 #include "immutable_cache.h"
 #include "immutable_cache_globals.h"
 
-#define PHP_APCU_VERSION "5.1.23-dev"
-#define PHP_APCU_EXTNAME "immutable_cache"
+#define PHP_IMMUTABLE_CACHE_VERSION "5.1.23-dev"
+#define PHP_IMMUTABLE_CACHE_EXTNAME "immutable_cache"
 
 PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_is_enabled(void);
 
 extern zend_module_entry immutable_cache_module_entry;
 #define immutable_cache_module_ptr &immutable_cache_module_entry
 
-#define phpext_apcu_ptr immutable_cache_module_ptr
+#define phpext_immutable_cache_ptr immutable_cache_module_ptr
 
-#if defined(ZTS) && defined(COMPILE_DL_APCU)
+#if defined(ZTS) && defined(COMPILE_DL_IMMUTABLE_CACHE)
 ZEND_TSRMLS_CACHE_EXTERN();
 #endif
 
-#endif /* PHP_APC_H */
+#endif /* PHP_IMMUTABLE_CACHE_H */
 
 /*
  * Local variables:

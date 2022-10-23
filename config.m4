@@ -110,7 +110,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
 			      return 0;
           }
 		    ]])],[ dnl -Success-
-			    APCU_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
+			    IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
 			    PHP_ADD_LIBRARY(pthread)
 				  PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
 			    AC_DEFINE(IMMUTABLE_CACHE_NATIVE_RWLOCK, 1, [ ])
@@ -119,7 +119,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
 			    AC_MSG_RESULT([no])
     			PHP_IMMUTABLE_CACHE_RWLOCKS=no
 		    ],[
-			    APCU_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
+			    IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
 			    PHP_ADD_LIBRARY(pthread)
 				  PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
     ])
@@ -161,7 +161,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
 				    return 0;
         }
 			  ]])],[ dnl -Success-
-				  APCU_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
+				  IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
 				  PHP_ADD_LIBRARY(pthread)
 				  PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
 				  AC_MSG_RESULT([yes])
@@ -170,7 +170,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
 				  AC_MSG_RESULT([no])
     			PHP_IMMUTABLE_CACHE_MUTEX=no
 			  ],[
-				  APCU_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
+				  IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
 				  PHP_ADD_LIBRARY(pthread)
 				  PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
 	  ])
@@ -220,7 +220,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
   ])
 
   for i in -Wall -Wextra -Wno-unused-parameter; do
-    AX_CHECK_COMPILE_FLAG([$i], [APCU_CFLAGS="$APCU_CFLAGS $i"])
+    AX_CHECK_COMPILE_FLAG([$i], [IMMUTABLE_CACHE_CFLAGS="$IMMUTABLE_CACHE_CFLAGS $i"])
   done
 
   immutable_cache_sources="immutable_cache.c immutable_cache_lock.c immutable_cache_mutex.c php_immutable_cache.c \
@@ -234,10 +234,10 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
                  immutable_cache_iterator.c \
                  immutable_cache_persist.c"
 							   
-  PHP_CHECK_LIBRARY(rt, shm_open, [PHP_ADD_LIBRARY(rt,,APCU_SHARED_LIBADD)])
-  PHP_NEW_EXTENSION(immutable_cache, $immutable_cache_sources, $ext_shared,, \\$(APCU_CFLAGS))
-  PHP_SUBST(APCU_SHARED_LIBADD)
-  PHP_SUBST(APCU_CFLAGS)
+  PHP_CHECK_LIBRARY(rt, shm_open, [PHP_ADD_LIBRARY(rt,,IMMUTABLE_CACHE_SHARED_LIBADD)])
+  PHP_NEW_EXTENSION(immutable_cache, $immutable_cache_sources, $ext_shared,, \\$(IMMUTABLE_CACHE_CFLAGS))
+  PHP_SUBST(IMMUTABLE_CACHE_SHARED_LIBADD)
+  PHP_SUBST(IMMUTABLE_CACHE_CFLAGS)
   PHP_SUBST(PHP_LDFLAGS)
   PHP_INSTALL_HEADERS(ext/immutable_cache, [php_immutable_cache.h immutable_cache.h immutable_cache_api.h immutable_cache_cache.h immutable_cache_globals.h immutable_cache_iterator.h immutable_cache_lock.h immutable_cache_mutex.h immutable_cache_sma.h immutable_cache_serializer.h immutable_cache_stack.h immutable_cache_arginfo.h php_immutable_cache_legacy_arginfo.h])
   AC_DEFINE(HAVE_IMMUTABLE_CACHE, 1, [ ])
