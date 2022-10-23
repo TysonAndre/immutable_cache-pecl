@@ -51,6 +51,7 @@
 - Create immutable_cache based on APCu 5.1.23dev
 - Change the extension name, all ini settings, header/source files and symbols
   to avoid conflicting with the installation of APCu on all OSes
+- Drop support for PHP 7.1
  </notes>
  <contents>
   <dir name="/">
@@ -166,7 +167,7 @@
  <dependencies>
   <required>
    <php>
-    <min>7.0.0-dev</min>
+    <min>7.2.0</min>
    </php>
    <pearinstaller>
     <min>1.10</min>
