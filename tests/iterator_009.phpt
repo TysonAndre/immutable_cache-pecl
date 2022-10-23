@@ -18,5 +18,8 @@ var_dump($it->key());
 
 ?>
 --EXPECT--
+bool(true)
 string(3) "foo"
+add not repeat
+bool(true)
 string(3) "foo"

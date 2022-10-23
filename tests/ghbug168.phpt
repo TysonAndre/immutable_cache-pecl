@@ -1,5 +1,5 @@
 --TEST--
-Not really gh bug #168
+gh bug #168 (no longer applies in immutable)
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--

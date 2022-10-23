@@ -14,3 +14,8 @@ var_dump(apcu_fetch($key));
 
 ?>
 --EXPECT--
+bool(true)
+array(1) {
+  ["key"]=>
+  NULL
+}

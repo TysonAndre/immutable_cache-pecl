@@ -25,7 +25,7 @@ if ($pid) {
     // child
     $ret = apcu_add("foo", "child");
     if ($ret === false) {
-        echo "Stampede protection works\n";
+        echo "Stampede protection was removed\n";
     } else {
         echo "Stampede protection doesn't work\n";
     }
@@ -34,4 +34,4 @@ if ($pid) {
 
 ?>
 --EXPECT--
-Stampede protection doesn't work
+Stampede protection was removed

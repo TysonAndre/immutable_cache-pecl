@@ -18,8 +18,6 @@ var_dump(apcu_add($entries));
 $cached_values = apcu_fetch(array_keys($entries));
 var_dump($cached_values);
 
-apcu_delete('key2');
-apcu_delete('key4');
 $cached_values = apcu_fetch(array_keys($entries));
 var_dump($cached_values);
 var_dump(apcu_add($entries));

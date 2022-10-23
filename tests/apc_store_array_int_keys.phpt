@@ -18,8 +18,6 @@ var_dump(apcu_add(["123" => "test"]));
 --EXPECT--
 array(0) {
 }
-array(0) {
-}
 array(1) {
   [123]=>
   int(-1)

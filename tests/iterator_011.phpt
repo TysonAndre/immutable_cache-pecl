@@ -28,6 +28,7 @@ try {
 
 ?>
 --EXPECT--
+bool(true)
 string(4) "key1"
 array(1) {
   ["value"]=>
