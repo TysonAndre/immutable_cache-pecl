@@ -200,34 +200,34 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_serializer(immutable_cache_ca
  * read or write lock, which would deadlock. As such, don't try to acquire a
  * lock if the current thread is inside immutable_cache_entry().
  *
- * Whether the current thread is inside immutable_cache_entry() is tracked by APCG(entry_level).
+ * Whether the current thread is inside immutable_cache_entry() is tracked by IMMUTABLE_CACHE_G(entry_level).
  * This breaks the self-contained immutable_cache_cache_t abstraction, but is currently
  * necessary because the entry_level needs to be tracked per-thread, while
  * immutable_cache_cache_t is a per-process structure.
  */
 
 static inline zend_bool immutable_cache_cache_wlock(immutable_cache_cache_t *cache) {
-	if (!APCG(entry_level)) {
+	if (!IMMUTABLE_CACHE_G(entry_level)) {
 		return WLOCK(&cache->header->lock);
 	}
 	return 1;
 }
 
 static inline void immutable_cache_cache_wunlock(immutable_cache_cache_t *cache) {
-	if (!APCG(entry_level)) {
+	if (!IMMUTABLE_CACHE_G(entry_level)) {
 		WUNLOCK(&cache->header->lock);
 	}
 }
 
 static inline zend_bool immutable_cache_cache_rlock(immutable_cache_cache_t *cache) {
-	if (!APCG(entry_level)) {
+	if (!IMMUTABLE_CACHE_G(entry_level)) {
 		return RLOCK(&cache->header->lock);
 	}
 	return 1;
 }
 
 static inline void immutable_cache_cache_runlock(immutable_cache_cache_t *cache) {
-	if (!APCG(entry_level)) {
+	if (!IMMUTABLE_CACHE_G(entry_level)) {
 		RUNLOCK(&cache->header->lock);
 	}
 }

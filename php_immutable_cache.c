@@ -97,9 +97,9 @@ static PHP_INI_MH(OnUpdateShmSegments) /* {{{ */
 	if (shm_segments != 1) {
 		php_error_docref(NULL, E_WARNING, "apc.shm_segments setting ignored in MMAP mode");
 	}
-	APCG(shm_segments) = 1;
+	IMMUTABLE_CACHE_G(shm_segments) = 1;
 #else
-	APCG(shm_segments) = shm_segments;
+	IMMUTABLE_CACHE_G(shm_segments) = shm_segments;
 #endif
 	return SUCCESS;
 }
@@ -124,7 +124,7 @@ static PHP_INI_MH(OnUpdateShmSize) /* {{{ */
 		s = s * Z_L(1048576);
 	}
 
-	APCG(shm_size) = s;
+	IMMUTABLE_CACHE_G(shm_size) = s;
 
 	return SUCCESS;
 }
@@ -151,14 +151,14 @@ PHP_INI_END()
 
 zend_bool immutable_cache_is_enabled(void)
 {
-	return APCG(enabled);
+	return IMMUTABLE_CACHE_G(enabled);
 }
 
 /* {{{ PHP_MINFO_FUNCTION(immutable_cache) */
 static PHP_MINFO_FUNCTION(immutable_cache)
 {
 	php_info_print_table_start();
-	php_info_print_table_row(2, "APCu Support", APCG(enabled) ? "Enabled" : "Disabled");
+	php_info_print_table_row(2, "APCu Support", IMMUTABLE_CACHE_G(enabled) ? "Enabled" : "Disabled");
 	php_info_print_table_row(2, "Version", PHP_APCU_VERSION);
 #ifdef IMMUTABLE_CACHE_DEBUG
 	php_info_print_table_row(2, "APCu Debugging", "Enabled");
@@ -167,12 +167,12 @@ static PHP_MINFO_FUNCTION(immutable_cache)
 #endif
 #if IMMUTABLE_CACHE_MMAP
 	php_info_print_table_row(2, "MMAP Support", "Enabled");
-	php_info_print_table_row(2, "MMAP File Mask", APCG(mmap_file_mask));
+	php_info_print_table_row(2, "MMAP File Mask", IMMUTABLE_CACHE_G(mmap_file_mask));
 #else
 	php_info_print_table_row(2, "MMAP Support", "Disabled");
 #endif
 
-	if (APCG(enabled)) {
+	if (IMMUTABLE_CACHE_G(enabled)) {
 		immutable_cache_serializer_t *serializer = NULL;
 		smart_str names = {0,};
 		int i;
@@ -224,27 +224,27 @@ static PHP_MINIT_FUNCTION(immutable_cache)
 	IMMUTABLE_CACHE_MUTEX_INIT();
 
 	/* Disable APC in cli mode unless overridden by apc.enable_cli */
-	if (!APCG(enable_cli) && !strcmp(sapi_module.name, "cli")) {
-		APCG(enabled) = 0;
+	if (!IMMUTABLE_CACHE_G(enable_cli) && !strcmp(sapi_module.name, "cli")) {
+		IMMUTABLE_CACHE_G(enabled) = 0;
 	}
 
 	/* only run initialization if APC is enabled */
-	if (APCG(enabled)) {
+	if (IMMUTABLE_CACHE_G(enabled)) {
 
-		if (!APCG(initialized)) {
+		if (!IMMUTABLE_CACHE_G(initialized)) {
 #if IMMUTABLE_CACHE_MMAP
-			char *mmap_file_mask = APCG(mmap_file_mask);
+			char *mmap_file_mask = IMMUTABLE_CACHE_G(mmap_file_mask);
 #else
 			char *mmap_file_mask = NULL;
 #endif
 
 			/* ensure this runs only once */
-			APCG(initialized) = 1;
+			IMMUTABLE_CACHE_G(initialized) = 1;
 
 			/* initialize shared memory allocator */
 			immutable_cache_sma_init(
 				&immutable_cache_sma,
-				APCG(shm_segments), APCG(shm_size), mmap_file_mask);
+				IMMUTABLE_CACHE_G(shm_segments), IMMUTABLE_CACHE_G(shm_size), mmap_file_mask);
 
 			REGISTER_LONG_CONSTANT(IMMUTABLE_CACHE_SERIALIZER_CONSTANT, (zend_long)&_apc_register_serializer, CONST_PERSISTENT | CONST_CS);
 
@@ -258,13 +258,13 @@ static PHP_MINIT_FUNCTION(immutable_cache)
 			/* create user cache */
 			immutable_cache_user_cache = immutable_cache_cache_create(
 				&immutable_cache_sma,
-				immutable_cache_find_serializer(APCG(serializer_name)),
-				APCG(entries_hint));
+				immutable_cache_find_serializer(IMMUTABLE_CACHE_G(serializer_name)),
+				IMMUTABLE_CACHE_G(entries_hint));
 
 			/* preload data from path specified in configuration */
-			if (APCG(preload_path)) {
+			if (IMMUTABLE_CACHE_G(preload_path)) {
 				immutable_cache_cache_preload(
-					immutable_cache_user_cache, APCG(preload_path));
+					immutable_cache_user_cache, IMMUTABLE_CACHE_G(preload_path));
 			}
 		}
 	}
@@ -288,13 +288,13 @@ static PHP_MSHUTDOWN_FUNCTION(immutable_cache)
 	IMMUTABLE_CACHE_MUTEX_CLEANUP();
 
 	/* only shut down if APC is enabled */
-	if (APCG(enabled)) {
-		if (APCG(initialized)) {
+	if (IMMUTABLE_CACHE_G(enabled)) {
+		if (IMMUTABLE_CACHE_G(initialized)) {
 			/* Detach cache and shared memory allocator from shared memory. */
 			immutable_cache_cache_detach(immutable_cache_user_cache);
 			immutable_cache_sma_detach(&immutable_cache_sma);
 
-			APCG(initialized) = 0;
+			IMMUTABLE_CACHE_G(initialized) = 0;
 		}
 
 #if HAVE_SIGACTION
@@ -315,11 +315,11 @@ static PHP_RINIT_FUNCTION(immutable_cache)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 
-	APCG(request_time) = 0;
-	if (APCG(enabled)) {
-		if (APCG(serializer_name)) {
+	IMMUTABLE_CACHE_G(request_time) = 0;
+	if (IMMUTABLE_CACHE_G(enabled)) {
+		if (IMMUTABLE_CACHE_G(serializer_name)) {
 			/* Avoid race conditions between MINIT of apc and serializer exts like igbinary */
-			immutable_cache_cache_serializer(immutable_cache_user_cache, APCG(serializer_name));
+			immutable_cache_cache_serializer(immutable_cache_user_cache, IMMUTABLE_CACHE_G(serializer_name));
 		}
 
 #if HAVE_SIGACTION
@@ -422,9 +422,9 @@ static void immutable_cache_store_helper(INTERNAL_FUNCTION_PARAMETERS)
 		return;
 	}
 
-	if (APCG(serializer_name)) {
+	if (IMMUTABLE_CACHE_G(serializer_name)) {
 		/* Avoid race conditions between MINIT of apc and serializer exts like igbinary */
-		immutable_cache_cache_serializer(immutable_cache_user_cache, APCG(serializer_name));
+		immutable_cache_cache_serializer(immutable_cache_user_cache, IMMUTABLE_CACHE_G(serializer_name));
 	}
 
 	/* TODO: Port to array|string for PHP 8? */
@@ -472,7 +472,7 @@ PHP_FUNCTION(immutable_cache_enabled) {
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
-	RETURN_BOOL(APCG(enabled));
+	RETURN_BOOL(IMMUTABLE_CACHE_G(enabled));
 }
 /* }}} */
 

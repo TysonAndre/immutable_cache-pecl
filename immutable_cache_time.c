@@ -29,10 +29,10 @@
 
 time_t immutable_cache_time(void)
 {
-	if (APCG(use_request_time)) {
-		if (!APCG(request_time))
-			APCG(request_time) = (time_t) sapi_get_request_time();
-		return APCG(request_time);
+	if (IMMUTABLE_CACHE_G(use_request_time)) {
+		if (!IMMUTABLE_CACHE_G(request_time))
+			IMMUTABLE_CACHE_G(request_time) = (time_t) sapi_get_request_time();
+		return IMMUTABLE_CACHE_G(request_time);
 	} else {
 		return time(0);
 	}

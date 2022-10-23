@@ -67,11 +67,11 @@ fi
 
 if test "$PHP_IMMUTABLE_CACHE" != "no"; then
 	if test "$PHP_IMMUTABLE_CACHE_DEBUG" != "no"; then
-		AC_DEFINE(APC_DEBUG, 1, [ ])
+		AC_DEFINE(IMMUTABLE_CACHE_DEBUG, 1, [ ])
 	fi
   
 	if test "$PHP_IMMUTABLE_CACHE_MMAP" != "no"; then
-		AC_DEFINE(APC_MMAP, 1, [ ])
+		AC_DEFINE(IMMUTABLE_CACHE_MMAP, 1, [ ])
 	fi
 
   if test "$PHP_IMMUTABLE_CACHE_RWLOCKS" != "no"; then
@@ -113,7 +113,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
 			    APCU_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
 			    PHP_ADD_LIBRARY(pthread)
 				  PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
-			    AC_DEFINE(APC_NATIVE_RWLOCK, 1, [ ])
+			    AC_DEFINE(IMMUTABLE_CACHE_NATIVE_RWLOCK, 1, [ ])
 			    AC_MSG_RESULT([yes])
 		    ],[ dnl -Failure-
 			    AC_MSG_RESULT([no])
@@ -165,7 +165,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
 				  PHP_ADD_LIBRARY(pthread)
 				  PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
 				  AC_MSG_RESULT([yes])
-				  AC_DEFINE(APC_HAS_PTHREAD_MUTEX, 1, [ ])
+				  AC_DEFINE(IMMUTABLE_CACHE_HAS_PTHREAD_MUTEX, 1, [ ])
 			  ],[ dnl -Failure-
 				  AC_MSG_RESULT([no])
     			PHP_IMMUTABLE_CACHE_MUTEX=no
@@ -180,10 +180,10 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
   if test "$PHP_IMMUTABLE_CACHE_RWLOCKS" = "no"; then
    if test "$PHP_IMMUTABLE_CACHE_MUTEX" = "no"; then
     if test "$PHP_IMMUTABLE_CACHE_SPINLOCK" != "no"; then
-      AC_DEFINE(APC_SPIN_LOCK, 1, [ ])
+      AC_DEFINE(IMMUTABLE_CACHE_SPIN_LOCK, 1, [ ])
       AC_MSG_WARN([immutable_cache spin locking enabled])
     else
-      AC_DEFINE(APC_FCNTL_LOCK, 1, [ ])
+      AC_DEFINE(IMMUTABLE_CACHE_FCNTL_LOCK, 1, [ ])
       AC_MSG_WARN([immutable_cache file locking enabled])
     fi
    fi

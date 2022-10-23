@@ -140,7 +140,7 @@ void immutable_cache_set_signals()
 #if defined(SIGUSR1) && defined(IMMUTABLE_CACHE_CLEAR_SIGNAL)
 		immutable_cache_register_signal(SIGUSR1, immutable_cache_clear_cache);
 #endif
-		if (APCG(coredump_unmap)) {
+		if (IMMUTABLE_CACHE_G(coredump_unmap)) {
 			/* ISO C standard signals that coredump */
 			immutable_cache_register_signal(SIGSEGV, immutable_cache_core_unmap);
 			immutable_cache_register_signal(SIGABRT, immutable_cache_core_unmap);

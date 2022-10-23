@@ -41,7 +41,7 @@ zend_class_entry* immutable_cache_iterator_get_ce(void) {
 
 #define ENSURE_INITIALIZED(iterator) \
 	if (!(iterator)->initialized) { \
-		zend_throw_error(NULL, "Trying to use uninitialized APCUIterator"); \
+		zend_throw_error(NULL, "Trying to use uninitialized ImmutableCacheIterator"); \
 		return; \
 	}
 
@@ -246,20 +246,20 @@ static void immutable_cache_iterator_totals(immutable_cache_iterator_t *iterator
 
 void immutable_cache_iterator_obj_init(immutable_cache_iterator_t *iterator, zval *search, zend_long format, size_t chunk_size, zend_long list)
 {
-	if (!APCG(enabled)) {
-		zend_throw_error(NULL, "APC must be enabled to use APCUIterator");
+	if (!IMMUTABLE_CACHE_G(enabled)) {
+		zend_throw_error(NULL, "APC must be enabled to use ImmutableCacheIterator");
 		return;
 	}
 
 	if (format > IMMUTABLE_CACHE_ITER_ALL) {
-		immutable_cache_error("APCUIterator format is invalid");
+		immutable_cache_error("ImmutableCacheIterator format is invalid");
 		return;
 	}
 
 	if (list == IMMUTABLE_CACHE_LIST_ACTIVE) {
 		iterator->fetch = immutable_cache_iterator_fetch_active;
 	} else {
-		immutable_cache_warning("APCUIterator invalid list type");
+		immutable_cache_warning("ImmutableCacheIterator invalid list type");
 		return;
 	}
 
@@ -295,7 +295,7 @@ void immutable_cache_iterator_obj_init(immutable_cache_iterator_t *iterator, zva
 	iterator->initialized = 1;
 }
 
-PHP_METHOD(APCUIterator, __construct) {
+PHP_METHOD(ImmutableCacheIterator, __construct) {
 	immutable_cache_iterator_t *iterator = immutable_cache_iterator_fetch(getThis());
 	zend_long format = IMMUTABLE_CACHE_ITER_ALL;
 	zend_long chunk_size = 0;
@@ -307,14 +307,14 @@ PHP_METHOD(APCUIterator, __construct) {
 	}
 
 	if (chunk_size < 0) {
-		immutable_cache_error("APCUIterator chunk size must be 0 or greater");
+		immutable_cache_error("ImmutableCacheIterator chunk size must be 0 or greater");
 		return;
 	}
 
 	immutable_cache_iterator_obj_init(iterator, search, format, chunk_size, list);
 }
 
-PHP_METHOD(APCUIterator, rewind) {
+PHP_METHOD(ImmutableCacheIterator, rewind) {
 	immutable_cache_iterator_t *iterator = immutable_cache_iterator_fetch(getThis());
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -329,7 +329,7 @@ PHP_METHOD(APCUIterator, rewind) {
 	iterator->fetch(iterator);
 }
 
-PHP_METHOD(APCUIterator, valid) {
+PHP_METHOD(ImmutableCacheIterator, valid) {
 	immutable_cache_iterator_t *iterator = immutable_cache_iterator_fetch(getThis());
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -345,7 +345,7 @@ PHP_METHOD(APCUIterator, valid) {
 	RETURN_BOOL(immutable_cache_stack_size(iterator->stack) == 0 ? 0 : 1);
 }
 
-PHP_METHOD(APCUIterator, current) {
+PHP_METHOD(ImmutableCacheIterator, current) {
 	immutable_cache_iterator_item_t *item;
 	immutable_cache_iterator_t *iterator = immutable_cache_iterator_fetch(getThis());
 
@@ -366,7 +366,7 @@ PHP_METHOD(APCUIterator, current) {
 	ZVAL_COPY(return_value, &item->value);
 }
 
-PHP_METHOD(APCUIterator, key) {
+PHP_METHOD(ImmutableCacheIterator, key) {
 	immutable_cache_iterator_item_t *item;
 	immutable_cache_iterator_t *iterator = immutable_cache_iterator_fetch(getThis());
 
@@ -391,7 +391,7 @@ PHP_METHOD(APCUIterator, key) {
 	}
 }
 
-PHP_METHOD(APCUIterator, next) {
+PHP_METHOD(ImmutableCacheIterator, next) {
 	immutable_cache_iterator_t *iterator = immutable_cache_iterator_fetch(getThis());
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -407,7 +407,7 @@ PHP_METHOD(APCUIterator, next) {
 	iterator->key_idx++;
 }
 
-PHP_METHOD(APCUIterator, getTotalHits) {
+PHP_METHOD(ImmutableCacheIterator, getTotalHits) {
 	immutable_cache_iterator_t *iterator = immutable_cache_iterator_fetch(getThis());
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -424,7 +424,7 @@ PHP_METHOD(APCUIterator, getTotalHits) {
 }
 /* }}} */
 
-PHP_METHOD(APCUIterator, getTotalSize) {
+PHP_METHOD(ImmutableCacheIterator, getTotalSize) {
 	immutable_cache_iterator_t *iterator = immutable_cache_iterator_fetch(getThis());
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -440,7 +440,7 @@ PHP_METHOD(APCUIterator, getTotalSize) {
 	RETURN_LONG(iterator->size);
 }
 
-PHP_METHOD(APCUIterator, getTotalCount) {
+PHP_METHOD(ImmutableCacheIterator, getTotalCount) {
 	immutable_cache_iterator_t *iterator = immutable_cache_iterator_fetch(getThis());
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -460,7 +460,7 @@ PHP_METHOD(APCUIterator, getTotalCount) {
 int immutable_cache_iterator_init(int module_number) {
 	zend_class_entry ce;
 
-	INIT_CLASS_ENTRY(ce, "APCUIterator", class_APCUIterator_methods);
+	INIT_CLASS_ENTRY(ce, "ImmutableCacheIterator", class_ImmutableCacheIterator_methods);
 	immutable_cache_iterator_ce = zend_register_internal_class(&ce);
 	immutable_cache_iterator_ce->create_object = immutable_cache_iterator_create;
 #ifndef ZEND_ACC_NO_DYNAMIC_PROPERTIES

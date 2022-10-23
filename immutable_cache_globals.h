@@ -68,9 +68,9 @@ ZEND_END_MODULE_GLOBALS(immutable_cache)
 ZEND_EXTERN_MODULE_GLOBALS(immutable_cache)
 
 #ifdef ZTS
-# define APCG(v) TSRMG(immutable_cache_globals_id, zend_immutable_cache_globals *, v)
+# define IMMUTABLE_CACHE_G(v) TSRMG(immutable_cache_globals_id, zend_immutable_cache_globals *, v)
 #else
-# define APCG(v) (immutable_cache_globals.v)
+# define IMMUTABLE_CACHE_G(v) (immutable_cache_globals.v)
 #endif
 
 extern struct _apc_cache_t* immutable_cache_user_cache;
