@@ -26,8 +26,8 @@ if(PHP_IMMUTABLE_CACHE != 'no')
 	AC_DEFINE('IMMUTABLE_CACHE_SRWLOCK_KERNEL', 1);
 	AC_DEFINE('HAVE_IMMUTABLE_CACHE', 1);
 	ADD_FLAG('CFLAGS_IMMUTABLE_CACHE', '/D WIN32_ONLY_COMPILER=1 /DIMMUTABLE_CACHE_SRWLOCK_KERNEL=1');
-	PHP_INSTALL_HEADERS("ext/immutable__cache", "php_immutable_cache.h immutable_cache.h immutable_cache_api.h immutable_cache_cache.h immutable_cache_globals.h immutable_cache_iterator.h immutable_cache_lock.h immutable_cache_mutex.h immutable_cache_sma.h immutable_cache_serializer.h immutable_cache_stack.h immutable_cache_windows_srwlock_kernel.h immutable_cache_arginfo.h php_immutable_cache_legacy_arginfo.h");
+	PHP_INSTALL_HEADERS("ext/immutable_cache", "php_immutable_cache.h immutable_cache.h immutable_cache_api.h immutable_cache_cache.h immutable_cache_globals.h immutable_cache_iterator.h immutable_cache_lock.h immutable_cache_mutex.h immutable_cache_sma.h immutable_cache_serializer.h immutable_cache_stack.h immutable_cache_windows_srwlock_kernel.h immutable_cache_arginfo.h php_immutable_cache_legacy_arginfo.h");
 
-	EXTENSION('immutable__cache', immutable_cache_sources, PHP_IMMUTABLE_CACHE_SHARED, "/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
+	EXTENSION('immutable_cache', immutable_cache_sources, PHP_IMMUTABLE_CACHE_SHARED, "/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
 }
 
