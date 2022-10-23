@@ -184,7 +184,6 @@ static int apc_iterator_search_match(apc_iterator_t *iterator, apc_cache_entry_t
 static size_t apc_iterator_fetch_active(apc_iterator_t *iterator) {
 	size_t count = 0;
 	apc_iterator_item_t *item;
-	time_t t = apc_time();
 
 	while (apc_stack_size(iterator->stack) > 0) {
 		apc_iterator_item_dtor(apc_stack_pop(iterator->stack));
@@ -198,13 +197,11 @@ static size_t apc_iterator_fetch_active(apc_iterator_t *iterator) {
 		while (count <= iterator->chunk_size && iterator->slot_idx < apc_user_cache->nslots) {
 			apc_cache_entry_t *entry = apc_user_cache->slots[iterator->slot_idx];
 			while (entry) {
-				if (apc_iterator_check_expiry(apc_user_cache, entry, t)) {
-					if (apc_iterator_search_match(iterator, entry)) {
-						count++;
-						item = apc_iterator_item_ctor(iterator, entry);
-						if (item) {
-							apc_stack_push(iterator->stack, item);
-						}
+				if (apc_iterator_search_match(iterator, entry)) {
+					count++;
+					item = apc_iterator_item_ctor(iterator, entry);
+					if (item) {
+						apc_stack_push(iterator->stack, item);
 					}
 				}
 				entry = entry->next;
@@ -222,8 +219,6 @@ static size_t apc_iterator_fetch_active(apc_iterator_t *iterator) {
 
 /* {{{ apc_iterator_totals */
 static void apc_iterator_totals(apc_iterator_t *iterator) {
-	time_t t = apc_time();
-
 	if (!apc_cache_rlock(apc_user_cache)) {
 		return;
 	}
@@ -234,12 +229,10 @@ static void apc_iterator_totals(apc_iterator_t *iterator) {
 		for (i=0; i < apc_user_cache->nslots; i++) {
 			apc_cache_entry_t *entry = apc_user_cache->slots[i];
 			while (entry) {
-				if (apc_iterator_check_expiry(apc_user_cache, entry, t)) {
-					if (apc_iterator_search_match(iterator, entry)) {
-						iterator->size += entry->mem_size;
-						iterator->hits += entry->nhits;
-						iterator->count++;
-					}
+				if (apc_iterator_search_match(iterator, entry)) {
+					iterator->size += entry->mem_size;
+					iterator->hits += entry->nhits;
+					iterator->count++;
 				}
 				entry = entry->next;
 			}

@@ -31,6 +31,7 @@
 #endif
 
 #include "apc_cache.h"
+#include "apc_iterator.h"
 #include "apc_sma.h"
 #include "apc_lock.h"
 #include "apc_mutex.h"
@@ -268,6 +269,9 @@ static PHP_MINIT_FUNCTION(apcu)
 		}
 	}
 
+	/* initialize iterator object */
+	apc_iterator_init(module_number);
+
 	return SUCCESS;
 }
 /* }}} */
@@ -297,6 +301,8 @@ static PHP_MSHUTDOWN_FUNCTION(apcu)
 		apc_shutdown_signals();
 #endif
 	}
+
+	apc_iterator_shutdown(module_number);
 
 	UNREGISTER_INI_ENTRIES();
 	return SUCCESS;
