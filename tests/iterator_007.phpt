@@ -12,4 +12,4 @@ class foobar extends APCuIterator {
 }
 ?>
 --EXPECTF--
-Fatal error: Class foobar cannot extend final class APCUIterator in %s on line 2
+Fatal error: Class foobar%sfinal class%sAPCUIterator%sin %s on line %d
