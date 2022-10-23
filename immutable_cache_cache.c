@@ -201,7 +201,7 @@ PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(im
 	cache->shmaddr = immutable_cache_sma_malloc(sma, cache_size);
 
 	if (!cache->shmaddr) {
-		zend_error_noreturn(E_CORE_ERROR, "Unable to allocate %zu bytes of shared memory for cache structures. Either apc.shm_size is too small or apc.entries_hint too large", cache_size);
+		zend_error_noreturn(E_CORE_ERROR, "Unable to allocate %zu bytes of shared memory for cache structures. Either immutable_cache.shm_size is too small or immutable_cache.entries_hint too large", cache_size);
 		return NULL;
 	}
 
@@ -502,7 +502,7 @@ PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_preload(immutable_cache_
 	}
 	return result;
 #else
-	immutable_cache_error("Cannot load data from apc.preload_path=%s in thread-safe mode", path);
+	immutable_cache_error("Cannot load data from immutable_cache.preload_path=%s in thread-safe mode", path);
 	return 0;
 #endif
 } /* }}} */
