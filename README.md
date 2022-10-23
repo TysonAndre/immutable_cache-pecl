@@ -1,25 +1,37 @@
-APCu
-====
+immutable\_cache
+================
 
-APCu is an in-memory key-value store for PHP. Keys are of type string and values can be any PHP variables.
+**Not working yet**
+This is a work in progress PECL repo adding functionality similar to APCu,
+but with immutable values (an immutable serialized copy of mutable values is stored in the serializer)
 
-APCu only supports userland caching of variables.
+This is a fork of the original APCu source code from https://github.com/krakjoe/apcu
 
-APCu is APC stripped of opcode caching.
-See [APCu Backwards Compatibility Module](https://github.com/krakjoe/apcu-bc) which provides a drop in replacement for APC.
+Goals:
 
-[![Build Status](https://travis-ci.org/krakjoe/apcu.svg?branch=master)](https://travis-ci.org/krakjoe/apcu)
-[![Build status](https://ci.appveyor.com/api/projects/status/om63glh4g24gi1p9/branch/master?svg=true)](https://ci.appveyor.com/project/krakjoe/apcu/branch/master)
+- Return the original persistent strings/arrays rather than a copy, on supported platforms.
 
-Documentation
-============
+  (Not implemented yet, not possible in a **mutable** in-memory pool with APCu)
+- Aggressively deduplicate values across cache entries (not possible in APCu due to the need to cache entries separately)
 
-APCu documentation can be found on [php.net](http://php.net/apcu).
+Benefits:
+
+- Can be certain that a value added to the cache doesn't get removed
+- Once implemented, can efficiently load entire immutable arrays or strings in cases where the serializer is not required.
+
+Features
+========
+
+ImmutableCache is an in-memory key-value store for PHP. Keys are of type string and values can be any PHP variables.
+
+APCu only supports userland caching of immutable representations of variables.
+
+See [`php_immutable_cache.stub.php`](./php_immutable_cache.stub.php) for the api.
 
 Reporting Bugs
 =============
 
-If you believe you have found a bug in APCu, please open an issue: Include in your report *minimal, executable, reproducing code*.
+If you believe you have found a bug in `immutable_cache`, please open an issue: Include in your report *minimal, executable, reproducing code*.
 
 Minimal: reduce your problem to the smallest amount of code possible; This helps with hunting the bug, but also it helps with integration and regression testing once the bug is fixed.
 
