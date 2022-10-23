@@ -154,12 +154,12 @@ zend_bool immutable_cache_is_enabled(void)
 static PHP_MINFO_FUNCTION(immutable_cache)
 {
 	php_info_print_table_start();
-	php_info_print_table_row(2, "APCu Support", IMMUTABLE_CACHE_G(enabled) ? "Enabled" : "Disabled");
+	php_info_print_table_row(2, "immutable_cache Support", IMMUTABLE_CACHE_G(enabled) ? "Enabled" : "Disabled");
 	php_info_print_table_row(2, "Version", PHP_IMMUTABLE_CACHE_VERSION);
 #ifdef IMMUTABLE_CACHE_DEBUG
-	php_info_print_table_row(2, "APCu Debugging", "Enabled");
+	php_info_print_table_row(2, "immutable_cache Debugging", "Enabled");
 #else
-	php_info_print_table_row(2, "APCu Debugging", "Disabled");
+	php_info_print_table_row(2, "immutable_cache Debugging", "Disabled");
 #endif
 #if IMMUTABLE_CACHE_MMAP
 	php_info_print_table_row(2, "MMAP Support", "Enabled");
