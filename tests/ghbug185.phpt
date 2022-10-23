@@ -22,7 +22,7 @@ class MyApc
         $rex = '/^' . preg_quote($name) . '\./';
         $counters = array();
 
-        foreach (new \APCuIterator($rex) as $counter) {
+        foreach (new \ImmutableCacheIterator($rex) as $counter) {
             $counters[$counter['key']] = $counter['value'];
         }
 

@@ -135,12 +135,12 @@ STD_PHP_INI_ENTRY("immutable_cache.shm_segments",   "1",    PHP_INI_SYSTEM, OnUp
 STD_PHP_INI_ENTRY("immutable_cache.shm_size",       "32M",  PHP_INI_SYSTEM, OnUpdateShmSize,           shm_size,         zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_ENTRY("immutable_cache.entries_hint",   "4096", PHP_INI_SYSTEM, OnUpdateLong,              entries_hint,     zend_immutable_cache_globals, immutable_cache_globals)
 #if IMMUTABLE_CACHE_MMAP
-STD_PHP_INI_ENTRY("apc.mmap_file_mask",  NULL,  PHP_INI_SYSTEM, OnUpdateString,            mmap_file_mask,   zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.mmap_file_mask",  NULL,  PHP_INI_SYSTEM, OnUpdateString,            mmap_file_mask,   zend_immutable_cache_globals, immutable_cache_globals)
 #endif
-STD_PHP_INI_BOOLEAN("apc.enable_cli",   "0",    PHP_INI_SYSTEM, OnUpdateBool,              enable_cli,       zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("apc.preload_path", (char*)NULL,              PHP_INI_SYSTEM, OnUpdateString,       preload_path,  zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_BOOLEAN("apc.coredump_unmap", "0", PHP_INI_SYSTEM, OnUpdateBool, coredump_unmap, zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("apc.serializer", "php", PHP_INI_SYSTEM, OnUpdateStringUnempty, serializer_name, zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_BOOLEAN("immutable_cache.enable_cli",   "0",    PHP_INI_SYSTEM, OnUpdateBool,              enable_cli,       zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.preload_path", (char*)NULL,              PHP_INI_SYSTEM, OnUpdateString,       preload_path,  zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_BOOLEAN("immutable_cache.coredump_unmap", "0", PHP_INI_SYSTEM, OnUpdateBool, coredump_unmap, zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.serializer", "php", PHP_INI_SYSTEM, OnUpdateStringUnempty, serializer_name, zend_immutable_cache_globals, immutable_cache_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -219,7 +219,7 @@ static PHP_MINIT_FUNCTION(immutable_cache)
 	immutable_cache_lock_init();
 	IMMUTABLE_CACHE_MUTEX_INIT();
 
-	/* Disable APC in cli mode unless overridden by apc.enable_cli */
+	/* Disable APC in cli mode unless overridden by immutable_cache.enable_cli */
 	if (!IMMUTABLE_CACHE_G(enable_cli) && !strcmp(sapi_module.name, "cli")) {
 		IMMUTABLE_CACHE_G(enabled) = 0;
 	}
@@ -336,7 +336,7 @@ PHP_FUNCTION(immutable_cache_cache_info)
 	}
 
 	if (!immutable_cache_cache_info(return_value, immutable_cache_user_cache, limited)) {
-		php_error_docref(NULL, E_WARNING, "No APC info available.  Perhaps APC is not enabled? Check apc.enabled in your ini file");
+		php_error_docref(NULL, E_WARNING, "No APC info available.  Perhaps APC is not enabled? Check immutable_cache.enabled in your ini file");
 		RETURN_FALSE;
 	}
 }
@@ -369,7 +369,7 @@ PHP_FUNCTION(immutable_cache_sma_info)
 	info = immutable_cache_sma_info(&immutable_cache_sma, limited);
 
 	if (!info) {
-		php_error_docref(NULL, E_WARNING, "No APC SMA info available.  Perhaps APC is disabled via apc.enabled?");
+		php_error_docref(NULL, E_WARNING, "No APC SMA info available.  Perhaps APC is disabled via immutable_cache.enabled?");
 		RETURN_FALSE;
 	}
 	array_init(return_value);

@@ -20,7 +20,7 @@ for(\$i=0;\$i<10000;\$i++) {
 }
 
 //then later (usually after a few minutes) this won't work correctly:
-\$it = new APCuIterator('#^test-niko-asdfasdfasdfkjasdflkasjdfasf#');
+\$it = new ImmutableCacheIterator('#^test-niko-asdfasdfasdfkjasdflkasjdfasf#');
 var_dump(\$it->getTotalCount()); //returns 10000
 var_dump(\$it->current()); //returns false on error
 FL;

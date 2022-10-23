@@ -7,7 +7,7 @@ immutable_cache.enabled=1
 immutable_cache.enable_cli=1
 --FILE--
 <?php
-$it = new APCuIterator(['key1', 'key7', 'key9']);
+$it = new ImmutableCacheIterator(['key1', 'key7', 'key9']);
 
 for($i = 0; $i < 10; $i++) {
   immutable_cache_add("key$i", "value$i");

@@ -9,7 +9,7 @@ immutable_cache.enable_cli=1
 <?php
 
 var_dump(immutable_cache_add("foo", 0));
-$it = new APCuIterator();
+$it = new ImmutableCacheIterator();
 $it->rewind();
 var_dump($it->key());
 echo "add not repeat\n";

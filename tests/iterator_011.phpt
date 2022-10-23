@@ -1,5 +1,5 @@
 --TEST--
-APCUIterator key() and current() on invalid iterator
+ImmutableCacheIterator key() and current() on invalid iterator
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -10,7 +10,7 @@ immutable_cache.enable_cli=1
 
 var_dump(immutable_cache_add("key1", "value1"));
 
-$it = new APCUIterator(null, IMMUTABLE_CACHE_ITER_VALUE);
+$it = new ImmutableCacheIterator(null, IMMUTABLE_CACHE_ITER_VALUE);
 var_dump($it->key());
 var_dump($it->current());
 $it->next();
