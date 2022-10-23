@@ -29,8 +29,8 @@
 
  */
 
-#ifndef APC_PHP_H
-#define APC_PHP_H
+#ifndef IMMUTABLE_CACHE_PHP_H
+#define IMMUTABLE_CACHE_PHP_H
 
 /*
  * The purpose of this header file is to include all PHP and Zend headers that

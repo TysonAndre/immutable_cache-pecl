@@ -1,5 +1,5 @@
 --TEST--
-apcu_add() with int keys in array should convert them to string
+immutable_cache_add() with int keys in array should convert them to string
 --SKIPIF--
 <?php
 require_once(__DIR__ . '/skipif.inc');
@@ -10,9 +10,9 @@ apc.enable_cli=1
 --FILE--
 <?php
 
-var_dump(apcu_add(["123" => "test"]));
+var_dump(immutable_cache_add(["123" => "test"]));
 // no store option
-var_dump(apcu_add(["123" => "test"]));
+var_dump(immutable_cache_add(["123" => "test"]));
 
 ?>
 --EXPECT--

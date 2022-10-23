@@ -23,12 +23,12 @@
 
  */
 
-#ifndef APC_TIME_H
-#define APC_TIME_H
+#ifndef IMMUTABLE_CACHE_TIME_H
+#define IMMUTABLE_CACHE_TIME_H
 
 #include <time.h>
 
-time_t apc_time(void);
+time_t immutable_cache_time(void);
 
 #endif
 

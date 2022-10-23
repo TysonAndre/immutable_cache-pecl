@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_fetch resets array pointers
+APC: immutable_cache_fetch resets array pointers
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -9,9 +9,9 @@ apc.enable_cli=1
 <?php
 $items = array('bar', 'baz');
 
-apcu_add('test', $items);
+immutable_cache_add('test', $items);
 
-$back = apcu_fetch('test');
+$back = immutable_cache_fetch('test');
 
 var_dump(current($back));
 var_dump(current($back));

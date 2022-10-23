@@ -1,5 +1,5 @@
 --TEST--
-GH Bug #248: apcu_fetch may return values causing zend_mm_corruption or segfaults when custom serializer is used
+GH Bug #248: immutable_cache_fetch may return values causing zend_mm_corruption or segfaults when custom serializer is used
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -36,12 +36,12 @@ class MyClass {
 }
 
 function setup() {
-    apcu_add('mytestkey', build_array());
+    immutable_cache_add('mytestkey', build_array());
 }
 
 function test_apcu_fetch() {
     // Or store second?
-    $value = apcu_fetch('mytestkey');
+    $value = immutable_cache_fetch('mytestkey');
     echo "Fetching the value initially stored into apcu:\n";
     var_dump($value);
     echo "Done dumping initial fetch\n\n";
@@ -50,8 +50,8 @@ function test_apcu_fetch() {
     echo "\$value was passed by value, not reference. After instantiating class, the array \$value gets modified\n";
     var_dump($value);
 
-    echo "\nAnd calling apcu_fetch again, the original data is preserved (8 keys, params=2)\n";
-    var_dump(apcu_fetch('mytestkey'));
+    echo "\nAnd calling immutable_cache_fetch again, the original data is preserved (8 keys, params=2)\n";
+    var_dump(immutable_cache_fetch('mytestkey'));
 }
 
 setup();
@@ -147,7 +147,7 @@ array(8) {
   int(0)
 }
 
-And calling apcu_fetch again, the original data is preserved (8 keys, params=2)
+And calling immutable_cache_fetch again, the original data is preserved (8 keys, params=2)
 array(8) {
   ["params"]=>
   int(2)

@@ -11,7 +11,7 @@ error_reporting=E_ALL&~E_DEPRECATED
 class Session implements \Serializable
 {
   public $session;
-  public function unserialize($serialized) { $this -> session = apcu_fetch('session'); }
+  public function unserialize($serialized) { $this -> session = immutable_cache_fetch('session'); }
   public function serialize() { return ''; }
 }
 
@@ -20,7 +20,7 @@ class Session implements \Serializable
 $session = ['user' => ['enabled' => True], 'authenticated' => False];
 $session['user']['authenticated'] = &$session['authenticated'];
 
-apcu_add('session', $session);
+immutable_cache_add('session', $session);
 
 // After serializing / deserializing, session checks out as authenticated.
 print unserialize(serialize(new Session())) -> session['authenticated'] === True ? 'Authenticated.' : 'Not Authenticated.';

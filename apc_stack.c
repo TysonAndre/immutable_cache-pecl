@@ -26,17 +26,17 @@
  */
 
 #include "apc.h"
-#include "apc_stack.h"
+#include "immutable_cache_stack.h"
 
-struct apc_stack_t {
+struct immutable_cache_stack_t {
 	void** data;
 	size_t capacity;
 	size_t size;
 };
 
-apc_stack_t* apc_stack_create(size_t size_hint)
+immutable_cache_stack_t* immutable_cache_stack_create(size_t size_hint)
 {
-	apc_stack_t* stack = emalloc(sizeof(apc_stack_t));
+	immutable_cache_stack_t* stack = emalloc(sizeof(immutable_cache_stack_t));
 
 	stack->capacity = (size_hint > 0) ? size_hint : 10;
 	stack->size = 0;
@@ -45,7 +45,7 @@ apc_stack_t* apc_stack_create(size_t size_hint)
 	return stack;
 }
 
-void apc_stack_destroy(apc_stack_t* stack)
+void immutable_cache_stack_destroy(immutable_cache_stack_t* stack)
 {
 	if (stack != NULL) {
 		efree(stack->data);
@@ -53,13 +53,13 @@ void apc_stack_destroy(apc_stack_t* stack)
 	}
 }
 
-void apc_stack_clear(apc_stack_t* stack)
+void immutable_cache_stack_clear(immutable_cache_stack_t* stack)
 {
 	assert(stack != NULL);
 	stack->size = 0;
 }
 
-void apc_stack_push(apc_stack_t* stack, void* item)
+void immutable_cache_stack_push(immutable_cache_stack_t* stack, void* item)
 {
 	assert(stack != NULL);
 	if (stack->size == stack->capacity) {
@@ -69,25 +69,25 @@ void apc_stack_push(apc_stack_t* stack, void* item)
 	stack->data[stack->size++] = item;
 }
 
-void* apc_stack_pop(apc_stack_t* stack)
+void* immutable_cache_stack_pop(immutable_cache_stack_t* stack)
 {
 	assert(stack != NULL && stack->size > 0);
 	return stack->data[--stack->size];
 }
 
-void* apc_stack_top(apc_stack_t* stack)
+void* immutable_cache_stack_top(immutable_cache_stack_t* stack)
 {
 	assert(stack != NULL && stack->size > 0);
 	return stack->data[stack->size-1];
 }
 
-void* apc_stack_get(apc_stack_t* stack, size_t n)
+void* immutable_cache_stack_get(immutable_cache_stack_t* stack, size_t n)
 {
 	assert(stack != NULL && stack->size > n);
 	return stack->data[n];
 }
 
-int apc_stack_size(apc_stack_t* stack)
+int immutable_cache_stack_size(immutable_cache_stack_t* stack)
 {
 	assert(stack != NULL);
 	return stack->size;

@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_add/fetch with arrays with two object references
+APC: immutable_cache_add/fetch with arrays with two object references
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -13,9 +13,9 @@ $foo = array(&$o, &$o);
 
 var_dump($foo);
 
-apcu_add('foo',$foo);
+immutable_cache_add('foo',$foo);
 
-$bar = apcu_fetch('foo');
+$bar = immutable_cache_fetch('foo');
 var_dump($foo);
 // $bar[0] should be a reference to $bar[1].
 var_dump($bar);

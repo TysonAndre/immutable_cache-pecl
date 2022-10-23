@@ -8,7 +8,7 @@ apc.enable_cli=1
 --FILE--
 <?php
 
-var_dump(apcu_add("key1", "value1"));
+var_dump(immutable_cache_add("key1", "value1"));
 
 $it = new APCUIterator(null, APC_ITER_VALUE);
 var_dump($it->key());

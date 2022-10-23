@@ -31,17 +31,17 @@
 #define PHP_APCU_H
 
 #include "apc.h"
-#include "apc_globals.h"
+#include "immutable_cache_globals.h"
 
 #define PHP_APCU_VERSION "5.1.23-dev"
 #define PHP_APCU_EXTNAME "apcu"
 
-PHP_APCU_API zend_bool apc_is_enabled(void);
+PHP_APCU_API zend_bool immutable_cache_is_enabled(void);
 
-extern zend_module_entry apcu_module_entry;
-#define apcu_module_ptr &apcu_module_entry
+extern zend_module_entry immutable_cache_module_entry;
+#define immutable_cache_module_ptr &immutable_cache_module_entry
 
-#define phpext_apcu_ptr apcu_module_ptr
+#define phpext_apcu_ptr immutable_cache_module_ptr
 
 #if defined(ZTS) && defined(COMPILE_DL_APCU)
 ZEND_TSRMLS_CACHE_EXTERN();

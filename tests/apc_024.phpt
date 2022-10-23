@@ -8,9 +8,9 @@ apc.enable_cli=1
 --FILE--
 <?php
 
-var_dump(apcu_add("", 123));
-var_dump(apcu_exists(""));
-var_dump(apcu_fetch(""));
+var_dump(immutable_cache_add("", 123));
+var_dump(immutable_cache_exists(""));
+var_dump(immutable_cache_fetch(""));
 
 ?>
 --EXPECT--

@@ -1,5 +1,5 @@
 --TEST--
-Should be able to pass references to strings to apcu_fetch
+Should be able to pass references to strings to immutable_cache_fetch
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -8,12 +8,12 @@ apc.enable_cli=1
 --FILE--
 <?php
 $array = ['foo', 'bar'];
-var_dump(apcu_add('foo', 'baz'));
-var_dump(apcu_fetch($array));
+var_dump(immutable_cache_add('foo', 'baz'));
+var_dump(immutable_cache_fetch($array));
 var_dump(error_get_last());
 array_walk($array, function(&$item) {});
 var_dump($array);
-var_dump(apcu_fetch($array));
+var_dump(immutable_cache_fetch($array));
 var_dump(error_get_last());
 ?>
 --EXPECT--

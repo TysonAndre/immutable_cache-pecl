@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_add/fetch reference test
+APC: immutable_cache_add/fetch reference test
 --SKIPIF--
 <?php
 require_once(dirname(__FILE__) . '/skipif.inc');
@@ -28,8 +28,8 @@ $b[] = $e;
 $f = array('f');
 $f[] = &$f;
 $b[] = &$f;
-apcu_add('test', $b);
-$x = apcu_fetch('test');
+immutable_cache_add('test', $b);
+$x = immutable_cache_fetch('test');
 debug_zval_dump($x);
 
 ?>

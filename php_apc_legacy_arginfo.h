@@ -28,22 +28,22 @@ ZEND_END_ARG_INFO()
 #define arginfo_apcu_exists arginfo_apcu_key_info
 
 
-PHP_APCU_API ZEND_FUNCTION(apcu_cache_info);
-PHP_APCU_API ZEND_FUNCTION(apcu_key_info);
-PHP_APCU_API ZEND_FUNCTION(apcu_sma_info);
-PHP_APCU_API ZEND_FUNCTION(apcu_enabled);
-PHP_APCU_API ZEND_FUNCTION(apcu_add);
-PHP_APCU_API ZEND_FUNCTION(apcu_fetch);
-PHP_APCU_API ZEND_FUNCTION(apcu_exists);
+PHP_APCU_API ZEND_FUNCTION(immutable_cache_cache_info);
+PHP_APCU_API ZEND_FUNCTION(immutable_cache_key_info);
+PHP_APCU_API ZEND_FUNCTION(immutable_cache_sma_info);
+PHP_APCU_API ZEND_FUNCTION(immutable_cache_enabled);
+PHP_APCU_API ZEND_FUNCTION(immutable_cache_add);
+PHP_APCU_API ZEND_FUNCTION(immutable_cache_fetch);
+PHP_APCU_API ZEND_FUNCTION(immutable_cache_exists);
 
 
 static const zend_function_entry ext_functions[] = {
-	ZEND_FE(apcu_cache_info, arginfo_apcu_cache_info)
-	ZEND_FE(apcu_key_info, arginfo_apcu_key_info)
-	ZEND_FE(apcu_sma_info, arginfo_apcu_sma_info)
-	ZEND_FE(apcu_enabled, arginfo_apcu_enabled)
-	ZEND_FE(apcu_add, arginfo_apcu_add)
-	ZEND_FE(apcu_fetch, arginfo_apcu_fetch)
-	ZEND_FE(apcu_exists, arginfo_apcu_exists)
+	ZEND_FE(immutable_cache_cache_info, arginfo_apcu_cache_info)
+	ZEND_FE(immutable_cache_key_info, arginfo_apcu_key_info)
+	ZEND_FE(immutable_cache_sma_info, arginfo_apcu_sma_info)
+	ZEND_FE(immutable_cache_enabled, arginfo_apcu_enabled)
+	ZEND_FE(immutable_cache_add, arginfo_apcu_add)
+	ZEND_FE(immutable_cache_fetch, arginfo_apcu_fetch)
+	ZEND_FE(immutable_cache_exists, arginfo_apcu_exists)
 	ZEND_FE_END
 };

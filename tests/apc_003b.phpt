@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_add/fetch with objects
+APC: immutable_cache_add/fetch with objects
 --SKIPIF--
 <?php
 require_once(dirname(__FILE__) . '/skipif.inc');
@@ -15,9 +15,9 @@ apc.enable_cli=1
 class foo { }
 $foo = new foo;
 var_dump($foo);
-apcu_add('foo',$foo);
+immutable_cache_add('foo',$foo);
 unset($foo);
-$bar = apcu_fetch('foo');
+$bar = immutable_cache_fetch('foo');
 var_dump($bar);
 $bar->a = true;
 var_dump($bar);
@@ -55,9 +55,9 @@ $baz = new baz;
 var_dump($baz);
 $baz->change();
 var_dump($baz);
-apcu_add('baz', $baz);
+immutable_cache_add('baz', $baz);
 unset($baz);
-var_dump(apcu_fetch('baz'));
+var_dump(immutable_cache_fetch('baz'));
 
 ?>
 ===DONE===

@@ -10,8 +10,8 @@ apc.enable_cli=1
 
 echo "GLOBALS:\n";
 $foo = 1;
-apcu_add("key1", $GLOBALS);
-$globals = apcu_fetch("key1");
+immutable_cache_add("key1", $GLOBALS);
+$globals = immutable_cache_fetch("key1");
 var_dump($globals['foo']);
 
 echo "Object referential identity:\n";
@@ -19,22 +19,22 @@ $obj = new stdClass;
 $obj2 = new stdClass;
 $obj2->obj = $obj;
 $ary = [$obj, $obj2];
-apcu_add("key2", $ary);
+immutable_cache_add("key2", $ary);
 // $obj and $obj2->obj should have the same ID
-var_dump(apcu_fetch("key2"));
+var_dump(immutable_cache_fetch("key2"));
 
 echo "Array next free element:\n";
 $ary = [0, 1];
 unset($ary[1]);
-apcu_add("key3", $ary);
-$ary = apcu_fetch("key3");
+immutable_cache_add("key3", $ary);
+$ary = immutable_cache_fetch("key3");
 // This should use key 1 rather than 2, as
 // nextFreeElement should not be preserved (serialization does not)
 $ary[] = 1;
 var_dump($ary);
 
 echo "Resources:\n";
-apcu_add("key4", fopen(__FILE__, "r"));
+immutable_cache_add("key4", fopen(__FILE__, "r"));
 
 ?>
 --EXPECTF--
@@ -61,4 +61,4 @@ array(2) {
 }
 Resources:
 
-Warning: apcu_add(): Cannot store resources in apcu cache in %s on line %d
+Warning: immutable_cache_add(): Cannot store resources in apcu cache in %s on line %d

@@ -9,8 +9,8 @@ apc.serializer=default
 
 $key = 'key';
 $a = [$key => null];
-var_dump(apcu_add($key, $a));
-var_dump(apcu_fetch($key));
+var_dump(immutable_cache_add($key, $a));
+var_dump(immutable_cache_fetch($key));
 
 ?>
 --EXPECT--

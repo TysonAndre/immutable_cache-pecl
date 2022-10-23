@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_add/fetch/add with array of key/value pairs.
+APC: immutable_cache_add/fetch/add with array of key/value pairs.
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -14,14 +14,14 @@ $entries['key2'] = 'value2';
 $entries['key3'] = array('value3a','value3b');
 $entries['key4'] = 4;
 
-var_dump(apcu_add($entries));
-$cached_values = apcu_fetch(array_keys($entries));
+var_dump(immutable_cache_add($entries));
+$cached_values = immutable_cache_fetch(array_keys($entries));
 var_dump($cached_values);
 
-$cached_values = apcu_fetch(array_keys($entries));
+$cached_values = immutable_cache_fetch(array_keys($entries));
 var_dump($cached_values);
-var_dump(apcu_add($entries));
-$cached_values = apcu_fetch(array_keys($entries));
+var_dump(immutable_cache_add($entries));
+$cached_values = immutable_cache_fetch(array_keys($entries));
 var_dump($cached_values);
 
 ?>

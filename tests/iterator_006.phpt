@@ -27,7 +27,7 @@ foreach ($formats as $idx => $format) {
 }
 
 for($i = 0; $i < 11; $i++) {
-  apcu_add("key$i", "value$i");
+  immutable_cache_add("key$i", "value$i");
 }
 
 foreach ($it_array as $idx => $it) {

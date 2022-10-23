@@ -25,19 +25,19 @@
 
  */
 
-#ifndef APC_MMAP_H
-#define APC_MMAP_H
+#ifndef IMMUTABLE_CACHE_MMAP_H
+#define IMMUTABLE_CACHE_MMAP_H
 
 #include <limits.h>
 
 #include "apc.h"
-#include "apc_sma.h"
+#include "immutable_cache_sma.h"
 
 /* Wrapper functions for shared memory mapped files */
 
-#if APC_MMAP
-apc_segment_t apc_mmap(char *file_mask, size_t size);
-void apc_unmap(apc_segment_t* segment);
+#if IMMUTABLE_CACHE_MMAP
+immutable_cache_segment_t immutable_cache_mmap(char *file_mask, size_t size);
+void immutable_cache_unmap(immutable_cache_segment_t* segment);
 #endif
 
 #endif

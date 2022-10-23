@@ -16,21 +16,21 @@
   +----------------------------------------------------------------------+
  */
 
-#ifndef APC_WINDOWS_CS_RWLOCK_H
-#define APC_WINDOWS_CS_RWLOCK_H
+#ifndef IMMUTABLE_CACHE_WINDOWS_CS_RWLOCK_H
+#define IMMUTABLE_CACHE_WINDOWS_CS_RWLOCK_H
 
 #include "apc.h"
 
-#ifdef APC_SRWLOCK_KERNEL
+#ifdef IMMUTABLE_CACHE_SRWLOCK_KERNEL
 
-typedef SRWLOCK apc_windows_cs_rwlock_t;
+typedef SRWLOCK immutable_cache_windows_cs_rwlock_t;
 
-apc_windows_cs_rwlock_t *apc_windows_cs_create(apc_windows_cs_rwlock_t *lock);
-void apc_windows_cs_destroy(apc_windows_cs_rwlock_t *lock);
-void apc_windows_cs_lock(apc_windows_cs_rwlock_t *lock);
-void apc_windows_cs_rdlock(apc_windows_cs_rwlock_t *lock);
-void apc_windows_cs_unlock_rd(apc_windows_cs_rwlock_t *lock);
-void apc_windows_cs_unlock_wr(apc_windows_cs_rwlock_t *lock);
+immutable_cache_windows_cs_rwlock_t *immutable_cache_windows_cs_create(immutable_cache_windows_cs_rwlock_t *lock);
+void immutable_cache_windows_cs_destroy(immutable_cache_windows_cs_rwlock_t *lock);
+void immutable_cache_windows_cs_lock(immutable_cache_windows_cs_rwlock_t *lock);
+void immutable_cache_windows_cs_rdlock(immutable_cache_windows_cs_rwlock_t *lock);
+void immutable_cache_windows_cs_unlock_rd(immutable_cache_windows_cs_rwlock_t *lock);
+void immutable_cache_windows_cs_unlock_wr(immutable_cache_windows_cs_rwlock_t *lock);
 #endif
 
 #endif

@@ -7,17 +7,17 @@ apc.enabled=1
 apc.enable_cli=1
 --FILE--
 <?php
-apcu_add('prop', 'A');
+immutable_cache_add('prop', 'A');
 
-var_dump($prop = apcu_fetch('prop'));
+var_dump($prop = immutable_cache_fetch('prop'));
 
-apcu_add('prop', ['B']);
+immutable_cache_add('prop', ['B']);
 
-var_dump(apcu_fetch('prop'), $prop);
+var_dump(immutable_cache_fetch('prop'), $prop);
 
-apcu_add('thing', ['C']);
+immutable_cache_add('thing', ['C']);
 
-var_dump(apcu_fetch('prop'), $prop);
+var_dump(immutable_cache_fetch('prop'), $prop);
 ?>
 --EXPECT--
 string(1) "A"

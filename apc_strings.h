@@ -16,10 +16,10 @@
   +----------------------------------------------------------------------+
  */
 
-#ifndef APC_STRINGS_H
-#define APC_STRINGS_H
+#ifndef IMMUTABLE_CACHE_STRINGS_H
+#define IMMUTABLE_CACHE_STRINGS_H
 
-#define APC_STRINGS \
+#define IMMUTABLE_CACHE_STRINGS \
 	X(access_time) \
 	X(creation_time) \
 	X(deletion_time) \
@@ -36,8 +36,8 @@
 	X(user) \
 	X(value) \
 
-#define X(str) extern zend_string *apc_str_ ## str;
-	APC_STRINGS
+#define X(str) extern zend_string *immutable_cache_str_ ## str;
+	IMMUTABLE_CACHE_STRINGS
 #undef X
 
 #endif

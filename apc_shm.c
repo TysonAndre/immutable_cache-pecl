@@ -26,7 +26,7 @@
 
  */
 
-#include "apc_shm.h"
+#include "immutable_cache_shm.h"
 #include "apc.h"
 #ifdef PHP_WIN32
 /* shm functions are available in TSRM */
@@ -45,7 +45,7 @@
 # define SHM_A 0222 /* write permission */
 #endif
 
-int apc_shm_create(int proj, size_t size)
+int immutable_cache_shm_create(int proj, size_t size)
 {
 	int shmid;			/* shared memory id */
 	int oflag;			/* permissions on shm */
@@ -53,27 +53,27 @@ int apc_shm_create(int proj, size_t size)
 
 	oflag = IPC_CREAT | SHM_R | SHM_A;
 	if ((shmid = shmget(key, size, oflag)) < 0) {
-		zend_error_noreturn(E_CORE_ERROR, "apc_shm_create: shmget(%d, %zd, %d) failed: %s. It is possible that the chosen SHM segment size is higher than the operation system allows. Linux has usually a default limit of 32MB per segment.", key, size, oflag, strerror(errno));
+		zend_error_noreturn(E_CORE_ERROR, "immutable_cache_shm_create: shmget(%d, %zd, %d) failed: %s. It is possible that the chosen SHM segment size is higher than the operation system allows. Linux has usually a default limit of 32MB per segment.", key, size, oflag, strerror(errno));
 	}
 
 	return shmid;
 }
 
-void apc_shm_destroy(int shmid)
+void immutable_cache_shm_destroy(int shmid)
 {
 	/* we expect this call to fail often, so we do not check */
 	shmctl(shmid, IPC_RMID, 0);
 }
 
-apc_segment_t apc_shm_attach(int shmid, size_t size)
+immutable_cache_segment_t immutable_cache_shm_attach(int shmid, size_t size)
 {
-	apc_segment_t segment; /* shm segment */
+	immutable_cache_segment_t segment; /* shm segment */
 
 	if ((zend_long)(segment.shmaddr = shmat(shmid, 0, 0)) == -1) {
-		zend_error_noreturn(E_CORE_ERROR, "apc_shm_attach: shmat failed:");
+		zend_error_noreturn(E_CORE_ERROR, "immutable_cache_shm_attach: shmat failed:");
 	}
 
-#ifdef APC_MEMPROTECT
+#ifdef IMMUTABLE_CACHE_MEMPROTECT
 
 	if ((zend_long)(segment.roaddr = shmat(shmid, 0, SHM_RDONLY)) == -1) {
 		segment.roaddr = NULL;
@@ -87,19 +87,19 @@ apc_segment_t apc_shm_attach(int shmid, size_t size)
 	 * We set the shmid for removal immediately after attaching to it. The
 	 * segment won't disappear until all processes have detached from it.
 	 */
-	apc_shm_destroy(shmid);
+	immutable_cache_shm_destroy(shmid);
 	return segment;
 }
 
-void apc_shm_detach(apc_segment_t* segment)
+void immutable_cache_shm_detach(immutable_cache_segment_t* segment)
 {
 	if (shmdt(segment->shmaddr) < 0) {
-		apc_warning("apc_shm_detach: shmdt failed:");
+		immutable_cache_warning("immutable_cache_shm_detach: shmdt failed:");
 	}
 
-#ifdef APC_MEMPROTECT
+#ifdef IMMUTABLE_CACHE_MEMPROTECT
 	if (segment->roaddr && shmdt(segment->roaddr) < 0) {
-		apc_warning("apc_shm_detach: shmdt failed:");
+		immutable_cache_warning("immutable_cache_shm_detach: shmdt failed:");
 	}
 #endif
 }

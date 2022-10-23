@@ -17,11 +17,11 @@ class Test {
 }
 
 $test = new Test;
-apcu_add('foo', 'bar');
-apcu_fetch('foo', $test->bool);
+immutable_cache_add('foo', 'bar');
+immutable_cache_fetch('foo', $test->bool);
 var_dump($test->bool);
 try {
-    apcu_fetch('foo', $test->array);
+    immutable_cache_fetch('foo', $test->array);
 } catch (Error $e) {
     echo $e->getMessage(), "\n";
 }

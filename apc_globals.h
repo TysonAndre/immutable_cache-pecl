@@ -29,8 +29,8 @@
 
  */
 
-#ifndef APC_GLOBALS_H
-#define APC_GLOBALS_H
+#ifndef IMMUTABLE_CACHE_GLOBALS_H
+#define IMMUTABLE_CACHE_GLOBALS_H
 
 #include "apc.h"
 
@@ -40,11 +40,11 @@ ZEND_BEGIN_MODULE_GLOBALS(apcu)
 	zend_long shm_segments;      /* number of shared memory segments to use */
 	zend_long shm_size;          /* size of each shared memory segment (in MB) */
 	zend_long entries_hint;      /* hint at the number of entries expected */
-	zend_long gc_ttl;            /* parameter to apc_cache_create */
-	zend_long ttl;               /* parameter to apc_cache_create */
+	zend_long gc_ttl;            /* parameter to immutable_cache_cache_create */
+	zend_long ttl;               /* parameter to immutable_cache_cache_create */
 	zend_long smart;             /* smart value */
 
-#if APC_MMAP
+#if IMMUTABLE_CACHE_MMAP
 	char *mmap_file_mask;   /* mktemp-style file-mask to pass to mmap */
 #endif
 
@@ -60,7 +60,7 @@ ZEND_BEGIN_MODULE_GLOBALS(apcu)
 
 	char *serializer_name;       /* the serializer config option */
 
-	/* Nesting level of apcu_entry calls. */
+	/* Nesting level of immutable_cache_entry calls. */
 	unsigned int entry_level;
 ZEND_END_MODULE_GLOBALS(apcu)
 
@@ -68,12 +68,12 @@ ZEND_END_MODULE_GLOBALS(apcu)
 ZEND_EXTERN_MODULE_GLOBALS(apcu)
 
 #ifdef ZTS
-# define APCG(v) TSRMG(apcu_globals_id, zend_apcu_globals *, v)
+# define APCG(v) TSRMG(immutable_cache_globals_id, zend_apcu_globals *, v)
 #else
-# define APCG(v) (apcu_globals.v)
+# define APCG(v) (immutable_cache_globals.v)
 #endif
 
-extern struct _apc_cache_t* apc_user_cache;
+extern struct _apc_cache_t* immutable_cache_user_cache;
 
 #endif
 

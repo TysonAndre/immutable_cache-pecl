@@ -17,48 +17,48 @@
 
  */
 
-#ifndef APC_SERIALIZER_H
-#define APC_SERIALIZER_H
+#ifndef IMMUTABLE_CACHE_SERIALIZER_H
+#define IMMUTABLE_CACHE_SERIALIZER_H
 
 /* this is a shipped .h file, do not include any other header in this file */
-#define APC_SERIALIZER_NAME(module) module##_apc_serializer
-#define APC_UNSERIALIZER_NAME(module) module##_apc_unserializer
+#define IMMUTABLE_CACHE_SERIALIZER_NAME(module) module##_apc_serializer
+#define IMMUTABLE_CACHE_UNSERIALIZER_NAME(module) module##_apc_unserializer
 
-#define APC_SERIALIZER_ARGS unsigned char **buf, size_t *buf_len, const zval *value, void *config
-#define APC_UNSERIALIZER_ARGS zval *value, unsigned char *buf, size_t buf_len, void *config
+#define IMMUTABLE_CACHE_SERIALIZER_ARGS unsigned char **buf, size_t *buf_len, const zval *value, void *config
+#define IMMUTABLE_CACHE_UNSERIALIZER_ARGS zval *value, unsigned char *buf, size_t buf_len, void *config
 
-typedef int (*apc_serialize_t)(APC_SERIALIZER_ARGS);
-typedef int (*apc_unserialize_t)(APC_UNSERIALIZER_ARGS);
+typedef int (*immutable_cache_serialize_t)(IMMUTABLE_CACHE_SERIALIZER_ARGS);
+typedef int (*immutable_cache_unserialize_t)(IMMUTABLE_CACHE_UNSERIALIZER_ARGS);
 
-typedef int (*apc_register_serializer_t)(const char* name, apc_serialize_t serialize, apc_unserialize_t unserialize, void *config);
+typedef int (*immutable_cache_register_serializer_t)(const char* name, immutable_cache_serialize_t serialize, immutable_cache_unserialize_t unserialize, void *config);
 
 /*
  * ABI version for constant hooks. Increment this any time you make any changes
  * to any function in this file.
  */
-#define APC_SERIALIZER_ABI "0"
-#define APC_SERIALIZER_CONSTANT "\000apc_register_serializer-" APC_SERIALIZER_ABI
+#define IMMUTABLE_CACHE_SERIALIZER_ABI "0"
+#define IMMUTABLE_CACHE_SERIALIZER_CONSTANT "\000apc_register_serializer-" IMMUTABLE_CACHE_SERIALIZER_ABI
 
-#if !defined(APC_UNUSED)
+#if !defined(IMMUTABLE_CACHE_UNUSED)
 # if defined(__GNUC__)
-#  define APC_UNUSED __attribute__((unused))
+#  define IMMUTABLE_CACHE_UNUSED __attribute__((unused))
 # else
-# define APC_UNUSED
+# define IMMUTABLE_CACHE_UNUSED
 # endif
 #endif
 
-static APC_UNUSED int apc_register_serializer(
-        const char* name, apc_serialize_t serialize, apc_unserialize_t unserialize, void *config)
+static IMMUTABLE_CACHE_UNUSED int immutable_cache_register_serializer(
+        const char* name, immutable_cache_serialize_t serialize, immutable_cache_unserialize_t unserialize, void *config)
 {
 	int retval = 0;
 
 	zend_string *lookup = zend_string_init(
-		APC_SERIALIZER_CONSTANT, sizeof(APC_SERIALIZER_CONSTANT)-1, 0);
+		IMMUTABLE_CACHE_SERIALIZER_CONSTANT, sizeof(IMMUTABLE_CACHE_SERIALIZER_CONSTANT)-1, 0);
 	zval *magic = zend_get_constant(lookup);
 
-	/* zend_get_constant will return 1 on success, otherwise apc_magic_constant wouldn't be touched at all */
+	/* zend_get_constant will return 1 on success, otherwise immutable_cache_magic_constant wouldn't be touched at all */
 	if (magic) {
-		apc_register_serializer_t register_func = (apc_register_serializer_t)(Z_LVAL_P(magic));
+		immutable_cache_register_serializer_t register_func = (immutable_cache_register_serializer_t)(Z_LVAL_P(magic));
 		if(register_func) {
 			retval = register_func(name, serialize, unserialize, NULL);
 		}

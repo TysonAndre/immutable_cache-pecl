@@ -1,9 +1,9 @@
 --TEST--
-apcu_inc/dec() TTL parameter
+immutable_cache_inc/dec() TTL parameter
 --SKIPIF--
 <?php
 require_once(__DIR__ . '/skipif.inc');
-if (!function_exists('apcu_inc_request_time')) die('skip APC debug build required');
+if (!function_exists('immutable_cache_inc_request_time')) die('skip APC debug build required');
 ?>
 --INI--
 apc.enabled=1
@@ -14,14 +14,14 @@ apc.ttl=0
 <?php
 
 $ttl = 1;
-apcu_add("a", 0, $ttl);
-apcu_add("b", 0, $ttl);
+immutable_cache_add("a", 0, $ttl);
+immutable_cache_add("b", 0, $ttl);
 
 for ($i = 0; $i < 6; $i++) {
     echo "T+$i:\n";
-    var_dump(apcu_inc("a"));
-    var_dump(apcu_inc("b", 1, $success, $ttl));
-    apcu_inc_request_time(1);
+    var_dump(immutable_cache_inc("a"));
+    var_dump(immutable_cache_inc("b", 1, $success, $ttl));
+    immutable_cache_inc_request_time(1);
 }
 
 ?>

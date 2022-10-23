@@ -1,5 +1,5 @@
 --TEST--
-Basic apcu_sma_info() test
+Basic immutable_cache_sma_info() test
 --INI--
 apc.enabled=1
 apc.enable_cli=1
@@ -7,9 +7,9 @@ apc.shm_segments=1
 --FILE--
 <?php
 
-apcu_add("key", "value");
-var_dump(apcu_sma_info(true));
-var_dump(apcu_sma_info());
+immutable_cache_add("key", "value");
+var_dump(immutable_cache_sma_info(true));
+var_dump(immutable_cache_sma_info());
 
 ?>
 --EXPECTF--

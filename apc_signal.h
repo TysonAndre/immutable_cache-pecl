@@ -17,25 +17,25 @@
 
  */
 
-#ifndef APC_SIGNAL_H
-#define APC_SIGNAL_H
+#ifndef IMMUTABLE_CACHE_SIGNAL_H
+#define IMMUTABLE_CACHE_SIGNAL_H
 
 #include "apc.h"
-#include "apc_php.h"
+#include "immutable_cache_php.h"
 
-typedef struct apc_signal_entry_t {
+typedef struct immutable_cache_signal_entry_t {
 	int signo;          /* signal number */
 	int siginfo;        /* siginfo style handler calling */
 	void* handler;      /* signal handler */
-} apc_signal_entry_t;
+} immutable_cache_signal_entry_t;
 
-typedef struct apc_signal_info_t {
+typedef struct immutable_cache_signal_info_t {
 	int installed;                  /* How many signals we've installed handles for */
-	apc_signal_entry_t **prev;      /* Previous signal handlers */
-} apc_signal_info_t;
+	immutable_cache_signal_entry_t **prev;      /* Previous signal handlers */
+} immutable_cache_signal_info_t;
 
-void apc_set_signals(void);
-void apc_shutdown_signals(void);
+void immutable_cache_set_signals(void);
+void immutable_cache_shutdown_signals(void);
 
 #endif
 

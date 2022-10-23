@@ -1,5 +1,5 @@
 --TEST--
-APC: apcu_add/fetch with strings
+APC: immutable_cache_add/fetch with strings
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
@@ -9,14 +9,14 @@ apc.enable_cli=1
 <?php
 $foo = 'hello world';
 var_dump($foo);
-apcu_add('foo',$foo);
-$bar = apcu_fetch('foo');
+immutable_cache_add('foo',$foo);
+$bar = immutable_cache_fetch('foo');
 var_dump($bar);
 $bar = 'nice';
 var_dump($bar);
 
-apcu_add('foo\x00bar', $foo);
-$bar = apcu_fetch('foo\x00bar');
+immutable_cache_add('foo\x00bar', $foo);
+$bar = immutable_cache_fetch('foo\x00bar');
 var_dump($bar);
 
 ?>

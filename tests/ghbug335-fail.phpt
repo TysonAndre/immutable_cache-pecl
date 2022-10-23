@@ -15,7 +15,7 @@ apc.use_request_time=1
 <?php
 
 // Reset slam detection.
-apcu_add("foo", "parent");
+immutable_cache_add("foo", "parent");
 
 $pid = pcntl_fork();
 if ($pid) {
@@ -23,7 +23,7 @@ if ($pid) {
     pcntl_wait($status);
 } else {
     // child
-    $ret = apcu_add("foo", "child");
+    $ret = immutable_cache_add("foo", "child");
     if ($ret === false) {
         echo "Stampede protection was removed\n";
     } else {

@@ -26,21 +26,21 @@
 
  */
 
-#include "apc_sma.h"
+#include "immutable_cache_sma.h"
 #include "apc.h"
-#include "apc_globals.h"
-#include "apc_mutex.h"
-#include "apc_shm.h"
-#include "apc_cache.h"
+#include "immutable_cache_globals.h"
+#include "immutable_cache_mutex.h"
+#include "immutable_cache_shm.h"
+#include "immutable_cache_cache.h"
 
 #include <limits.h>
-#include "apc_mmap.h"
+#include "immutable_cache_mmap.h"
 
-#ifdef APC_SMA_DEBUG
+#ifdef IMMUTABLE_CACHE_SMA_DEBUG
 # ifdef HAVE_VALGRIND_MEMCHECK_H
 #  include <valgrind/memcheck.h>
 # endif
-# define APC_SMA_CANARIES 1
+# define IMMUTABLE_CACHE_SMA_CANARIES 1
 #endif
 
 enum {
@@ -49,7 +49,7 @@ enum {
 
 typedef struct sma_header_t sma_header_t;
 struct sma_header_t {
-	apc_mutex_t sma_lock;    /* segment lock */
+	immutable_cache_mutex_t sma_lock;    /* segment lock */
 	size_t segsize;         /* size of entire segment */
 	size_t avail;           /* bytes available (not necessarily contiguous) */
 };
@@ -59,10 +59,10 @@ struct sma_header_t {
 #define SMA_RO(sma, i)   ((char*)(sma->segs[i]).roaddr)
 #define SMA_LCK(sma, i)  ((SMA_HDR(sma, i))->sma_lock)
 
-#define SMA_CREATE_LOCK  APC_CREATE_MUTEX
-#define SMA_DESTROY_LOCK APC_DESTROY_MUTEX
-#define SMA_LOCK(sma, i) APC_MUTEX_LOCK(&SMA_LCK(sma, i))
-#define SMA_UNLOCK(sma, i) APC_MUTEX_UNLOCK(&SMA_LCK(sma, i))
+#define SMA_CREATE_LOCK  IMMUTABLE_CACHE_CREATE_MUTEX
+#define SMA_DESTROY_LOCK IMMUTABLE_CACHE_DESTROY_MUTEX
+#define SMA_LOCK(sma, i) IMMUTABLE_CACHE_MUTEX_LOCK(&SMA_LCK(sma, i))
+#define SMA_UNLOCK(sma, i) IMMUTABLE_CACHE_MUTEX_UNLOCK(&SMA_LCK(sma, i))
 
 #if 0
 /* global counter for identifying blocks
@@ -78,7 +78,7 @@ struct block_t {
 	size_t prev_size;  /* size of sequentially previous block, 0 if prev is allocated */
 	size_t fnext;      /* offset in segment of next free block */
 	size_t fprev;      /* offset in segment of prev free block */
-#ifdef APC_SMA_CANARIES
+#ifdef IMMUTABLE_CACHE_SMA_CANARIES
 	size_t canary;     /* canary to check for memory overwrites */
 #endif
 #if 0
@@ -98,7 +98,7 @@ struct block_t {
 #define PREV_SBLOCK(block) (block->prev_size ? ((block_t*)((char*)block - block->prev_size)) : NULL)
 
 /* Canary macros for setting, checking and resetting memory canaries */
-#ifdef APC_SMA_CANARIES
+#ifdef IMMUTABLE_CACHE_SMA_CANARIES
 	#define SET_CANARY(v) (v)->canary = 0x42424242
 	#define CHECK_CANARY(v) assert((v)->canary == 0x42424242)
 	#define RESET_CANARY(v) (v)->canary = -42
@@ -152,7 +152,7 @@ static inline block_t *find_block(sma_header_t *header, size_t realsize) {
 }
 
 /* {{{ sma_allocate: tries to allocate at least size bytes in a segment */
-static APC_HOTSPOT size_t sma_allocate(sma_header_t *header, size_t size, size_t fragment, size_t *allocated)
+static IMMUTABLE_CACHE_HOTSPOT size_t sma_allocate(sma_header_t *header, size_t size, size_t fragment, size_t *allocated)
 {
 	void* shmaddr;          /* header of shared memory segment */
 	block_t* prv;           /* block prior to working block */
@@ -226,7 +226,7 @@ static APC_HOTSPOT size_t sma_allocate(sma_header_t *header, size_t size, size_t
 /* }}} */
 
 /* {{{ sma_deallocate: deallocates the block at the given offset */
-static APC_HOTSPOT size_t sma_deallocate(void* shmaddr, size_t offset)
+static IMMUTABLE_CACHE_HOTSPOT size_t sma_deallocate(void* shmaddr, size_t offset)
 {
 	sma_header_t* header;   /* header of shared memory segment */
 	block_t* cur;       /* the new block to insert */
@@ -288,7 +288,7 @@ static APC_HOTSPOT size_t sma_deallocate(void* shmaddr, size_t offset)
 /* }}} */
 
 /* {{{ APC SMA API */
-PHP_APCU_API void apc_sma_init(apc_sma_t* sma, int32_t num, size_t size, char *mask) {
+PHP_APCU_API void immutable_cache_sma_init(immutable_cache_sma_t* sma, int32_t num, size_t size, char *mask) {
 	int32_t i;
 
 	if (sma->initialized) {
@@ -297,7 +297,7 @@ PHP_APCU_API void apc_sma_init(apc_sma_t* sma, int32_t num, size_t size, char *m
 
 	sma->initialized = 1;
 
-#if APC_MMAP
+#if IMMUTABLE_CACHE_MMAP
 	/*
 	 * I don't think multiple anonymous mmaps makes any sense
 	 * so force sma_numseg to 1 in this case
@@ -315,25 +315,25 @@ PHP_APCU_API void apc_sma_init(apc_sma_t* sma, int32_t num, size_t size, char *m
 
 	sma->size = size > 0 ? size : DEFAULT_SEGSIZE;
 
-	sma->segs = (apc_segment_t*) pemalloc(sma->num * sizeof(apc_segment_t), 1);
+	sma->segs = (immutable_cache_segment_t*) pemalloc(sma->num * sizeof(immutable_cache_segment_t), 1);
 
 	for (i = 0; i < sma->num; i++) {
 		sma_header_t*   header;
 		block_t     *first, *empty, *last;
 		void*       shmaddr;
 
-#if APC_MMAP
-		sma->segs[i] = apc_mmap(mask, sma->size);
+#if IMMUTABLE_CACHE_MMAP
+		sma->segs[i] = immutable_cache_mmap(mask, sma->size);
 		if(sma->num != 1)
 			memcpy(&mask[strlen(mask)-6], "XXXXXX", 6);
 #else
 		{
-			int j = apc_shm_create(i, sma->size);
+			int j = immutable_cache_shm_create(i, sma->size);
 #if PHP_WIN32
 			/* TODO remove the line below after 7.1 EOL. */
 			SetLastError(0);
 #endif
-			sma->segs[i] = apc_shm_attach(j, sma->size);
+			sma->segs[i] = immutable_cache_shm_attach(j, sma->size);
 		}
 #endif
 
@@ -376,7 +376,7 @@ PHP_APCU_API void apc_sma_init(apc_sma_t* sma, int32_t num, size_t size, char *m
 	}
 }
 
-PHP_APCU_API void apc_sma_detach(apc_sma_t* sma) {
+PHP_APCU_API void immutable_cache_sma_detach(immutable_cache_sma_t* sma) {
 	/* Important: This function should not clean up anything that's in shared memory,
 	 * only detach our process-local use of it. In particular locks cannot be destroyed
 	 * here. */
@@ -386,17 +386,17 @@ PHP_APCU_API void apc_sma_detach(apc_sma_t* sma) {
 	sma->initialized = 0;
 
 	for (i = 0; i < sma->num; i++) {
-#if APC_MMAP
-		apc_unmap(&sma->segs[i]);
+#if IMMUTABLE_CACHE_MMAP
+		immutable_cache_unmap(&sma->segs[i]);
 #else
-		apc_shm_detach(&sma->segs[i]);
+		immutable_cache_shm_detach(&sma->segs[i]);
 #endif
 	}
 
 	free(sma->segs);
 }
 
-PHP_APCU_API void *apc_sma_malloc_ex(apc_sma_t *sma, size_t n, size_t *allocated) {
+PHP_APCU_API void *immutable_cache_sma_malloc_ex(immutable_cache_sma_t *sma, size_t n, size_t *allocated) {
 	size_t fragment = MINBLOCKSIZE;
 	size_t off;
 	int32_t i;
@@ -448,13 +448,13 @@ restart:
 	return NULL;
 }
 
-PHP_APCU_API void* apc_sma_malloc(apc_sma_t* sma, size_t n)
+PHP_APCU_API void* immutable_cache_sma_malloc(immutable_cache_sma_t* sma, size_t n)
 {
 	size_t allocated;
-	return apc_sma_malloc_ex(sma, n, &allocated);
+	return immutable_cache_sma_malloc_ex(sma, n, &allocated);
 }
 
-PHP_APCU_API void apc_sma_free(apc_sma_t* sma, void* p) {
+PHP_APCU_API void immutable_cache_sma_free(immutable_cache_sma_t* sma, void* p) {
 	int32_t i;
 	size_t offset;
 
@@ -480,11 +480,11 @@ PHP_APCU_API void apc_sma_free(apc_sma_t* sma, void* p) {
 		}
 	}
 
-	apc_error("apc_sma_free: could not locate address %p", p);
+	immutable_cache_error("immutable_cache_sma_free: could not locate address %p", p);
 }
 
-#ifdef APC_MEMPROTECT
-PHP_APCU_API void* apc_sma_protect(apc_sma_t* sma, void* p) {
+#ifdef IMMUTABLE_CACHE_MEMPROTECT
+PHP_APCU_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void* p) {
 	unsigned int i = 0;
 	size_t offset;
 
@@ -510,7 +510,7 @@ PHP_APCU_API void* apc_sma_protect(apc_sma_t* sma, void* p) {
 	return NULL;
 }
 
-PHP_APCU_API void* apc_sma_unprotect(apc_sma_t* sma, void* p){
+PHP_APCU_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void* p){
 	unsigned int i = 0;
 	size_t offset;
 
@@ -536,13 +536,13 @@ PHP_APCU_API void* apc_sma_unprotect(apc_sma_t* sma, void* p){
 	return NULL;
 }
 #else
-PHP_APCU_API void* apc_sma_protect(apc_sma_t* sma, void *p) { return p; }
-PHP_APCU_API void* apc_sma_unprotect(apc_sma_t* sma, void *p) { return p; }
+PHP_APCU_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void *p) { return p; }
+PHP_APCU_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void *p) { return p; }
 #endif
 
-PHP_APCU_API apc_sma_info_t *apc_sma_info(apc_sma_t* sma, zend_bool limited) {
-	apc_sma_info_t *info;
-	apc_sma_link_t **link;
+PHP_APCU_API immutable_cache_sma_info_t *immutable_cache_sma_info(immutable_cache_sma_t* sma, zend_bool limited) {
+	immutable_cache_sma_info_t *info;
+	immutable_cache_sma_link_t **link;
 	int32_t i;
 	char *shmaddr;
 	block_t *prv;
@@ -551,11 +551,11 @@ PHP_APCU_API apc_sma_info_t *apc_sma_info(apc_sma_t* sma, zend_bool limited) {
 		return NULL;
 	}
 
-	info = emalloc(sizeof(apc_sma_info_t));
+	info = emalloc(sizeof(immutable_cache_sma_info_t));
 	info->num_seg = sma->num;
 	info->seg_size = sma->size - (ALIGNWORD(sizeof(sma_header_t)) + ALIGNWORD(sizeof(block_t)) + ALIGNWORD(sizeof(block_t)));
 
-	info->list = emalloc(info->num_seg * sizeof(apc_sma_link_t *));
+	info->list = emalloc(info->num_seg * sizeof(immutable_cache_sma_link_t *));
 	for (i = 0; i < sma->num; i++) {
 		info->list[i] = NULL;
 	}
@@ -578,7 +578,7 @@ PHP_APCU_API apc_sma_info_t *apc_sma_info(apc_sma_t* sma, zend_bool limited) {
 
 			CHECK_CANARY(cur);
 
-			*link = emalloc(sizeof(apc_sma_link_t));
+			*link = emalloc(sizeof(immutable_cache_sma_link_t));
 			(*link)->size = cur->size;
 			(*link)->offset = prv->fnext;
 			(*link)->next = NULL;
@@ -593,13 +593,13 @@ PHP_APCU_API apc_sma_info_t *apc_sma_info(apc_sma_t* sma, zend_bool limited) {
 }
 
 /* TODO remove? */
-PHP_APCU_API void apc_sma_free_info(apc_sma_t *sma, apc_sma_info_t *info) {
+PHP_APCU_API void immutable_cache_sma_free_info(immutable_cache_sma_t *sma, immutable_cache_sma_info_t *info) {
 	int i;
 
 	for (i = 0; i < info->num_seg; i++) {
-		apc_sma_link_t *p = info->list[i];
+		immutable_cache_sma_link_t *p = info->list[i];
 		while (p) {
-			apc_sma_link_t *q = p;
+			immutable_cache_sma_link_t *q = p;
 			p = p->next;
 			efree(q);
 		}
@@ -608,7 +608,7 @@ PHP_APCU_API void apc_sma_free_info(apc_sma_t *sma, apc_sma_info_t *info) {
 	efree(info);
 }
 
-PHP_APCU_API size_t apc_sma_get_avail_mem(apc_sma_t* sma) {
+PHP_APCU_API size_t immutable_cache_sma_get_avail_mem(immutable_cache_sma_t* sma) {
 	size_t avail_mem = 0;
 	int32_t i;
 
@@ -619,7 +619,7 @@ PHP_APCU_API size_t apc_sma_get_avail_mem(apc_sma_t* sma) {
 	return avail_mem;
 }
 
-PHP_APCU_API zend_bool apc_sma_get_avail_size(apc_sma_t* sma, size_t size) {
+PHP_APCU_API zend_bool immutable_cache_sma_get_avail_size(immutable_cache_sma_t* sma, size_t size) {
 	int32_t i;
 
 	for (i = 0; i < sma->num; i++) {
@@ -631,7 +631,7 @@ PHP_APCU_API zend_bool apc_sma_get_avail_size(apc_sma_t* sma, size_t size) {
 	return 0;
 }
 
-PHP_APCU_API void apc_sma_check_integrity(apc_sma_t* sma)
+PHP_APCU_API void immutable_cache_sma_check_integrity(immutable_cache_sma_t* sma)
 {
 	/* dummy */
 }

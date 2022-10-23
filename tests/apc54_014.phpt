@@ -15,10 +15,10 @@ include "server_test.inc";
 
 $file = <<<FL
 \$key = 'abc';
-\$b = apcu_exists(\$key);
+\$b = immutable_cache_exists(\$key);
 var_dump(\$b);
 if (\$b) {
-	\$\$key = apcu_fetch(\$key);
+	\$\$key = immutable_cache_fetch(\$key);
 	var_dump(\$\$key);
 }
 FL;

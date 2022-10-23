@@ -7,8 +7,8 @@ apc.serializer=default
 --FILE--
 <?php
 
-apcu_add('test', [&$x, &$x]);
-var_dump(apcu_fetch('test'));
+immutable_cache_add('test', [&$x, &$x]);
+var_dump(immutable_cache_fetch('test'));
 
 ?>
 --EXPECT--

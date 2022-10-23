@@ -15,62 +15,62 @@
   | Author: Fabian Franz <fabian@lionsad.de>                             |
   +----------------------------------------------------------------------+
  */
-#include "apc_mutex.h"
+#include "immutable_cache_mutex.h"
 
-#ifdef APC_HAS_PTHREAD_MUTEX
+#ifdef IMMUTABLE_CACHE_HAS_PTHREAD_MUTEX
 
-static zend_bool apc_mutex_ready = 0;
-static pthread_mutexattr_t apc_mutex_attr;
+static zend_bool immutable_cache_mutex_ready = 0;
+static pthread_mutexattr_t immutable_cache_mutex_attr;
 
-PHP_APCU_API zend_bool apc_mutex_init() {
-	if (apc_mutex_ready) {
+PHP_APCU_API zend_bool immutable_cache_mutex_init() {
+	if (immutable_cache_mutex_ready) {
 		return 1;
 	}
-	apc_mutex_ready = 1;
+	immutable_cache_mutex_ready = 1;
 
-	if (pthread_mutexattr_init(&apc_mutex_attr) != SUCCESS) {
+	if (pthread_mutexattr_init(&immutable_cache_mutex_attr) != SUCCESS) {
 		return 0;
 	}
 
-	if (pthread_mutexattr_setpshared(&apc_mutex_attr, PTHREAD_PROCESS_SHARED) != SUCCESS) {
+	if (pthread_mutexattr_setpshared(&immutable_cache_mutex_attr, PTHREAD_PROCESS_SHARED) != SUCCESS) {
 		return 0;
 	}
 
 	return 1;
 }
 
-PHP_APCU_API void apc_mutex_cleanup() {
-	if (!apc_mutex_ready) {
+PHP_APCU_API void immutable_cache_mutex_cleanup() {
+	if (!immutable_cache_mutex_ready) {
 		return;
 	}
-	apc_mutex_ready = 0;
+	immutable_cache_mutex_ready = 0;
 
-	pthread_mutexattr_destroy(&apc_mutex_attr);
+	pthread_mutexattr_destroy(&immutable_cache_mutex_attr);
 }
 
-PHP_APCU_API zend_bool apc_mutex_create(apc_mutex_t *lock) {
-	pthread_mutex_init(lock, &apc_mutex_attr);
+PHP_APCU_API zend_bool immutable_cache_mutex_create(immutable_cache_mutex_t *lock) {
+	pthread_mutex_init(lock, &immutable_cache_mutex_attr);
 	return 1;
 }
 
-PHP_APCU_API zend_bool apc_mutex_lock(apc_mutex_t *lock) {
+PHP_APCU_API zend_bool immutable_cache_mutex_lock(immutable_cache_mutex_t *lock) {
 	HANDLE_BLOCK_INTERRUPTIONS();
 	if (pthread_mutex_lock(lock) == 0) {
 		return 1;
 	}
 
 	HANDLE_UNBLOCK_INTERRUPTIONS();
-	apc_warning("Failed to acquire lock");
+	immutable_cache_warning("Failed to acquire lock");
 	return 0;
 }
 
-PHP_APCU_API zend_bool apc_mutex_unlock(apc_mutex_t *lock) {
+PHP_APCU_API zend_bool immutable_cache_mutex_unlock(immutable_cache_mutex_t *lock) {
 	pthread_mutex_unlock(lock);
 	HANDLE_UNBLOCK_INTERRUPTIONS();
 	return 1;
 }
 
-PHP_APCU_API void apc_mutex_destroy(apc_mutex_t *lock) {
+PHP_APCU_API void immutable_cache_mutex_destroy(immutable_cache_mutex_t *lock) {
 	pthread_mutex_destroy(lock);
 }
 

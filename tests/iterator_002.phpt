@@ -10,7 +10,7 @@ apc.enable_cli=1
 $it = new APCuIterator('/key[0-9]0/');
 
 for($i = 0; $i < 41; $i++) {
-  apcu_add("key$i", "value$i");
+  immutable_cache_add("key$i", "value$i");
 }
 $vals = [];
 foreach($it as $key=>$value) {

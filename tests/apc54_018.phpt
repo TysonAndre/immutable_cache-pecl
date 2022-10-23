@@ -16,7 +16,7 @@ $file = <<<FL
 //to fill apc cache (~40MB):
 for(\$i=0;\$i<10000;\$i++) {
     \$value = str_repeat(md5(microtime()), 100);
-    apcu_add('test-niko-asdfasdfasdfkjasdflkasjdfasf'.\$i, \$value);
+    immutable_cache_add('test-niko-asdfasdfasdfkjasdflkasjdfasf'.\$i, \$value);
 }
 
 //then later (usually after a few minutes) this won't work correctly:

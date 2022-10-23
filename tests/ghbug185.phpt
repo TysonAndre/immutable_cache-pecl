@@ -31,7 +31,7 @@ class MyApc
 
     public function add($key, $data, $ttl = 0)
     {
-        $ret =  apcu_add($key, $data, $ttl);
+        $ret =  immutable_cache_add($key, $data, $ttl);
 
         if (true !== $ret) {
             throw new \UnexpectedValueException("apc_store call failed");

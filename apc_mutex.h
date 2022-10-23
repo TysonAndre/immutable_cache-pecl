@@ -16,47 +16,47 @@
   +----------------------------------------------------------------------+
  */
 
-#ifndef APC_MUTEX_H
-#define APC_MUTEX_H
+#ifndef IMMUTABLE_CACHE_MUTEX_H
+#define IMMUTABLE_CACHE_MUTEX_H
 
 #include "apc.h"
 
-#ifdef APC_HAS_PTHREAD_MUTEX
+#ifdef IMMUTABLE_CACHE_HAS_PTHREAD_MUTEX
 
 #include "pthread.h"
 
-typedef pthread_mutex_t apc_mutex_t;
+typedef pthread_mutex_t immutable_cache_mutex_t;
 
-PHP_APCU_API zend_bool apc_mutex_init(void);
-PHP_APCU_API void apc_mutex_cleanup(void);
-PHP_APCU_API zend_bool apc_mutex_create(apc_mutex_t *lock);
-PHP_APCU_API zend_bool apc_mutex_lock(apc_mutex_t *lock);
-PHP_APCU_API zend_bool apc_mutex_unlock(apc_mutex_t *lock);
-PHP_APCU_API void apc_mutex_destroy(apc_mutex_t *lock);
+PHP_APCU_API zend_bool immutable_cache_mutex_init(void);
+PHP_APCU_API void immutable_cache_mutex_cleanup(void);
+PHP_APCU_API zend_bool immutable_cache_mutex_create(immutable_cache_mutex_t *lock);
+PHP_APCU_API zend_bool immutable_cache_mutex_lock(immutable_cache_mutex_t *lock);
+PHP_APCU_API zend_bool immutable_cache_mutex_unlock(immutable_cache_mutex_t *lock);
+PHP_APCU_API void immutable_cache_mutex_destroy(immutable_cache_mutex_t *lock);
 
-#define APC_MUTEX_INIT()          apc_mutex_init()
-#define APC_MUTEX_CLEANUP()       apc_mutex_cleanup()
+#define IMMUTABLE_CACHE_MUTEX_INIT()          immutable_cache_mutex_init()
+#define IMMUTABLE_CACHE_MUTEX_CLEANUP()       immutable_cache_mutex_cleanup()
 
-#define APC_CREATE_MUTEX(lock)    apc_mutex_create(lock)
-#define APC_DESTROY_MUTEX(lock)   apc_mutex_destroy(lock)
-#define APC_MUTEX_LOCK(lock)      apc_mutex_lock(lock)
-#define APC_MUTEX_UNLOCK(lock)    apc_mutex_unlock(lock)
+#define IMMUTABLE_CACHE_CREATE_MUTEX(lock)    immutable_cache_mutex_create(lock)
+#define IMMUTABLE_CACHE_DESTROY_MUTEX(lock)   immutable_cache_mutex_destroy(lock)
+#define IMMUTABLE_CACHE_MUTEX_LOCK(lock)      immutable_cache_mutex_lock(lock)
+#define IMMUTABLE_CACHE_MUTEX_UNLOCK(lock)    immutable_cache_mutex_unlock(lock)
 
 #else
 
-#include "apc_lock.h"
+#include "immutable_cache_lock.h"
 
-typedef apc_lock_t apc_mutex_t;
+typedef immutable_cache_lock_t immutable_cache_mutex_t;
 
 // Fallback to normal locks
 
-#define APC_MUTEX_INIT()          
-#define APC_MUTEX_CLEANUP()       
+#define IMMUTABLE_CACHE_MUTEX_INIT()          
+#define IMMUTABLE_CACHE_MUTEX_CLEANUP()       
 
-#define APC_CREATE_MUTEX(lock)    CREATE_LOCK(lock)
-#define APC_DESTROY_MUTEX(lock)   DESTROY_LOCK(lock)
-#define APC_MUTEX_LOCK(lock)      WLOCK(lock)
-#define APC_MUTEX_UNLOCK(lock)    WUNLOCK(lock)
+#define IMMUTABLE_CACHE_CREATE_MUTEX(lock)    CREATE_LOCK(lock)
+#define IMMUTABLE_CACHE_DESTROY_MUTEX(lock)   DESTROY_LOCK(lock)
+#define IMMUTABLE_CACHE_MUTEX_LOCK(lock)      WLOCK(lock)
+#define IMMUTABLE_CACHE_MUTEX_UNLOCK(lock)    WUNLOCK(lock)
 
 #endif
 

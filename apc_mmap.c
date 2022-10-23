@@ -26,10 +26,10 @@
  */
 
 #include "apc.h"
-#include "apc_mmap.h"
-#include "apc_lock.h"
+#include "immutable_cache_mmap.h"
+#include "immutable_cache_lock.h"
 
-#if APC_MMAP
+#if IMMUTABLE_CACHE_MMAP
 
 #include <fcntl.h>
 #include <sys/types.h>
@@ -51,13 +51,13 @@
 # define MAP_ANON MAP_ANONYMOUS
 #endif
 
-apc_segment_t apc_mmap(char *file_mask, size_t size)
+immutable_cache_segment_t immutable_cache_mmap(char *file_mask, size_t size)
 {
-	apc_segment_t segment;
+	immutable_cache_segment_t segment;
 
 	int fd = -1;
 	int flags = MAP_SHARED | MAP_NOSYNC;
-#ifdef APC_MEMPROTECT
+#ifdef IMMUTABLE_CACHE_MEMPROTECT
 	int remap = 1;
 #endif
 
@@ -68,7 +68,7 @@ apc_segment_t apc_mmap(char *file_mask, size_t size)
 #else
 		fd = -1;
 		flags = MAP_SHARED | MAP_ANON;
-#ifdef APC_MEMPROTECT
+#ifdef IMMUTABLE_CACHE_MEMPROTECT
 		remap = 0;
 #endif
 #endif
@@ -81,9 +81,9 @@ apc_segment_t apc_mmap(char *file_mask, size_t size)
 		 * This version would conflict with apcu */
 		fd = open("/dev/zero", O_RDWR, S_IRUSR | S_IWUSR);
 		if(fd == -1) {
-			zend_error_noreturn(E_CORE_ERROR, "apc_mmap: open on /dev/zero failed");
+			zend_error_noreturn(E_CORE_ERROR, "immutable_cache_mmap: open on /dev/zero failed");
 		}
-#ifdef APC_MEMPROTECT
+#ifdef IMMUTABLE_CACHE_MEMPROTECT
 		remap = 0; /* cannot remap */
 #endif
 
@@ -94,12 +94,12 @@ apc_segment_t apc_mmap(char *file_mask, size_t size)
 		 */
 		fd = mkstemp(file_mask);
 		if(fd == -1) {
-			zend_error_noreturn(E_CORE_ERROR, "apc_mmap: mkstemp on %s failed", file_mask);
+			zend_error_noreturn(E_CORE_ERROR, "immutable_cache_mmap: mkstemp on %s failed", file_mask);
 		}
 		if (ftruncate(fd, size) < 0) {
 			close(fd);
 			unlink(file_mask);
-			zend_error_noreturn(E_CORE_ERROR, "apc_mmap: ftruncate failed");
+			zend_error_noreturn(E_CORE_ERROR, "immutable_cache_mmap: ftruncate failed");
 		}
 		unlink(file_mask);
 	}
@@ -107,7 +107,7 @@ apc_segment_t apc_mmap(char *file_mask, size_t size)
 	segment.shmaddr = (void *)mmap(NULL, size, PROT_READ | PROT_WRITE, flags, fd, 0);
 	segment.size = size;
 
-#ifdef APC_MEMPROTECT
+#ifdef IMMUTABLE_CACHE_MEMPROTECT
 	if(remap) {
 		segment.roaddr = (void *)mmap(NULL, size, PROT_READ, flags, fd, 0);
 	} else {
@@ -116,7 +116,7 @@ apc_segment_t apc_mmap(char *file_mask, size_t size)
 #endif
 
 	if ((long)segment.shmaddr == -1) {
-		zend_error_noreturn(E_CORE_ERROR, "apc_mmap: Failed to mmap %zu bytes. Is your apc.shm_size too large?", size);
+		zend_error_noreturn(E_CORE_ERROR, "immutable_cache_mmap: Failed to mmap %zu bytes. Is your apc.shm_size too large?", size);
 	}
 
 #ifdef MADV_HUGEPAGE
@@ -130,15 +130,15 @@ apc_segment_t apc_mmap(char *file_mask, size_t size)
 	return segment;
 }
 
-void apc_unmap(apc_segment_t *segment)
+void immutable_cache_unmap(immutable_cache_segment_t *segment)
 {
 	if (munmap(segment->shmaddr, segment->size) < 0) {
-		apc_warning("apc_unmap: munmap failed");
+		immutable_cache_warning("immutable_cache_unmap: munmap failed");
 	}
 
-#ifdef APC_MEMPROTECT
+#ifdef IMMUTABLE_CACHE_MEMPROTECT
 	if (segment->roaddr && munmap(segment->roaddr, segment->size) < 0) {
-		apc_warning("apc_unmap: munmap failed");
+		immutable_cache_warning("immutable_cache_unmap: munmap failed");
 	}
 #endif
 

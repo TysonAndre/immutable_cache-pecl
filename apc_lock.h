@@ -16,8 +16,8 @@
   +----------------------------------------------------------------------+
  */
 
-#ifndef APC_LOCK_H
-#define APC_LOCK_H
+#ifndef IMMUTABLE_CACHE_LOCK_H
+#define IMMUTABLE_CACHE_LOCK_H
 
 /*
  APCu works most efficiently where there is access to native read/write locks
@@ -39,58 +39,58 @@
 #  define __USE_UNIX98
 # endif
 # include "pthread.h"
-# ifndef APC_SPIN_LOCK
-#   ifndef APC_FCNTL_LOCK
-#       ifdef APC_NATIVE_RWLOCK
-		typedef pthread_rwlock_t apc_lock_t;
-#		define APC_LOCK_SHARED
+# ifndef IMMUTABLE_CACHE_SPIN_LOCK
+#   ifndef IMMUTABLE_CACHE_FCNTL_LOCK
+#       ifdef IMMUTABLE_CACHE_NATIVE_RWLOCK
+		typedef pthread_rwlock_t immutable_cache_lock_t;
+#		define IMMUTABLE_CACHE_LOCK_SHARED
 #       else
-		typedef pthread_mutex_t apc_lock_t;
-#		define APC_LOCK_RECURSIVE
+		typedef pthread_mutex_t immutable_cache_lock_t;
+#		define IMMUTABLE_CACHE_LOCK_RECURSIVE
 #       endif
 #   else
-		typedef int apc_lock_t;
-#		define APC_LOCK_FILE
+		typedef int immutable_cache_lock_t;
+#		define IMMUTABLE_CACHE_LOCK_FILE
 #   endif
 # else
-# define APC_LOCK_NICE 1
+# define IMMUTABLE_CACHE_LOCK_NICE 1
 typedef struct {
 	unsigned long state;
-} apc_lock_t;
+} immutable_cache_lock_t;
 # endif
 #else
 /* XXX kernel lock mode only for now, compatible through all the wins, add more ifdefs for others */
-# include "apc_windows_srwlock_kernel.h"
-typedef apc_windows_cs_rwlock_t apc_lock_t;
-# define APC_LOCK_SHARED
+# include "immutable_cache_windows_srwlock_kernel.h"
+typedef immutable_cache_windows_cs_rwlock_t immutable_cache_lock_t;
+# define IMMUTABLE_CACHE_LOCK_SHARED
 #endif
 
 /* {{{ functions */
 /*
   The following functions should be called once per process:
-	apc_lock_init initializes attributes suitable for all locks
-	apc_lock_cleanup destroys those attributes
+	immutable_cache_lock_init initializes attributes suitable for all locks
+	immutable_cache_lock_cleanup destroys those attributes
   This saves us from having to create and destroy attributes for
   every lock we use at runtime */
-PHP_APCU_API zend_bool apc_lock_init(void);
-PHP_APCU_API void      apc_lock_cleanup(void);
+PHP_APCU_API zend_bool immutable_cache_lock_init(void);
+PHP_APCU_API void      immutable_cache_lock_cleanup(void);
 /*
   The following functions should be self explanitory:
 */
-PHP_APCU_API zend_bool apc_lock_create(apc_lock_t *lock);
-PHP_APCU_API zend_bool apc_lock_rlock(apc_lock_t *lock);
-PHP_APCU_API zend_bool apc_lock_wlock(apc_lock_t *lock);
-PHP_APCU_API zend_bool apc_lock_runlock(apc_lock_t *lock);
-PHP_APCU_API zend_bool apc_lock_wunlock(apc_lock_t *lock);
-PHP_APCU_API void apc_lock_destroy(apc_lock_t *lock); /* }}} */
+PHP_APCU_API zend_bool immutable_cache_lock_create(immutable_cache_lock_t *lock);
+PHP_APCU_API zend_bool immutable_cache_lock_rlock(immutable_cache_lock_t *lock);
+PHP_APCU_API zend_bool immutable_cache_lock_wlock(immutable_cache_lock_t *lock);
+PHP_APCU_API zend_bool immutable_cache_lock_runlock(immutable_cache_lock_t *lock);
+PHP_APCU_API zend_bool immutable_cache_lock_wunlock(immutable_cache_lock_t *lock);
+PHP_APCU_API void immutable_cache_lock_destroy(immutable_cache_lock_t *lock); /* }}} */
 
 /* {{{ generic locking macros */
-#define CREATE_LOCK(lock)     apc_lock_create(lock)
-#define DESTROY_LOCK(lock)    apc_lock_destroy(lock)
-#define WLOCK(lock)           apc_lock_wlock(lock)
-#define WUNLOCK(lock)         { apc_lock_wunlock(lock); HANDLE_UNBLOCK_INTERRUPTIONS(); }
-#define RLOCK(lock)           apc_lock_rlock(lock)
-#define RUNLOCK(lock)         { apc_lock_runlock(lock); HANDLE_UNBLOCK_INTERRUPTIONS(); }
+#define CREATE_LOCK(lock)     immutable_cache_lock_create(lock)
+#define DESTROY_LOCK(lock)    immutable_cache_lock_destroy(lock)
+#define WLOCK(lock)           immutable_cache_lock_wlock(lock)
+#define WUNLOCK(lock)         { immutable_cache_lock_wunlock(lock); HANDLE_UNBLOCK_INTERRUPTIONS(); }
+#define RLOCK(lock)           immutable_cache_lock_rlock(lock)
+#define RUNLOCK(lock)         { immutable_cache_lock_runlock(lock); HANDLE_UNBLOCK_INTERRUPTIONS(); }
 /* }}} */
 
 /* atomic operations */

@@ -29,8 +29,8 @@
 
  */
 
-#ifndef APC_H
-#define APC_H
+#ifndef IMMUTABLE_CACHE_H
+#define IMMUTABLE_CACHE_H
 
 /*
  * This module defines utilities and helper functions used elsewhere in APC.
@@ -68,75 +68,75 @@
 #include "main/php_streams.h"
 
 /* console display functions */
-PHP_APCU_API void apc_error(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
-PHP_APCU_API void apc_warning(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
-PHP_APCU_API void apc_notice(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
-PHP_APCU_API void apc_debug(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
+PHP_APCU_API void immutable_cache_error(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
+PHP_APCU_API void immutable_cache_warning(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
+PHP_APCU_API void immutable_cache_notice(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
+PHP_APCU_API void immutable_cache_debug(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
 
-/* apc_flip_hash flips keys and values for faster searching */
-PHP_APCU_API HashTable* apc_flip_hash(HashTable *hash);
+/* immutable_cache_flip_hash flips keys and values for faster searching */
+PHP_APCU_API HashTable* immutable_cache_flip_hash(HashTable *hash);
 
 #if defined(__GNUC__)
-# define APC_UNUSED __attribute__((unused))
-# define APC_USED __attribute__((used))
-# define APC_ALLOC __attribute__((malloc))
+# define IMMUTABLE_CACHE_UNUSED __attribute__((unused))
+# define IMMUTABLE_CACHE_USED __attribute__((used))
+# define IMMUTABLE_CACHE_ALLOC __attribute__((malloc))
 # if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__  > 2)
-#  define APC_HOTSPOT __attribute__((hot))
+#  define IMMUTABLE_CACHE_HOTSPOT __attribute__((hot))
 # else
-#  define APC_HOTSPOT
+#  define IMMUTABLE_CACHE_HOTSPOT
 # endif
 #else
-# define APC_UNUSED
-# define APC_USED
-# define APC_ALLOC
-# define APC_HOTSPOT
+# define IMMUTABLE_CACHE_UNUSED
+# define IMMUTABLE_CACHE_USED
+# define IMMUTABLE_CACHE_ALLOC
+# define IMMUTABLE_CACHE_HOTSPOT
 #endif
 
 /*
 * Serializer API
 */
-#define APC_SERIALIZER_ABI "0"
-#define APC_SERIALIZER_CONSTANT "\000apc_register_serializer-" APC_SERIALIZER_ABI
+#define IMMUTABLE_CACHE_SERIALIZER_ABI "0"
+#define IMMUTABLE_CACHE_SERIALIZER_CONSTANT "\000apc_register_serializer-" IMMUTABLE_CACHE_SERIALIZER_ABI
 
-#define APC_SERIALIZER_NAME(module) module##_apc_serializer
-#define APC_UNSERIALIZER_NAME(module) module##_apc_unserializer
+#define IMMUTABLE_CACHE_SERIALIZER_NAME(module) module##_apc_serializer
+#define IMMUTABLE_CACHE_UNSERIALIZER_NAME(module) module##_apc_unserializer
 
-#define APC_SERIALIZER_ARGS unsigned char **buf, size_t *buf_len, const zval *value, void *config
-#define APC_UNSERIALIZER_ARGS zval *value, unsigned char *buf, size_t buf_len, void *config
+#define IMMUTABLE_CACHE_SERIALIZER_ARGS unsigned char **buf, size_t *buf_len, const zval *value, void *config
+#define IMMUTABLE_CACHE_UNSERIALIZER_ARGS zval *value, unsigned char *buf, size_t buf_len, void *config
 
-typedef int (*apc_serialize_t)(APC_SERIALIZER_ARGS);
-typedef int (*apc_unserialize_t)(APC_UNSERIALIZER_ARGS);
+typedef int (*immutable_cache_serialize_t)(IMMUTABLE_CACHE_SERIALIZER_ARGS);
+typedef int (*immutable_cache_unserialize_t)(IMMUTABLE_CACHE_UNSERIALIZER_ARGS);
 
-/* {{{ struct definition: apc_serializer_t */
-typedef struct apc_serializer_t {
+/* {{{ struct definition: immutable_cache_serializer_t */
+typedef struct immutable_cache_serializer_t {
 	const char*        name;
-	apc_serialize_t    serialize;
-	apc_unserialize_t  unserialize;
+	immutable_cache_serialize_t    serialize;
+	immutable_cache_unserialize_t  unserialize;
 	void*              config;
-} apc_serializer_t;
+} immutable_cache_serializer_t;
 /* }}} */
 
 /* {{{ _apc_register_serializer
  registers the serializer using the given name and parameters */
 PHP_APCU_API int _apc_register_serializer(
-        const char* name, apc_serialize_t serialize, apc_unserialize_t unserialize, void *config);
+        const char* name, immutable_cache_serialize_t serialize, immutable_cache_unserialize_t unserialize, void *config);
 /* }}} */
 
-/* {{{ apc_get_serializers
+/* {{{ immutable_cache_get_serializers
  fetches the list of serializers */
-PHP_APCU_API apc_serializer_t* apc_get_serializers(void); /* }}} */
+PHP_APCU_API immutable_cache_serializer_t* immutable_cache_get_serializers(void); /* }}} */
 
-/* {{{ apc_find_serializer
+/* {{{ immutable_cache_find_serializer
  finds a previously registered serializer by name */
-PHP_APCU_API apc_serializer_t* apc_find_serializer(const char* name); /* }}} */
+PHP_APCU_API immutable_cache_serializer_t* immutable_cache_find_serializer(const char* name); /* }}} */
 
 /* {{{ default serializers */
-PHP_APCU_API int APC_SERIALIZER_NAME(php) (APC_SERIALIZER_ARGS);
-PHP_APCU_API int APC_UNSERIALIZER_NAME(php) (APC_UNSERIALIZER_ARGS); /* }}} */
+PHP_APCU_API int IMMUTABLE_CACHE_SERIALIZER_NAME(php) (IMMUTABLE_CACHE_SERIALIZER_ARGS);
+PHP_APCU_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS); /* }}} */
 
 /* {{{ eval serializers */
-PHP_APCU_API int APC_SERIALIZER_NAME(eval) (APC_SERIALIZER_ARGS);
-PHP_APCU_API int APC_UNSERIALIZER_NAME(eval) (APC_UNSERIALIZER_ARGS); /* }}} */
+PHP_APCU_API int IMMUTABLE_CACHE_SERIALIZER_NAME(eval) (IMMUTABLE_CACHE_SERIALIZER_ARGS);
+PHP_APCU_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(eval) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS); /* }}} */
 
 #define php_apc_try                        \
 {                                          \

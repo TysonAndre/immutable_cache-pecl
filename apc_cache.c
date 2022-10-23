@@ -28,11 +28,11 @@
 
  */
 
-#include "apc_cache.h"
-#include "apc_sma.h"
-#include "apc_globals.h"
-#include "apc_strings.h"
-#include "apc_time.h"
+#include "immutable_cache_cache.h"
+#include "immutable_cache_sma.h"
+#include "immutable_cache_globals.h"
+#include "immutable_cache_strings.h"
+#include "immutable_cache_time.h"
 #include "php_scandir.h"
 #include "SAPI.h"
 #include "TSRM.h"
@@ -49,16 +49,16 @@
 /* If recursive mutexes are used, there is no distinction between read and write locks.
  * As such, if we acquire a read-lock, it's really a write-lock and we are free to perform
  * increments without atomics. */
-#ifdef APC_LOCK_RECURSIVE
+#ifdef IMMUTABLE_CACHE_LOCK_RECURSIVE
 # define ATOMIC_INC_RLOCKED(a) (a)++
 #else
 # define ATOMIC_INC_RLOCKED(a) ATOMIC_INC(a)
 #endif
 
-/* Defined in apc_persist.c */
-apc_cache_entry_t *apc_persist(
-		apc_sma_t *sma, apc_serializer_t *serializer, const apc_cache_entry_t *orig_entry);
-zend_bool apc_unpersist(zval *dst, const zval *value, apc_serializer_t *serializer);
+/* Defined in immutable_cache_persist.c */
+immutable_cache_cache_entry_t *immutable_cache_persist(
+		immutable_cache_sma_t *sma, immutable_cache_serializer_t *serializer, const immutable_cache_cache_entry_t *orig_entry);
+zend_bool immutable_cache_unpersist(zval *dst, const zval *value, immutable_cache_serializer_t *serializer);
 
 /* TODO can this be bigger? */
 
@@ -111,27 +111,27 @@ static int make_prime(int n)
 }
 /* }}} */
 
-static inline void free_entry(apc_cache_t *cache, apc_cache_entry_t *entry) {
-	apc_sma_free(cache->sma, entry);
+static inline void free_entry(immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *entry) {
+	immutable_cache_sma_free(cache->sma, entry);
 }
 
-/* {{{ apc_cache_hash_slot
+/* {{{ immutable_cache_cache_hash_slot
  Note: These calculations can and should be done outside of a lock */
-static inline void apc_cache_hash_slot(
-		apc_cache_t* cache, zend_string *key, zend_ulong* hash, size_t* slot) {
+static inline void immutable_cache_cache_hash_slot(
+		immutable_cache_cache_t* cache, zend_string *key, zend_ulong* hash, size_t* slot) {
 	*hash = ZSTR_HASH(key);
 	*slot = *hash % cache->nslots;
 } /* }}} */
 
 // TODO will they be the same pointer?
-static inline zend_bool apc_entry_key_equals(const apc_cache_entry_t *entry, zend_string *key, zend_ulong hash) {
+static inline zend_bool immutable_cache_entry_key_equals(const immutable_cache_cache_entry_t *entry, zend_string *key, zend_ulong hash) {
 	return ZSTR_H(entry->key) == hash
 		&& ZSTR_LEN(entry->key) == ZSTR_LEN(key)
 		&& memcmp(ZSTR_VAL(entry->key), ZSTR_VAL(key), ZSTR_LEN(key)) == 0;
 }
 
 /* {{{ php serializer */
-PHP_APCU_API int APC_SERIALIZER_NAME(php) (APC_SERIALIZER_ARGS)
+PHP_APCU_API int IMMUTABLE_CACHE_SERIALIZER_NAME(php) (IMMUTABLE_CACHE_SERIALIZER_ARGS)
 {
 	smart_str strbuf = {0};
 	php_serialize_data_t var_hash;
@@ -161,7 +161,7 @@ PHP_APCU_API int APC_SERIALIZER_NAME(php) (APC_SERIALIZER_ARGS)
 } /* }}} */
 
 /* {{{ php unserializer */
-PHP_APCU_API int APC_UNSERIALIZER_NAME(php) (APC_UNSERIALIZER_ARGS)
+PHP_APCU_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS)
 {
 	const unsigned char *tmp = buf;
 	php_unserialize_data_t var_hash;
@@ -182,9 +182,9 @@ PHP_APCU_API int APC_UNSERIALIZER_NAME(php) (APC_UNSERIALIZER_ARGS)
 	return 1;
 } /* }}} */
 
-/* {{{ apc_cache_create */
-PHP_APCU_API apc_cache_t* apc_cache_create(apc_sma_t* sma, apc_serializer_t* serializer, zend_long size_hint) {
-	apc_cache_t* cache;
+/* {{{ immutable_cache_cache_create */
+PHP_APCU_API immutable_cache_cache_t* immutable_cache_cache_create(immutable_cache_sma_t* sma, immutable_cache_serializer_t* serializer, zend_long size_hint) {
+	immutable_cache_cache_t* cache;
 	zend_long cache_size;
 	size_t nslots;
 
@@ -192,13 +192,13 @@ PHP_APCU_API apc_cache_t* apc_cache_create(apc_sma_t* sma, apc_serializer_t* ser
 	nslots = make_prime(size_hint > 0 ? size_hint : 2000);
 
 	/* allocate pointer by normal means */
-	cache = pemalloc(sizeof(apc_cache_t), 1);
+	cache = pemalloc(sizeof(immutable_cache_cache_t), 1);
 
 	/* calculate cache size for shm allocation */
-	cache_size = sizeof(apc_cache_header_t) + nslots*sizeof(apc_cache_entry_t *);
+	cache_size = sizeof(immutable_cache_cache_header_t) + nslots*sizeof(immutable_cache_cache_entry_t *);
 
 	/* allocate shm */
-	cache->shmaddr = apc_sma_malloc(sma, cache_size);
+	cache->shmaddr = immutable_cache_sma_malloc(sma, cache_size);
 
 	if (!cache->shmaddr) {
 		zend_error_noreturn(E_CORE_ERROR, "Unable to allocate %zu bytes of shared memory for cache structures. Either apc.shm_size is too small or apc.entries_hint too large", cache_size);
@@ -209,7 +209,7 @@ PHP_APCU_API apc_cache_t* apc_cache_create(apc_sma_t* sma, apc_serializer_t* ser
 	memset(cache->shmaddr, 0, cache_size);
 
 	/* set default header */
-	cache->header = (apc_cache_header_t*) cache->shmaddr;
+	cache->header = (immutable_cache_cache_header_t*) cache->shmaddr;
 
 	cache->header->nhits = 0;
 	cache->header->nmisses = 0;
@@ -219,7 +219,7 @@ PHP_APCU_API apc_cache_t* apc_cache_create(apc_sma_t* sma, apc_serializer_t* ser
 	cache->header->state = 0;
 
 	/* set cache options */
-	cache->slots = (apc_cache_entry_t **) (((char*) cache->shmaddr) + sizeof(apc_cache_header_t));
+	cache->slots = (immutable_cache_cache_entry_t **) (((char*) cache->shmaddr) + sizeof(immutable_cache_cache_header_t));
 	cache->sma = sma;
 	cache->serializer = serializer;
 	cache->nslots = nslots;
@@ -230,23 +230,23 @@ PHP_APCU_API apc_cache_t* apc_cache_create(apc_sma_t* sma, apc_serializer_t* ser
 	return cache;
 } /* }}} */
 
-static inline zend_bool apc_cache_wlocked_insert_exclusive(
-		apc_cache_t *cache, apc_cache_entry_t *new_entry) {
+static inline zend_bool immutable_cache_cache_wlocked_insert_exclusive(
+		immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *new_entry) {
 	zend_string *key = new_entry->key;
 
 	/* make the insertion */
 	{
-		apc_cache_entry_t **entry;
+		immutable_cache_cache_entry_t **entry;
 		zend_ulong h;
 		size_t s;
 
 		/* calculate hash and entry */
-		apc_cache_hash_slot(cache, key, &h, &s);
+		immutable_cache_cache_hash_slot(cache, key, &h, &s);
 
 		entry = &cache->slots[s];
 		while (*entry) {
 			/* check for a match by hash and temporary string */
-			if (apc_entry_key_equals(*entry, key, h)) {
+			if (immutable_cache_entry_key_equals(*entry, key, h)) {
                 return 0;
 			}
 
@@ -266,23 +266,23 @@ static inline zend_bool apc_cache_wlocked_insert_exclusive(
 	return 1;
 }
 
-static void apc_cache_init_entry(
-		apc_cache_entry_t *entry, zend_string *key, const zval* val, time_t t);
+static void immutable_cache_cache_init_entry(
+		immutable_cache_cache_entry_t *entry, zend_string *key, const zval* val, time_t t);
 
-static inline zend_bool apc_cache_store_internal(
-		apc_cache_t *cache, zend_string *key, const zval *val) {
-	apc_cache_entry_t tmp_entry, *entry;
-	time_t t = apc_time();
+static inline zend_bool immutable_cache_cache_store_internal(
+		immutable_cache_cache_t *cache, zend_string *key, const zval *val) {
+	immutable_cache_cache_entry_t tmp_entry, *entry;
+	time_t t = immutable_cache_time();
 
 	/* initialize the entry for insertion */
-	apc_cache_init_entry(&tmp_entry, key, val, t);
-	entry = apc_persist(cache->sma, cache->serializer, &tmp_entry);
+	immutable_cache_cache_init_entry(&tmp_entry, key, val, t);
+	entry = immutable_cache_persist(cache->sma, cache->serializer, &tmp_entry);
 	if (!entry) {
 		return 0;
 	}
 
 	/* execute an insertion */
-	if (!apc_cache_wlocked_insert_exclusive(cache, entry)) {
+	if (!immutable_cache_cache_wlocked_insert_exclusive(cache, entry)) {
 		free_entry(cache, entry);
 		return 0;
 	}
@@ -291,19 +291,19 @@ static inline zend_bool apc_cache_store_internal(
 }
 
 /* Find entry, without updating stat counters or access time */
-static inline apc_cache_entry_t *apc_cache_rlocked_find_nostat(
-		apc_cache_t *cache, zend_string *key, time_t t) {
-	apc_cache_entry_t *entry;
+static inline immutable_cache_cache_entry_t *immutable_cache_cache_rlocked_find_nostat(
+		immutable_cache_cache_t *cache, zend_string *key, time_t t) {
+	immutable_cache_cache_entry_t *entry;
 	zend_ulong h;
 	size_t s;
 
 	/* calculate hash and slot */
-	apc_cache_hash_slot(cache, key, &h, &s);
+	immutable_cache_cache_hash_slot(cache, key, &h, &s);
 
 	entry = cache->slots[s];
 	while (entry) {
 		/* check for a matching key by has and identifier */
-		if (apc_entry_key_equals(entry, key, h)) {
+		if (immutable_cache_entry_key_equals(entry, key, h)) {
 			return entry;
 		}
 
@@ -314,19 +314,19 @@ static inline apc_cache_entry_t *apc_cache_rlocked_find_nostat(
 }
 
 /* Find entry, updating stat counters and access time */
-static inline apc_cache_entry_t *apc_cache_rlocked_find(
-		apc_cache_t *cache, zend_string *key, time_t t) {
-	apc_cache_entry_t *entry;
+static inline immutable_cache_cache_entry_t *immutable_cache_cache_rlocked_find(
+		immutable_cache_cache_t *cache, zend_string *key, time_t t) {
+	immutable_cache_cache_entry_t *entry;
 	zend_ulong h;
 	size_t s;
 
 	/* calculate hash and slot */
-	apc_cache_hash_slot(cache, key, &h, &s);
+	immutable_cache_cache_hash_slot(cache, key, &h, &s);
 
 	entry = cache->slots[s];
 	while (entry) {
 		/* check for a matching key by has and identifier */
-		if (apc_entry_key_equals(entry, key, h)) {
+		if (immutable_cache_entry_key_equals(entry, key, h)) {
 			ATOMIC_INC_RLOCKED(cache->header->nhits);
 			ATOMIC_INC_RLOCKED(entry->nhits);
 			entry->atime = t;
@@ -341,9 +341,9 @@ static inline apc_cache_entry_t *apc_cache_rlocked_find(
 	return NULL;
 }
 
-static inline apc_cache_entry_t *apc_cache_rlocked_find_incref(
-		apc_cache_t *cache, zend_string *key, time_t t) {
-	apc_cache_entry_t *entry = apc_cache_rlocked_find(cache, key, t);
+static inline immutable_cache_cache_entry_t *immutable_cache_cache_rlocked_find_incref(
+		immutable_cache_cache_t *cache, zend_string *key, time_t t) {
+	immutable_cache_cache_entry_t *entry = immutable_cache_cache_rlocked_find(cache, key, t);
 	if (!entry) {
 		return NULL;
 	}
@@ -351,11 +351,11 @@ static inline apc_cache_entry_t *apc_cache_rlocked_find_incref(
 	return entry;
 }
 
-/* {{{ apc_cache_store */
-PHP_APCU_API zend_bool apc_cache_store(
-		apc_cache_t* cache, zend_string *key, const zval *val) {
-	apc_cache_entry_t tmp_entry, *entry;
-	time_t t = apc_time();
+/* {{{ immutable_cache_cache_store */
+PHP_APCU_API zend_bool immutable_cache_cache_store(
+		immutable_cache_cache_t* cache, zend_string *key, const zval *val) {
+	immutable_cache_cache_entry_t tmp_entry, *entry;
+	time_t t = immutable_cache_time();
 	zend_bool ret = 0;
 
 	if (!cache) {
@@ -363,22 +363,22 @@ PHP_APCU_API zend_bool apc_cache_store(
 	}
 
 	/* initialize the entry for insertion */
-	apc_cache_init_entry(&tmp_entry, key, val, t);
-	entry = apc_persist(cache->sma, cache->serializer, &tmp_entry);
+	immutable_cache_cache_init_entry(&tmp_entry, key, val, t);
+	entry = immutable_cache_persist(cache->sma, cache->serializer, &tmp_entry);
 	if (!entry) {
 		return 0;
 	}
 
 	/* execute an insertion */
-	if (!apc_cache_wlock(cache)) {
+	if (!immutable_cache_cache_wlock(cache)) {
 		free_entry(cache, entry);
 		return 0;
 	}
 
 	php_apc_try {
-		ret = apc_cache_wlocked_insert_exclusive(cache, entry);
+		ret = immutable_cache_cache_wlocked_insert_exclusive(cache, entry);
 	} php_apc_finally {
-		apc_cache_wunlock(cache);
+		immutable_cache_cache_wunlock(cache);
 	} php_apc_end_try();
 
 	if (!ret) {
@@ -439,7 +439,7 @@ static zval data_unserialize(const char *filename)
 	return retval;
 }
 
-static int apc_load_data(apc_cache_t* cache, const char *data_file)
+static int immutable_cache_load_data(immutable_cache_cache_t* cache, const char *data_file)
 {
 	char *p;
 	char key[MAXPATHLEN] = {0,};
@@ -459,7 +459,7 @@ static int apc_load_data(apc_cache_t* cache, const char *data_file)
 			data = data_unserialize(data_file);
 			if(Z_TYPE(data) != IS_UNDEF) {
 				zend_string *name = zend_string_init(key, key_len, 0);
-				apc_cache_store(cache, name, &data);
+				immutable_cache_cache_store(cache, name, &data);
 				zend_string_release(name);
 				zval_dtor(&data);
 			}
@@ -471,8 +471,8 @@ static int apc_load_data(apc_cache_t* cache, const char *data_file)
 }
 #endif
 
-/* {{{ apc_cache_preload shall load the prepared data files in path into the specified cache */
-PHP_APCU_API zend_bool apc_cache_preload(apc_cache_t* cache, const char *path)
+/* {{{ immutable_cache_cache_preload shall load the prepared data files in path into the specified cache */
+PHP_APCU_API zend_bool immutable_cache_cache_preload(immutable_cache_cache_t* cache, const char *path)
 {
 #ifndef ZTS
 	zend_bool result = 0;
@@ -493,7 +493,7 @@ PHP_APCU_API zend_bool apc_cache_preload(apc_cache_t* cache, const char *path)
 			snprintf(file, MAXPATHLEN, "%s%c%s",
 					path, DEFAULT_SLASH, namelist[i]->d_name);
 
-			if(apc_load_data(cache, file)) {
+			if(immutable_cache_load_data(cache, file)) {
 				result = 1;
 			}
 			free(namelist[i]);
@@ -502,13 +502,13 @@ PHP_APCU_API zend_bool apc_cache_preload(apc_cache_t* cache, const char *path)
 	}
 	return result;
 #else
-	apc_error("Cannot load data from apc.preload_path=%s in thread-safe mode", path);
+	immutable_cache_error("Cannot load data from apc.preload_path=%s in thread-safe mode", path);
 	return 0;
 #endif
 } /* }}} */
 
-/* {{{ apc_cache_detach */
-PHP_APCU_API void apc_cache_detach(apc_cache_t *cache)
+/* {{{ immutable_cache_cache_detach */
+PHP_APCU_API void immutable_cache_cache_detach(immutable_cache_cache_t *cache)
 {
 	/* Important: This function should not clean up anything that's in shared memory,
 	 * only detach our process-local use of it. In particular locks cannot be destroyed
@@ -522,83 +522,83 @@ PHP_APCU_API void apc_cache_detach(apc_cache_t *cache)
 }
 /* }}} */
 
-/* {{{ apc_cache_find */
-PHP_APCU_API apc_cache_entry_t *apc_cache_find(apc_cache_t* cache, zend_string *key, time_t t)
+/* {{{ immutable_cache_cache_find */
+PHP_APCU_API immutable_cache_cache_entry_t *immutable_cache_cache_find(immutable_cache_cache_t* cache, zend_string *key, time_t t)
 {
-	apc_cache_entry_t *entry;
+	immutable_cache_cache_entry_t *entry;
 
 	if (!cache) {
 		return NULL;
 	}
 
-	if (!apc_cache_rlock(cache)) {
+	if (!immutable_cache_cache_rlock(cache)) {
 		return NULL;
 	}
 
-	entry = apc_cache_rlocked_find_incref(cache, key, t);
-	apc_cache_runlock(cache);
+	entry = immutable_cache_cache_rlocked_find_incref(cache, key, t);
+	immutable_cache_cache_runlock(cache);
 
 	return entry;
 }
 /* }}} */
 
-/* {{{ apc_cache_fetch */
-PHP_APCU_API zend_bool apc_cache_fetch(apc_cache_t* cache, zend_string *key, time_t t, zval *dst)
+/* {{{ immutable_cache_cache_fetch */
+PHP_APCU_API zend_bool immutable_cache_cache_fetch(immutable_cache_cache_t* cache, zend_string *key, time_t t, zval *dst)
 {
-	apc_cache_entry_t *entry;
+	immutable_cache_cache_entry_t *entry;
 	zend_bool retval = 0;
 
 	if (!cache) {
 		return 0;
 	}
 
-	if (!apc_cache_rlock(cache)) {
+	if (!immutable_cache_cache_rlock(cache)) {
 		return 0;
 	}
 
-	entry = apc_cache_rlocked_find_incref(cache, key, t);
-	apc_cache_runlock(cache);
+	entry = immutable_cache_cache_rlocked_find_incref(cache, key, t);
+	immutable_cache_cache_runlock(cache);
 
 	if (!entry) {
 		return 0;
 	}
 
-	retval = apc_cache_entry_fetch_zval(cache, entry, dst);
+	retval = immutable_cache_cache_entry_fetch_zval(cache, entry, dst);
 
 	return retval;
 } /* }}} */
 
-/* {{{ apc_cache_exists */
-PHP_APCU_API zend_bool apc_cache_exists(apc_cache_t* cache, zend_string *key, time_t t)
+/* {{{ immutable_cache_cache_exists */
+PHP_APCU_API zend_bool immutable_cache_cache_exists(immutable_cache_cache_t* cache, zend_string *key, time_t t)
 {
-	apc_cache_entry_t *entry;
+	immutable_cache_cache_entry_t *entry;
 
 	if (!cache) {
 		return 0;
 	}
 
-	if (!apc_cache_rlock(cache)) {
+	if (!immutable_cache_cache_rlock(cache)) {
 		return 0;
 	}
 
-	entry = apc_cache_rlocked_find_nostat(cache, key, t);
-	apc_cache_runlock(cache);
+	entry = immutable_cache_cache_rlocked_find_nostat(cache, key, t);
+	immutable_cache_cache_runlock(cache);
 
 	return entry != NULL;
 }
 /* }}} */
 
-/* {{{ apc_cache_entry_fetch_zval */
-PHP_APCU_API zend_bool apc_cache_entry_fetch_zval(
-		apc_cache_t *cache, apc_cache_entry_t *entry, zval *dst)
+/* {{{ immutable_cache_cache_entry_fetch_zval */
+PHP_APCU_API zend_bool immutable_cache_cache_entry_fetch_zval(
+		immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *entry, zval *dst)
 {
-	return apc_unpersist(dst, &entry->val, cache->serializer);
+	return immutable_cache_unpersist(dst, &entry->val, cache->serializer);
 }
 /* }}} */
 
-/* {{{ apc_cache_make_entry */
-static void apc_cache_init_entry(
-		apc_cache_entry_t *entry, zend_string *key, const zval *val, time_t t)
+/* {{{ immutable_cache_cache_make_entry */
+static void immutable_cache_cache_init_entry(
+		immutable_cache_cache_entry_t *entry, zend_string *key, const zval *val, time_t t)
 {
 	entry->key = key;
 	ZVAL_COPY_VALUE(&entry->val, val);
@@ -623,31 +623,31 @@ static inline void array_add_double(zval *array, zend_string *key, double dval) 
 	zend_hash_add_new(Z_ARRVAL_P(array), key, &zv);
 }
 
-/* {{{ apc_cache_link_info */
-static zval apc_cache_link_info(apc_cache_t *cache, apc_cache_entry_t *p)
+/* {{{ immutable_cache_cache_link_info */
+static zval immutable_cache_cache_link_info(immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *p)
 {
 	zval link, zv;
 	array_init(&link);
 
 	ZVAL_STR(&zv, zend_string_dup(p->key, 0));
-	zend_hash_add_new(Z_ARRVAL(link), apc_str_info, &zv);
+	zend_hash_add_new(Z_ARRVAL(link), immutable_cache_str_info, &zv);
 
-	array_add_double(&link, apc_str_num_hits, (double) p->nhits);
-	array_add_long(&link, apc_str_creation_time, p->ctime);
-	array_add_long(&link, apc_str_access_time, p->atime);
-	array_add_long(&link, apc_str_mem_size, p->mem_size);
+	array_add_double(&link, immutable_cache_str_num_hits, (double) p->nhits);
+	array_add_long(&link, immutable_cache_str_creation_time, p->ctime);
+	array_add_long(&link, immutable_cache_str_access_time, p->atime);
+	array_add_long(&link, immutable_cache_str_mem_size, p->mem_size);
 
 	return link;
 }
 /* }}} */
 
-/* {{{ apc_cache_info */
-PHP_APCU_API zend_bool apc_cache_info(zval *info, apc_cache_t *cache, zend_bool limited)
+/* {{{ immutable_cache_cache_info */
+PHP_APCU_API zend_bool immutable_cache_cache_info(zval *info, immutable_cache_cache_t *cache, zend_bool limited)
 {
 	zval list;
 	zval gc;
 	zval slots;
-	apc_cache_entry_t *p;
+	immutable_cache_cache_entry_t *p;
 	zend_ulong j;
 
 	ZVAL_NULL(info);
@@ -655,22 +655,22 @@ PHP_APCU_API zend_bool apc_cache_info(zval *info, apc_cache_t *cache, zend_bool 
 		return 0;
 	}
 
-	if (!apc_cache_rlock(cache)) {
+	if (!immutable_cache_cache_rlock(cache)) {
 		return 0;
 	}
 
 	php_apc_try {
 		array_init(info);
 		add_assoc_long(info, "num_slots", cache->nslots);
-		array_add_long(info, apc_str_ttl, cache->ttl);
-		array_add_double(info, apc_str_num_hits, (double) cache->header->nhits);
+		array_add_long(info, immutable_cache_str_ttl, cache->ttl);
+		array_add_double(info, immutable_cache_str_num_hits, (double) cache->header->nhits);
 		add_assoc_double(info, "num_misses", (double) cache->header->nmisses);
 		add_assoc_double(info, "num_inserts", (double) cache->header->ninserts);
 		add_assoc_long(info,   "num_entries", cache->header->nentries);
 		add_assoc_long(info, "start_time", cache->header->stime);
-		array_add_double(info, apc_str_mem_size, (double) cache->header->mem_size);
+		array_add_double(info, immutable_cache_str_mem_size, (double) cache->header->mem_size);
 
-#if APC_MMAP
+#if IMMUTABLE_CACHE_MMAP
 		add_assoc_stringl(info, "memory_type", "mmap", sizeof("mmap")-1);
 #else
 		add_assoc_stringl(info, "memory_type", "IPC shared", sizeof("IPC shared")-1);
@@ -687,7 +687,7 @@ PHP_APCU_API zend_bool apc_cache_info(zval *info, apc_cache_t *cache, zend_bool 
 				p = cache->slots[i];
 				j = 0;
 				for (; p != NULL; p = p->next) {
-					zval link = apc_cache_link_info(cache, p);
+					zval link = immutable_cache_cache_link_info(cache, p);
 					add_next_index_zval(&list, &link);
 					j++;
 				}
@@ -700,7 +700,7 @@ PHP_APCU_API zend_bool apc_cache_info(zval *info, apc_cache_t *cache, zend_bool 
 			array_init(&gc);
 
 			for (p = cache->header->gc; p != NULL; p = p->next) {
-				zval link = apc_cache_link_info(cache, p);
+				zval link = immutable_cache_cache_link_info(cache, p);
 				add_next_index_zval(&gc, &link);
 			}
 
@@ -709,7 +709,7 @@ PHP_APCU_API zend_bool apc_cache_info(zval *info, apc_cache_t *cache, zend_bool 
 			add_assoc_zval(info, "slot_distribution", &slots);
 		}
 	} php_apc_finally {
-		apc_cache_runlock(cache);
+		immutable_cache_cache_runlock(cache);
 	} php_apc_end_try();
 
 	return 1;
@@ -719,7 +719,7 @@ PHP_APCU_API zend_bool apc_cache_info(zval *info, apc_cache_t *cache, zend_bool 
 /*
  fetches information about the key provided
 */
-PHP_APCU_API void apc_cache_stat(apc_cache_t *cache, zend_string *key, zval *stat) {
+PHP_APCU_API void immutable_cache_cache_stat(immutable_cache_cache_t *cache, zend_string *key, zval *stat) {
 	zend_ulong h;
 	size_t s;
 
@@ -729,23 +729,23 @@ PHP_APCU_API void apc_cache_stat(apc_cache_t *cache, zend_string *key, zval *sta
 	}
 
 	/* calculate hash and slot */
-	apc_cache_hash_slot(cache, key, &h, &s);
+	immutable_cache_cache_hash_slot(cache, key, &h, &s);
 
-	if (!apc_cache_rlock(cache)) {
+	if (!immutable_cache_cache_rlock(cache)) {
 		return;
 	}
 
 	php_apc_try {
 		/* find head */
-		apc_cache_entry_t *entry = cache->slots[s];
+		immutable_cache_cache_entry_t *entry = cache->slots[s];
 
 		while (entry) {
 			/* check for a matching key by has and identifier */
-			if (apc_entry_key_equals(entry, key, h)) {
+			if (immutable_cache_entry_key_equals(entry, key, h)) {
 				array_init(stat);
-				array_add_long(stat, apc_str_hits, entry->nhits);
-				array_add_long(stat, apc_str_access_time, entry->atime);
-				array_add_long(stat, apc_str_creation_time, entry->ctime);
+				array_add_long(stat, immutable_cache_str_hits, entry->nhits);
+				array_add_long(stat, immutable_cache_str_access_time, entry->atime);
+				array_add_long(stat, immutable_cache_str_creation_time, entry->ctime);
 				break;
 			}
 
@@ -753,14 +753,14 @@ PHP_APCU_API void apc_cache_stat(apc_cache_t *cache, zend_string *key, zval *sta
 			entry = entry->next;
 		}
 	} php_apc_finally {
-		apc_cache_runlock(cache);
+		immutable_cache_cache_runlock(cache);
 	} php_apc_end_try();
 }
 
-/* {{{ apc_cache_serializer */
-PHP_APCU_API void apc_cache_serializer(apc_cache_t* cache, const char* name) {
+/* {{{ immutable_cache_cache_serializer */
+PHP_APCU_API void immutable_cache_cache_serializer(immutable_cache_cache_t* cache, const char* name) {
 	if (cache && !cache->serializer) {
-		cache->serializer = apc_find_serializer(name);
+		cache->serializer = immutable_cache_find_serializer(name);
 	}
 } /* }}} */
 

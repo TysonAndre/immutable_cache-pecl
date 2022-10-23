@@ -5,11 +5,11 @@ Copy failure should not create entry
 --FILE--
 <?php
 try {
-	apcu_add('thing', function(){});
+	immutable_cache_add('thing', function(){});
 } catch(Exception $ex) {
 }
 
-var_dump(apcu_exists('thing'));
+var_dump(immutable_cache_exists('thing'));
 ?>
 --EXPECT--
 bool(false)

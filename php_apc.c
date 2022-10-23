@@ -30,13 +30,13 @@
 # include "config.h"
 #endif
 
-#include "apc_cache.h"
-#include "apc_iterator.h"
-#include "apc_sma.h"
-#include "apc_lock.h"
-#include "apc_mutex.h"
-#include "apc_strings.h"
-#include "apc_time.h"
+#include "immutable_cache_cache.h"
+#include "immutable_cache_iterator.h"
+#include "immutable_cache_sma.h"
+#include "immutable_cache_lock.h"
+#include "immutable_cache_mutex.h"
+#include "immutable_cache_strings.h"
+#include "immutable_cache_time.h"
 #include "php_globals.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
@@ -60,31 +60,31 @@
 #include "Zend/zend_smart_str.h"
 
 #if HAVE_SIGACTION
-#include "apc_signal.h"
+#include "immutable_cache_signal.h"
 #endif
 
 /* {{{ ZEND_DECLARE_MODULE_GLOBALS(apcu) */
 ZEND_DECLARE_MODULE_GLOBALS(apcu)
 
 /* True globals */
-apc_cache_t* apc_user_cache = NULL;
+immutable_cache_cache_t* immutable_cache_user_cache = NULL;
 
 /* External APC SMA */
-apc_sma_t apc_sma;
+immutable_cache_sma_t immutable_cache_sma;
 
-#define X(str) zend_string *apc_str_ ## str;
-	APC_STRINGS
+#define X(str) zend_string *immutable_cache_str_ ## str;
+	IMMUTABLE_CACHE_STRINGS
 #undef X
 
 /* Global init functions */
-static void php_apc_init_globals(zend_apcu_globals* apcu_globals)
+static void php_apc_init_globals(zend_apcu_globals* immutable_cache_globals)
 {
-	apcu_globals->initialized = 0;
-	apcu_globals->smart = 0;
-	apcu_globals->preload_path = NULL;
-	apcu_globals->coredump_unmap = 0;
-	apcu_globals->serializer_name = NULL;
-	apcu_globals->entry_level = 0;
+	immutable_cache_globals->initialized = 0;
+	immutable_cache_globals->smart = 0;
+	immutable_cache_globals->preload_path = NULL;
+	immutable_cache_globals->coredump_unmap = 0;
+	immutable_cache_globals->serializer_name = NULL;
+	immutable_cache_globals->entry_level = 0;
 }
 /* }}} */
 
@@ -93,7 +93,7 @@ static void php_apc_init_globals(zend_apcu_globals* apcu_globals)
 static PHP_INI_MH(OnUpdateShmSegments) /* {{{ */
 {
 	zend_long shm_segments = ZEND_STRTOL(new_value->val, NULL, 10);
-#if APC_MMAP
+#if IMMUTABLE_CACHE_MMAP
 	if (shm_segments != 1) {
 		php_error_docref(NULL, E_WARNING, "apc.shm_segments setting ignored in MMAP mode");
 	}
@@ -131,25 +131,25 @@ static PHP_INI_MH(OnUpdateShmSize) /* {{{ */
 /* }}} */
 
 PHP_INI_BEGIN()
-STD_PHP_INI_BOOLEAN("apc.enabled",      "1",    PHP_INI_SYSTEM, OnUpdateBool,              enabled,          zend_apcu_globals, apcu_globals)
-STD_PHP_INI_ENTRY("apc.shm_segments",   "1",    PHP_INI_SYSTEM, OnUpdateShmSegments,       shm_segments,     zend_apcu_globals, apcu_globals)
-STD_PHP_INI_ENTRY("apc.shm_size",       "32M",  PHP_INI_SYSTEM, OnUpdateShmSize,           shm_size,         zend_apcu_globals, apcu_globals)
-STD_PHP_INI_ENTRY("apc.entries_hint",   "4096", PHP_INI_SYSTEM, OnUpdateLong,              entries_hint,     zend_apcu_globals, apcu_globals)
-STD_PHP_INI_ENTRY("apc.gc_ttl",         "3600", PHP_INI_SYSTEM, OnUpdateLong,              gc_ttl,           zend_apcu_globals, apcu_globals)
-STD_PHP_INI_ENTRY("apc.ttl",            "0",    PHP_INI_SYSTEM, OnUpdateLong,              ttl,              zend_apcu_globals, apcu_globals)
-STD_PHP_INI_ENTRY("apc.smart",          "0",    PHP_INI_SYSTEM, OnUpdateLong,              smart,            zend_apcu_globals, apcu_globals)
-#if APC_MMAP
-STD_PHP_INI_ENTRY("apc.mmap_file_mask",  NULL,  PHP_INI_SYSTEM, OnUpdateString,            mmap_file_mask,   zend_apcu_globals, apcu_globals)
+STD_PHP_INI_BOOLEAN("apc.enabled",      "1",    PHP_INI_SYSTEM, OnUpdateBool,              enabled,          zend_apcu_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("apc.shm_segments",   "1",    PHP_INI_SYSTEM, OnUpdateShmSegments,       shm_segments,     zend_apcu_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("apc.shm_size",       "32M",  PHP_INI_SYSTEM, OnUpdateShmSize,           shm_size,         zend_apcu_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("apc.entries_hint",   "4096", PHP_INI_SYSTEM, OnUpdateLong,              entries_hint,     zend_apcu_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("apc.gc_ttl",         "3600", PHP_INI_SYSTEM, OnUpdateLong,              gc_ttl,           zend_apcu_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("apc.ttl",            "0",    PHP_INI_SYSTEM, OnUpdateLong,              ttl,              zend_apcu_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("apc.smart",          "0",    PHP_INI_SYSTEM, OnUpdateLong,              smart,            zend_apcu_globals, immutable_cache_globals)
+#if IMMUTABLE_CACHE_MMAP
+STD_PHP_INI_ENTRY("apc.mmap_file_mask",  NULL,  PHP_INI_SYSTEM, OnUpdateString,            mmap_file_mask,   zend_apcu_globals, immutable_cache_globals)
 #endif
-STD_PHP_INI_BOOLEAN("apc.enable_cli",   "0",    PHP_INI_SYSTEM, OnUpdateBool,              enable_cli,       zend_apcu_globals, apcu_globals)
-STD_PHP_INI_ENTRY("apc.preload_path", (char*)NULL,              PHP_INI_SYSTEM, OnUpdateString,       preload_path,  zend_apcu_globals, apcu_globals)
-STD_PHP_INI_BOOLEAN("apc.coredump_unmap", "0", PHP_INI_SYSTEM, OnUpdateBool, coredump_unmap, zend_apcu_globals, apcu_globals)
-STD_PHP_INI_ENTRY("apc.serializer", "php", PHP_INI_SYSTEM, OnUpdateStringUnempty, serializer_name, zend_apcu_globals, apcu_globals)
+STD_PHP_INI_BOOLEAN("apc.enable_cli",   "0",    PHP_INI_SYSTEM, OnUpdateBool,              enable_cli,       zend_apcu_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("apc.preload_path", (char*)NULL,              PHP_INI_SYSTEM, OnUpdateString,       preload_path,  zend_apcu_globals, immutable_cache_globals)
+STD_PHP_INI_BOOLEAN("apc.coredump_unmap", "0", PHP_INI_SYSTEM, OnUpdateBool, coredump_unmap, zend_apcu_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("apc.serializer", "php", PHP_INI_SYSTEM, OnUpdateStringUnempty, serializer_name, zend_apcu_globals, immutable_cache_globals)
 PHP_INI_END()
 
 /* }}} */
 
-zend_bool apc_is_enabled(void)
+zend_bool immutable_cache_is_enabled(void)
 {
 	return APCG(enabled);
 }
@@ -160,12 +160,12 @@ static PHP_MINFO_FUNCTION(apcu)
 	php_info_print_table_start();
 	php_info_print_table_row(2, "APCu Support", APCG(enabled) ? "Enabled" : "Disabled");
 	php_info_print_table_row(2, "Version", PHP_APCU_VERSION);
-#ifdef APC_DEBUG
+#ifdef IMMUTABLE_CACHE_DEBUG
 	php_info_print_table_row(2, "APCu Debugging", "Enabled");
 #else
 	php_info_print_table_row(2, "APCu Debugging", "Disabled");
 #endif
-#if APC_MMAP
+#if IMMUTABLE_CACHE_MMAP
 	php_info_print_table_row(2, "MMAP Support", "Enabled");
 	php_info_print_table_row(2, "MMAP File Mask", APCG(mmap_file_mask));
 #else
@@ -173,11 +173,11 @@ static PHP_MINFO_FUNCTION(apcu)
 #endif
 
 	if (APCG(enabled)) {
-		apc_serializer_t *serializer = NULL;
+		immutable_cache_serializer_t *serializer = NULL;
 		smart_str names = {0,};
 		int i;
 
-		for( i = 0, serializer = apc_get_serializers();
+		for( i = 0, serializer = immutable_cache_get_serializers();
 					serializer->name != NULL;
 					serializer++, i++) {
 			if (i != 0) {
@@ -214,14 +214,14 @@ static PHP_MINIT_FUNCTION(apcu)
 	REGISTER_INI_ENTRIES();
 
 #define X(str) \
-	apc_str_ ## str = zend_new_interned_string( \
+	immutable_cache_str_ ## str = zend_new_interned_string( \
 		zend_string_init(#str, sizeof(#str) - 1, 1));
-	APC_STRINGS
+	IMMUTABLE_CACHE_STRINGS
 #undef X
 
 	/* locks initialized regardless of settings */
-	apc_lock_init();
-	APC_MUTEX_INIT();
+	immutable_cache_lock_init();
+	IMMUTABLE_CACHE_MUTEX_INIT();
 
 	/* Disable APC in cli mode unless overridden by apc.enable_cli */
 	if (!APCG(enable_cli) && !strcmp(sapi_module.name, "cli")) {
@@ -232,7 +232,7 @@ static PHP_MINIT_FUNCTION(apcu)
 	if (APCG(enabled)) {
 
 		if (!APCG(initialized)) {
-#if APC_MMAP
+#if IMMUTABLE_CACHE_MMAP
 			char *mmap_file_mask = APCG(mmap_file_mask);
 #else
 			char *mmap_file_mask = NULL;
@@ -242,35 +242,35 @@ static PHP_MINIT_FUNCTION(apcu)
 			APCG(initialized) = 1;
 
 			/* initialize shared memory allocator */
-			apc_sma_init(
-				&apc_sma,
+			immutable_cache_sma_init(
+				&immutable_cache_sma,
 				APCG(shm_segments), APCG(shm_size), mmap_file_mask);
 
-			REGISTER_LONG_CONSTANT(APC_SERIALIZER_CONSTANT, (zend_long)&_apc_register_serializer, CONST_PERSISTENT | CONST_CS);
+			REGISTER_LONG_CONSTANT(IMMUTABLE_CACHE_SERIALIZER_CONSTANT, (zend_long)&_apc_register_serializer, CONST_PERSISTENT | CONST_CS);
 
 			/* register default serializer */
 			_apc_register_serializer(
-				"php", APC_SERIALIZER_NAME(php), APC_UNSERIALIZER_NAME(php), NULL);
+				"php", IMMUTABLE_CACHE_SERIALIZER_NAME(php), IMMUTABLE_CACHE_UNSERIALIZER_NAME(php), NULL);
 
 			/* test out the constant function pointer */
-			assert(apc_get_serializers()->name != NULL);
+			assert(immutable_cache_get_serializers()->name != NULL);
 
 			/* create user cache */
-			apc_user_cache = apc_cache_create(
-				&apc_sma,
-				apc_find_serializer(APCG(serializer_name)),
+			immutable_cache_user_cache = immutable_cache_cache_create(
+				&immutable_cache_sma,
+				immutable_cache_find_serializer(APCG(serializer_name)),
 				APCG(entries_hint));
 
 			/* preload data from path specified in configuration */
 			if (APCG(preload_path)) {
-				apc_cache_preload(
-					apc_user_cache, APCG(preload_path));
+				immutable_cache_cache_preload(
+					immutable_cache_user_cache, APCG(preload_path));
 			}
 		}
 	}
 
 	/* initialize iterator object */
-	apc_iterator_init(module_number);
+	immutable_cache_iterator_init(module_number);
 
 	return SUCCESS;
 }
@@ -279,30 +279,30 @@ static PHP_MINIT_FUNCTION(apcu)
 /* {{{ PHP_MSHUTDOWN_FUNCTION(apcu) */
 static PHP_MSHUTDOWN_FUNCTION(apcu)
 {
-#define X(str) zend_string_release(apc_str_ ## str);
-	APC_STRINGS
+#define X(str) zend_string_release(immutable_cache_str_ ## str);
+	IMMUTABLE_CACHE_STRINGS
 #undef X
 
 	/* locks shutdown regardless of settings */
-	apc_lock_cleanup();
-	APC_MUTEX_CLEANUP();
+	immutable_cache_lock_cleanup();
+	IMMUTABLE_CACHE_MUTEX_CLEANUP();
 
 	/* only shut down if APC is enabled */
 	if (APCG(enabled)) {
 		if (APCG(initialized)) {
 			/* Detach cache and shared memory allocator from shared memory. */
-			apc_cache_detach(apc_user_cache);
-			apc_sma_detach(&apc_sma);
+			immutable_cache_cache_detach(immutable_cache_user_cache);
+			immutable_cache_sma_detach(&immutable_cache_sma);
 
 			APCG(initialized) = 0;
 		}
 
 #if HAVE_SIGACTION
-		apc_shutdown_signals();
+		immutable_cache_shutdown_signals();
 #endif
 	}
 
-	apc_iterator_shutdown(module_number);
+	immutable_cache_iterator_shutdown(module_number);
 
 	UNREGISTER_INI_ENTRIES();
 	return SUCCESS;
@@ -319,19 +319,19 @@ static PHP_RINIT_FUNCTION(apcu)
 	if (APCG(enabled)) {
 		if (APCG(serializer_name)) {
 			/* Avoid race conditions between MINIT of apc and serializer exts like igbinary */
-			apc_cache_serializer(apc_user_cache, APCG(serializer_name));
+			immutable_cache_cache_serializer(immutable_cache_user_cache, APCG(serializer_name));
 		}
 
 #if HAVE_SIGACTION
-		apc_set_signals();
+		immutable_cache_set_signals();
 #endif
 	}
 	return SUCCESS;
 }
 /* }}} */
 
-/* {{{ proto array apcu_cache_info([bool limited]) */
-PHP_FUNCTION(apcu_cache_info)
+/* {{{ proto array immutable_cache_cache_info([bool limited]) */
+PHP_FUNCTION(immutable_cache_cache_info)
 {
 	zend_bool limited = 0;
 
@@ -339,15 +339,15 @@ PHP_FUNCTION(apcu_cache_info)
 		return;
 	}
 
-	if (!apc_cache_info(return_value, apc_user_cache, limited)) {
+	if (!immutable_cache_cache_info(return_value, immutable_cache_user_cache, limited)) {
 		php_error_docref(NULL, E_WARNING, "No APC info available.  Perhaps APC is not enabled? Check apc.enabled in your ini file");
 		RETURN_FALSE;
 	}
 }
 /* }}} */
 
-/* {{{ proto array apcu_key_info(string key) */
-PHP_FUNCTION(apcu_key_info)
+/* {{{ proto array immutable_cache_key_info(string key) */
+PHP_FUNCTION(immutable_cache_key_info)
 {
 	zend_string *key;
 
@@ -355,13 +355,13 @@ PHP_FUNCTION(apcu_key_info)
 		return;
 	}
 
-	apc_cache_stat(apc_user_cache, key, return_value);
+	immutable_cache_cache_stat(immutable_cache_user_cache, key, return_value);
 } /* }}} */
 
-/* {{{ proto array apcu_sma_info([bool limited]) */
-PHP_FUNCTION(apcu_sma_info)
+/* {{{ proto array immutable_cache_sma_info([bool limited]) */
+PHP_FUNCTION(immutable_cache_sma_info)
 {
-	apc_sma_info_t* info;
+	immutable_cache_sma_info_t* info;
 	zval block_lists;
 	int i;
 	zend_bool limited = 0;
@@ -370,7 +370,7 @@ PHP_FUNCTION(apcu_sma_info)
 		return;
 	}
 
-	info = apc_sma_info(&apc_sma, limited);
+	info = immutable_cache_sma_info(&immutable_cache_sma, limited);
 
 	if (!info) {
 		php_error_docref(NULL, E_WARNING, "No APC SMA info available.  Perhaps APC is disabled via apc.enabled?");
@@ -380,17 +380,17 @@ PHP_FUNCTION(apcu_sma_info)
 
 	add_assoc_long(return_value, "num_seg", info->num_seg);
 	add_assoc_double(return_value, "seg_size", (double)info->seg_size);
-	add_assoc_double(return_value, "avail_mem", (double)apc_sma_get_avail_mem(&apc_sma));
+	add_assoc_double(return_value, "avail_mem", (double)immutable_cache_sma_get_avail_mem(&immutable_cache_sma));
 
 	if (limited) {
-		apc_sma_free_info(&apc_sma, info);
+		immutable_cache_sma_free_info(&immutable_cache_sma, info);
 		return;
 	}
 
 	array_init(&block_lists);
 
 	for (i = 0; i < info->num_seg; i++) {
-		apc_sma_link_t* p;
+		immutable_cache_sma_link_t* p;
 		zval list;
 
 		array_init(&list);
@@ -406,13 +406,13 @@ PHP_FUNCTION(apcu_sma_info)
 		add_next_index_zval(&block_lists, &list);
 	}
 	add_assoc_zval(return_value, "block_lists", &block_lists);
-	apc_sma_free_info(&apc_sma, info);
+	immutable_cache_sma_free_info(&immutable_cache_sma, info);
 }
 /* }}} */
 
-/* {{{ apc_store_helper(INTERNAL_FUNCTION_PARAMETERS, const zend_bool exclusive)
+/* {{{ immutable_cache_store_helper(INTERNAL_FUNCTION_PARAMETERS, const zend_bool exclusive)
  */
-static void apc_store_helper(INTERNAL_FUNCTION_PARAMETERS)
+static void immutable_cache_store_helper(INTERNAL_FUNCTION_PARAMETERS)
 {
 	zval *key;
 	zval *val = NULL;
@@ -424,7 +424,7 @@ static void apc_store_helper(INTERNAL_FUNCTION_PARAMETERS)
 
 	if (APCG(serializer_name)) {
 		/* Avoid race conditions between MINIT of apc and serializer exts like igbinary */
-		apc_cache_serializer(apc_user_cache, APCG(serializer_name));
+		immutable_cache_cache_serializer(immutable_cache_user_cache, APCG(serializer_name));
 	}
 
 	/* TODO: Port to array|string for PHP 8? */
@@ -446,7 +446,7 @@ static void apc_store_helper(INTERNAL_FUNCTION_PARAMETERS)
 			} else {
 				hkey = zend_long_to_str(hkey_idx);
 			}
-			if (!apc_cache_store(apc_user_cache, hkey, hentry)) {
+			if (!immutable_cache_cache_store(immutable_cache_user_cache, hkey, hentry)) {
 				zend_symtable_add_new(Z_ARRVAL_P(return_value), hkey, &fail_zv);
 			}
 			zend_string_release(hkey);
@@ -458,17 +458,17 @@ static void apc_store_helper(INTERNAL_FUNCTION_PARAMETERS)
 			RETURN_FALSE;
 		}
 
-		RETURN_BOOL(apc_cache_store(apc_user_cache, Z_STR_P(key), val));
+		RETURN_BOOL(immutable_cache_cache_store(immutable_cache_user_cache, Z_STR_P(key), val));
 	} else {
-		apc_warning("apc_store expects key parameter to be a string or an array of key/value pairs.");
+		immutable_cache_warning("immutable_cache_store expects key parameter to be a string or an array of key/value pairs.");
 		RETURN_FALSE;
 	}
 }
 /* }}} */
 
-/* {{{ proto bool apcu_enabled(void)
+/* {{{ proto bool immutable_cache_enabled(void)
 	returns true when apcu is usable in the current environment */
-PHP_FUNCTION(apcu_enabled) {
+PHP_FUNCTION(immutable_cache_enabled) {
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
@@ -476,16 +476,16 @@ PHP_FUNCTION(apcu_enabled) {
 }
 /* }}} */
 
-/* {{{ proto int apcu_add(mixed key, mixed var [, long ttl ])
+/* {{{ proto int immutable_cache_add(mixed key, mixed var [, long ttl ])
  */
-PHP_FUNCTION(apcu_add) {
-	apc_store_helper(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+PHP_FUNCTION(immutable_cache_add) {
+	immutable_cache_store_helper(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 /* }}} */
 
-/* {{{ proto mixed apcu_fetch(mixed key[, bool &success])
+/* {{{ proto mixed immutable_cache_fetch(mixed key[, bool &success])
  */
-PHP_FUNCTION(apcu_fetch) {
+PHP_FUNCTION(immutable_cache_fetch) {
 	zval *key;
 	zval *success = NULL;
 	time_t t;
@@ -495,7 +495,7 @@ PHP_FUNCTION(apcu_fetch) {
 		return;
 	}
 
-	t = apc_time();
+	t = immutable_cache_time();
 
 	if (Z_TYPE_P(key) != IS_STRING && Z_TYPE_P(key) != IS_ARRAY) {
 		convert_to_string(key);
@@ -503,7 +503,7 @@ PHP_FUNCTION(apcu_fetch) {
 
 	/* TODO: Port to array|string for PHP 8? */
 	if (Z_TYPE_P(key) == IS_STRING) {
-		result = apc_cache_fetch(apc_user_cache, Z_STR_P(key), t, return_value);
+		result = immutable_cache_cache_fetch(immutable_cache_user_cache, Z_STR_P(key), t, return_value);
 	} else if (Z_TYPE_P(key) == IS_ARRAY) {
 		zval *hentry;
 
@@ -514,16 +514,16 @@ PHP_FUNCTION(apcu_fetch) {
 				zval result_entry;
 				ZVAL_UNDEF(&result_entry);
 
-				if (apc_cache_fetch(apc_user_cache, Z_STR_P(hentry), t, &result_entry)) {
+				if (immutable_cache_cache_fetch(immutable_cache_user_cache, Z_STR_P(hentry), t, &result_entry)) {
 					zend_hash_update(Z_ARRVAL_P(return_value), Z_STR_P(hentry), &result_entry);
 				}
 			} else {
-				apc_warning("apc_fetch() expects a string or array of strings.");
+				immutable_cache_warning("immutable_cache_fetch() expects a string or array of strings.");
 			}
 		} ZEND_HASH_FOREACH_END();
 		result = 1;
 	} else {
-		apc_warning("apc_fetch() expects a string or array of strings.");
+		immutable_cache_warning("immutable_cache_fetch() expects a string or array of strings.");
 		result = 0;
 	}
 
@@ -536,9 +536,9 @@ PHP_FUNCTION(apcu_fetch) {
 }
 /* }}} */
 
-/* {{{ proto mixed apcu_exists(mixed key)
+/* {{{ proto mixed immutable_cache_exists(mixed key)
  */
-PHP_FUNCTION(apcu_exists) {
+PHP_FUNCTION(immutable_cache_exists) {
 	zval *key;
 	time_t t;
 
@@ -546,7 +546,7 @@ PHP_FUNCTION(apcu_exists) {
 		return;
 	}
 
-	t = apc_time();
+	t = immutable_cache_time();
 
 	if (Z_TYPE_P(key) != IS_STRING && Z_TYPE_P(key) != IS_ARRAY) {
 		convert_to_string(key);
@@ -554,7 +554,7 @@ PHP_FUNCTION(apcu_exists) {
 
 	/* TODO: Port to array|string for PHP 8? */
 	if (Z_TYPE_P(key) == IS_STRING) {
-		RETURN_BOOL(apc_cache_exists(apc_user_cache, Z_STR_P(key), t));
+		RETURN_BOOL(immutable_cache_cache_exists(immutable_cache_user_cache, Z_STR_P(key), t));
 	} else if (Z_TYPE_P(key) == IS_ARRAY) {
 		zval *hentry;
 		zval true_zv;
@@ -564,16 +564,16 @@ PHP_FUNCTION(apcu_exists) {
 		ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(key), hentry) {
 			ZVAL_DEREF(hentry);
 			if (Z_TYPE_P(hentry) == IS_STRING) {
-				if (apc_cache_exists(apc_user_cache, Z_STR_P(hentry), t)) {
+				if (immutable_cache_cache_exists(immutable_cache_user_cache, Z_STR_P(hentry), t)) {
 					  zend_hash_add_new(Z_ARRVAL_P(return_value), Z_STR_P(hentry), &true_zv);
 				}
 			} else {
-				apc_warning(
-					"apc_exists() expects a string or array of strings.");
+				immutable_cache_warning(
+					"immutable_cache_exists() expects a string or array of strings.");
 			}
 		} ZEND_HASH_FOREACH_END();
 	} else {
-		apc_warning("apc_exists() expects a string or array of strings.");
+		immutable_cache_warning("immutable_cache_exists() expects a string or array of strings.");
 		RETURN_FALSE;
 	}
 }
@@ -581,7 +581,7 @@ PHP_FUNCTION(apcu_exists) {
 
 /* {{{ module definition structure */
 
-zend_module_entry apcu_module_entry = {
+zend_module_entry immutable_cache_module_entry = {
 	STANDARD_MODULE_HEADER,
 	PHP_APCU_EXTNAME,
 	ext_functions,

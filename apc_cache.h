@@ -26,17 +26,17 @@
 
  */
 
-#ifndef APC_CACHE_H
-#define APC_CACHE_H
+#ifndef IMMUTABLE_CACHE_CACHE_H
+#define IMMUTABLE_CACHE_CACHE_H
 
 #include "apc.h"
-#include "apc_sma.h"
-#include "apc_lock.h"
-#include "apc_globals.h"
+#include "immutable_cache_sma.h"
+#include "immutable_cache_lock.h"
+#include "immutable_cache_globals.h"
 #include "TSRM.h"
 
-typedef struct apc_cache_slam_key_t apc_cache_slam_key_t;
-struct apc_cache_slam_key_t {
+typedef struct immutable_cache_cache_slam_key_t immutable_cache_cache_slam_key_t;
+struct immutable_cache_cache_slam_key_t {
 	zend_ulong hash;         /* hash of the key */
 	size_t len;              /* length of the key */
 	time_t mtime;            /* creation time of this key */
@@ -46,13 +46,13 @@ struct apc_cache_slam_key_t {
 #endif
 };
 
-/* {{{ struct definition: apc_cache_entry_t */
-typedef struct apc_cache_entry_t apc_cache_entry_t;
-struct apc_cache_entry_t {
+/* {{{ struct definition: immutable_cache_cache_entry_t */
+typedef struct immutable_cache_cache_entry_t immutable_cache_cache_entry_t;
+struct immutable_cache_cache_entry_t {
     /* TODO Can this be made interned and const, similar to opcache */
 	zend_string *key;        /* entry key */
 	zval val;                /* the zval copied at store time */
-	apc_cache_entry_t *next; /* next entry in linked list */
+	immutable_cache_cache_entry_t *next; /* next entry in linked list */
 	zend_long nhits;         /* number of hits to this entry */
 	time_t ctime;            /* time entry was initialized */
 	time_t atime;            /* time entry was last accessed */
@@ -60,10 +60,10 @@ struct apc_cache_entry_t {
 };
 /* }}} */
 
-/* {{{ struct definition: apc_cache_header_t
+/* {{{ struct definition: immutable_cache_cache_header_t
    Any values that must be shared among processes should go in here. */
 typedef struct _apc_cache_header_t {
-	apc_lock_t lock;                /* header lock */
+	immutable_cache_lock_t lock;                /* header lock */
 	zend_long nhits;                /* hit count */
 	zend_long nmisses;              /* miss count */
 	zend_long ninserts;             /* insert count */
@@ -72,38 +72,38 @@ typedef struct _apc_cache_header_t {
 	zend_long mem_size;             /* used */
 	time_t stime;                   /* start time */
 	unsigned short state;           /* cache state */
-	apc_cache_slam_key_t lastkey;   /* last key inserted (not necessarily without error) */
-	apc_cache_entry_t *gc;          /* gc list */
-} apc_cache_header_t; /* }}} */
+	immutable_cache_cache_slam_key_t lastkey;   /* last key inserted (not necessarily without error) */
+	immutable_cache_cache_entry_t *gc;          /* gc list */
+} immutable_cache_cache_header_t; /* }}} */
 
-/* {{{ struct definition: apc_cache_t */
+/* {{{ struct definition: immutable_cache_cache_t */
 typedef struct _apc_cache_t {
 	// FIXME when is this process local?
 	void* shmaddr;                /* process (local) address of shared cache */
-	apc_cache_header_t* header;   /* cache header (stored in SHM) */
-	apc_cache_entry_t** slots;    /* array of cache slots (stored in SHM) */
-	apc_sma_t* sma;               /* shared memory allocator */
-	apc_serializer_t* serializer; /* serializer */
+	immutable_cache_cache_header_t* header;   /* cache header (stored in SHM) */
+	immutable_cache_cache_entry_t** slots;    /* array of cache slots (stored in SHM) */
+	immutable_cache_sma_t* sma;               /* shared memory allocator */
+	immutable_cache_serializer_t* serializer; /* serializer */
 	size_t nslots;                /* number of slots in cache */
 	zend_long gc_ttl;            /* maximum time on GC list for a entry */
 	zend_long ttl;               /* if slot is needed and entry's access time is older than this ttl, remove it */
 	zend_long smart;             /* smart parameter for gc */
 	zend_bool defend;             /* defense parameter for runtime */
-} apc_cache_t; /* }}} */
+} immutable_cache_cache_t; /* }}} */
 
-/* {{{ typedef: apc_cache_updater_t */
-typedef zend_bool (*apc_cache_updater_t)(apc_cache_t*, apc_cache_entry_t*, void* data); /* }}} */
+/* {{{ typedef: immutable_cache_cache_updater_t */
+typedef zend_bool (*immutable_cache_cache_updater_t)(immutable_cache_cache_t*, immutable_cache_cache_entry_t*, void* data); /* }}} */
 
-/* {{{ typedef: apc_cache_atomic_updater_t */
-typedef zend_bool (*apc_cache_atomic_updater_t)(apc_cache_t*, zend_long*, void* data); /* }}} */
+/* {{{ typedef: immutable_cache_cache_atomic_updater_t */
+typedef zend_bool (*immutable_cache_cache_atomic_updater_t)(immutable_cache_cache_t*, zend_long*, void* data); /* }}} */
 
 /*
- * apc_cache_create creates the shared memory cache.
+ * immutable_cache_cache_create creates the shared memory cache.
  *
  * This function should be called once per process per cache
  *
- * serializer for APCu is set by globals on MINIT and ensured with apc_cache_serializer
- * during execution. Using apc_cache_serializer avoids race conditions between MINIT/RINIT of
+ * serializer for APCu is set by globals on MINIT and ensured with immutable_cache_cache_serializer
+ * during execution. Using immutable_cache_cache_serializer avoids race conditions between MINIT/RINIT of
  * APCU and the third party serializer. API users can choose to leave this null to use default
  * PHP serializers, or search the list of serializers for the preferred serializer
  *
@@ -111,122 +111,122 @@ typedef zend_bool (*apc_cache_atomic_updater_t)(apc_cache_t*, zend_long*, void* 
  * It determines the physical size of the hash table. Passing 0 for
  * this argument will use a reasonable default value
  */
-PHP_APCU_API apc_cache_t* apc_cache_create(
-        apc_sma_t* sma, apc_serializer_t* serializer, zend_long size_hint);
+PHP_APCU_API immutable_cache_cache_t* immutable_cache_cache_create(
+        immutable_cache_sma_t* sma, immutable_cache_serializer_t* serializer, zend_long size_hint);
 /*
-* apc_cache_preload preloads the data at path into the specified cache
+* immutable_cache_cache_preload preloads the data at path into the specified cache
 */
-PHP_APCU_API zend_bool apc_cache_preload(apc_cache_t* cache, const char* path);
+PHP_APCU_API zend_bool immutable_cache_cache_preload(immutable_cache_cache_t* cache, const char* path);
 
 /*
- * apc_cache_detach detaches from the shared memory cache and cleans up
+ * immutable_cache_cache_detach detaches from the shared memory cache and cleans up
  * local allocations. Under apache, this function can be safely called by
  * the child processes when they exit.
  */
-PHP_APCU_API void apc_cache_detach(apc_cache_t* cache);
+PHP_APCU_API void immutable_cache_cache_detach(immutable_cache_cache_t* cache);
 
 /*
- * apc_cache_clear empties a cache. This can safely be called at any time.
+ * immutable_cache_cache_clear empties a cache. This can safely be called at any time.
  */
-PHP_APCU_API void apc_cache_clear(apc_cache_t* cache);
+PHP_APCU_API void immutable_cache_cache_clear(immutable_cache_cache_t* cache);
 
 /*
- * apc_cache_store creates key, entry and context in which to make an insertion of val into the specified cache
+ * immutable_cache_cache_store creates key, entry and context in which to make an insertion of val into the specified cache
  */
-PHP_APCU_API zend_bool apc_cache_store(
-        apc_cache_t* cache, zend_string *key, const zval *val);
+PHP_APCU_API zend_bool immutable_cache_cache_store(
+        immutable_cache_cache_t* cache, zend_string *key, const zval *val);
 /*
- * apc_cache_update updates an entry in place. The updater function must not bailout.
+ * immutable_cache_cache_update updates an entry in place. The updater function must not bailout.
  * The update is performed under write-lock and doesn't have to be atomic.
  */
-PHP_APCU_API zend_bool apc_cache_update(
-		apc_cache_t *cache, zend_string *key, apc_cache_updater_t updater, void *data,
+PHP_APCU_API zend_bool immutable_cache_cache_update(
+		immutable_cache_cache_t *cache, zend_string *key, immutable_cache_cache_updater_t updater, void *data,
 		zend_bool insert_if_not_found, zend_long ttl);
 
 /*
- * apc_cache_find searches for a cache entry by its hashed identifier,
+ * immutable_cache_cache_find searches for a cache entry by its hashed identifier,
  * and returns a pointer to the entry if found, NULL otherwise.
  *
  */
-PHP_APCU_API apc_cache_entry_t* apc_cache_find(apc_cache_t* cache, zend_string *key, time_t t);
+PHP_APCU_API immutable_cache_cache_entry_t* immutable_cache_cache_find(immutable_cache_cache_t* cache, zend_string *key, time_t t);
 
 /*
- * apc_cache_fetch fetches an entry from the cache directly into dst
+ * immutable_cache_cache_fetch fetches an entry from the cache directly into dst
  *
  */
-PHP_APCU_API zend_bool apc_cache_fetch(apc_cache_t* cache, zend_string *key, time_t t, zval *dst);
+PHP_APCU_API zend_bool immutable_cache_cache_fetch(immutable_cache_cache_t* cache, zend_string *key, time_t t, zval *dst);
 
 /*
- * apc_cache_exists searches for a cache entry by its hashed identifier,
+ * immutable_cache_cache_exists searches for a cache entry by its hashed identifier,
  * and returns whether the entry exists.
  */
-PHP_APCU_API zend_bool apc_cache_exists(apc_cache_t* cache, zend_string *key, time_t t);
+PHP_APCU_API zend_bool immutable_cache_cache_exists(immutable_cache_cache_t* cache, zend_string *key, time_t t);
 
-/* apc_cache_fetch_zval copies a cache entry value to be usable at runtime.
+/* immutable_cache_cache_fetch_zval copies a cache entry value to be usable at runtime.
  */
-PHP_APCU_API zend_bool apc_cache_entry_fetch_zval(
-		apc_cache_t *cache, apc_cache_entry_t *entry, zval *dst);
+PHP_APCU_API zend_bool immutable_cache_cache_entry_fetch_zval(
+		immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *entry, zval *dst);
 
 /*
- * apc_cache_entry_release decrements the reference count associated with a cache
- * entry. Calling apc_cache_find automatically increments the reference count,
+ * immutable_cache_cache_entry_release decrements the reference count associated with a cache
+ * entry. Calling immutable_cache_cache_find automatically increments the reference count,
  * and this function must be called post-execution to return the count to its
  * original value. Failing to do so will prevent the entry from being
  * garbage-collected.
  *
  * entry is the cache entry whose ref count you want to decrement.
  */
-PHP_APCU_API void apc_cache_entry_release(apc_cache_t *cache, apc_cache_entry_t *entry);
+PHP_APCU_API void immutable_cache_cache_entry_release(immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *entry);
 
 /*
  fetches information about the cache provided for userland status functions
 */
-PHP_APCU_API zend_bool apc_cache_info(zval *info, apc_cache_t *cache, zend_bool limited);
+PHP_APCU_API zend_bool immutable_cache_cache_info(zval *info, immutable_cache_cache_t *cache, zend_bool limited);
 
 /*
  fetches information about the key provided
 */
-PHP_APCU_API void apc_cache_stat(apc_cache_t *cache, zend_string *key, zval *stat);
+PHP_APCU_API void immutable_cache_cache_stat(immutable_cache_cache_t *cache, zend_string *key, zval *stat);
 
 /*
-* apc_cache_serializer
+* immutable_cache_cache_serializer
 * sets the serializer for a cache, and by proxy contexts created for the cache
 * Note: this avoids race conditions between third party serializers and APCu
 */
-PHP_APCU_API void apc_cache_serializer(apc_cache_t* cache, const char* name);
+PHP_APCU_API void immutable_cache_cache_serializer(immutable_cache_cache_t* cache, const char* name);
 
-/* apcu_entry() holds a write lock on the cache while executing user code.
- * That code may call other apcu_* functions, which also try to acquire a
+/* immutable_cache_entry() holds a write lock on the cache while executing user code.
+ * That code may call other immutable_cache_* functions, which also try to acquire a
  * read or write lock, which would deadlock. As such, don't try to acquire a
- * lock if the current thread is inside apcu_entry().
+ * lock if the current thread is inside immutable_cache_entry().
  *
- * Whether the current thread is inside apcu_entry() is tracked by APCG(entry_level).
- * This breaks the self-contained apc_cache_t abstraction, but is currently
+ * Whether the current thread is inside immutable_cache_entry() is tracked by APCG(entry_level).
+ * This breaks the self-contained immutable_cache_cache_t abstraction, but is currently
  * necessary because the entry_level needs to be tracked per-thread, while
- * apc_cache_t is a per-process structure.
+ * immutable_cache_cache_t is a per-process structure.
  */
 
-static inline zend_bool apc_cache_wlock(apc_cache_t *cache) {
+static inline zend_bool immutable_cache_cache_wlock(immutable_cache_cache_t *cache) {
 	if (!APCG(entry_level)) {
 		return WLOCK(&cache->header->lock);
 	}
 	return 1;
 }
 
-static inline void apc_cache_wunlock(apc_cache_t *cache) {
+static inline void immutable_cache_cache_wunlock(immutable_cache_cache_t *cache) {
 	if (!APCG(entry_level)) {
 		WUNLOCK(&cache->header->lock);
 	}
 }
 
-static inline zend_bool apc_cache_rlock(apc_cache_t *cache) {
+static inline zend_bool immutable_cache_cache_rlock(immutable_cache_cache_t *cache) {
 	if (!APCG(entry_level)) {
 		return RLOCK(&cache->header->lock);
 	}
 	return 1;
 }
 
-static inline void apc_cache_runlock(apc_cache_t *cache) {
+static inline void immutable_cache_cache_runlock(immutable_cache_cache_t *cache) {
 	if (!APCG(entry_level)) {
 		RUNLOCK(&cache->header->lock);
 	}

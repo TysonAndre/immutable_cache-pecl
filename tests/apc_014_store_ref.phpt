@@ -16,7 +16,7 @@ $items = [];
 foreach($_items as $k => $v) {
 	$items["prefix_$k"] = &$v;
 }
-var_dump(apcu_add($items));
+var_dump(immutable_cache_add($items));
 ?>
 ===DONE===
 --EXPECT--

@@ -25,22 +25,22 @@
 
  */
 
-#ifndef APC_SHM_H
-#define APC_SHM_H
+#ifndef IMMUTABLE_CACHE_SHM_H
+#define IMMUTABLE_CACHE_SHM_H
 
 #include <sys/types.h>
 #ifdef PHP_WIN32
 #include <time.h>
 #endif
 
-#include "apc_sma.h"
+#include "immutable_cache_sma.h"
 
 /* Wrapper functions for unix shared memory */
 
-extern int apc_shm_create(int proj, size_t size);
-extern void apc_shm_destroy(int shmid);
-extern apc_segment_t apc_shm_attach(int shmid, size_t size);
-extern void apc_shm_detach(apc_segment_t* segment);
+extern int immutable_cache_shm_create(int proj, size_t size);
+extern void immutable_cache_shm_destroy(int shmid);
+extern immutable_cache_segment_t immutable_cache_shm_attach(int shmid, size_t size);
+extern void immutable_cache_shm_detach(immutable_cache_segment_t* segment);
 
 #endif
 

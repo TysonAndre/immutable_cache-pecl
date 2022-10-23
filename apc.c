@@ -30,13 +30,13 @@
  */
 
 #include "apc.h"
-#include "apc_cache.h"
-#include "apc_globals.h"
+#include "immutable_cache_cache.h"
+#include "immutable_cache_globals.h"
 #include "php.h"
 
 /* {{{ console display functions */
-#define APC_PRINT_FUNCTION(name, verbosity)					\
-	void apc_##name(const char *format, ...)				\
+#define IMMUTABLE_CACHE_PRINT_FUNCTION(name, verbosity)					\
+	void immutable_cache_##name(const char *format, ...)				\
 	{									\
 		va_list args;							\
 										\
@@ -45,19 +45,19 @@
 		va_end(args);							\
 	}
 
-APC_PRINT_FUNCTION(error, E_ERROR)
-APC_PRINT_FUNCTION(warning, E_WARNING)
-APC_PRINT_FUNCTION(notice, E_NOTICE)
+IMMUTABLE_CACHE_PRINT_FUNCTION(error, E_ERROR)
+IMMUTABLE_CACHE_PRINT_FUNCTION(warning, E_WARNING)
+IMMUTABLE_CACHE_PRINT_FUNCTION(notice, E_NOTICE)
 
-#ifdef APC_DEBUG
-APC_PRINT_FUNCTION(debug, E_NOTICE)
+#ifdef IMMUTABLE_CACHE_DEBUG
+IMMUTABLE_CACHE_PRINT_FUNCTION(debug, E_NOTICE)
 #else
-void apc_debug(const char *format, ...) {}
+void immutable_cache_debug(const char *format, ...) {}
 #endif
 /* }}} */
 
-/* {{{ apc_flip_hash */
-HashTable* apc_flip_hash(HashTable *hash) {
+/* {{{ immutable_cache_flip_hash */
+HashTable* immutable_cache_flip_hash(HashTable *hash) {
 	zval data, *entry;
 	HashTable *new_hash;
 
@@ -84,28 +84,28 @@ HashTable* apc_flip_hash(HashTable *hash) {
 /*
 * Serializer API
 */
-#define APC_MAX_SERIALIZERS 16
+#define IMMUTABLE_CACHE_MAX_SERIALIZERS 16
 
 /* pointer to the list of serializers */
-static apc_serializer_t apc_serializers[APC_MAX_SERIALIZERS] = {{0,}};
+static immutable_cache_serializer_t immutable_cache_serializers[IMMUTABLE_CACHE_MAX_SERIALIZERS] = {{0,}};
 /* }}} */
 
-/* {{{ apc_register_serializer */
+/* {{{ immutable_cache_register_serializer */
 PHP_APCU_API int _apc_register_serializer(
-        const char* name, apc_serialize_t serialize, apc_unserialize_t unserialize, void *config) {
+        const char* name, immutable_cache_serialize_t serialize, immutable_cache_unserialize_t unserialize, void *config) {
 	int i;
-	apc_serializer_t *serializer;
+	immutable_cache_serializer_t *serializer;
 
-	for(i = 0; i < APC_MAX_SERIALIZERS; i++) {
-		serializer = &apc_serializers[i];
+	for(i = 0; i < IMMUTABLE_CACHE_MAX_SERIALIZERS; i++) {
+		serializer = &immutable_cache_serializers[i];
 		if(!serializer->name) {
 			/* empty entry */
 			serializer->name = name;
 			serializer->serialize = serialize;
 			serializer->unserialize = unserialize;
 			serializer->config = config;
-			if (i < APC_MAX_SERIALIZERS - 1) {
-				apc_serializers[i+1].name = NULL;
+			if (i < IMMUTABLE_CACHE_MAX_SERIALIZERS - 1) {
+				immutable_cache_serializers[i+1].name = NULL;
 			}
 			return 1;
 		}
@@ -114,18 +114,18 @@ PHP_APCU_API int _apc_register_serializer(
 	return 0;
 } /* }}} */
 
-/* {{{ apc_get_serializers */
-PHP_APCU_API apc_serializer_t* apc_get_serializers()  {
-	return &(apc_serializers[0]);
+/* {{{ immutable_cache_get_serializers */
+PHP_APCU_API immutable_cache_serializer_t* immutable_cache_get_serializers()  {
+	return &(immutable_cache_serializers[0]);
 } /* }}} */
 
-/* {{{ apc_find_serializer */
-PHP_APCU_API apc_serializer_t* apc_find_serializer(const char* name) {
+/* {{{ immutable_cache_find_serializer */
+PHP_APCU_API immutable_cache_serializer_t* immutable_cache_find_serializer(const char* name) {
 	int i;
-	apc_serializer_t *serializer;
+	immutable_cache_serializer_t *serializer;
 
-	for(i = 0; i < APC_MAX_SERIALIZERS; i++) {
-		serializer = &apc_serializers[i];
+	for(i = 0; i < IMMUTABLE_CACHE_MAX_SERIALIZERS; i++) {
+		serializer = &immutable_cache_serializers[i];
 		if(serializer->name && (strcmp(serializer->name, name) == 0)) {
 			return serializer;
 		}

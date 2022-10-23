@@ -23,11 +23,11 @@
 
  */
 
-#include "apc_time.h"
-#include "apc_globals.h"
+#include "immutable_cache_time.h"
+#include "immutable_cache_globals.h"
 #include "SAPI.h"
 
-time_t apc_time(void)
+time_t immutable_cache_time(void)
 {
 	if (APCG(use_request_time)) {
 		if (!APCG(request_time))

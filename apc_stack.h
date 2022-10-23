@@ -26,22 +26,22 @@
 
  */
 
-#ifndef APC_STACK_H
-#define APC_STACK_H
+#ifndef IMMUTABLE_CACHE_STACK_H
+#define IMMUTABLE_CACHE_STACK_H
 
 /* Basic stack datatype */
 
-#define T apc_stack_t*
-typedef struct apc_stack_t apc_stack_t; /* opaque stack type */
+#define T immutable_cache_stack_t*
+typedef struct immutable_cache_stack_t immutable_cache_stack_t; /* opaque stack type */
 
-extern T apc_stack_create(size_t size_hint);
-extern void apc_stack_destroy(T stack);
-extern void apc_stack_clear(T stack);
-extern void apc_stack_push(T stack, void* item);
-extern void* apc_stack_pop(T stack);
-extern void* apc_stack_top(T stack);
-extern void* apc_stack_get(T stack, size_t n);
-extern int apc_stack_size(T stack);
+extern T immutable_cache_stack_create(size_t size_hint);
+extern void immutable_cache_stack_destroy(T stack);
+extern void immutable_cache_stack_clear(T stack);
+extern void immutable_cache_stack_push(T stack, void* item);
+extern void* immutable_cache_stack_pop(T stack);
+extern void* immutable_cache_stack_top(T stack);
+extern void* immutable_cache_stack_get(T stack, size_t n);
+extern int immutable_cache_stack_size(T stack);
 
 #undef T
 #endif
