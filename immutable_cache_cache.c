@@ -131,12 +131,12 @@ static inline zend_bool immutable_cache_entry_key_equals(const immutable_cache_c
 }
 
 /* {{{ php serializer */
-PHP_APCU_API int IMMUTABLE_CACHE_SERIALIZER_NAME(php) (IMMUTABLE_CACHE_SERIALIZER_ARGS)
+PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_SERIALIZER_NAME(php) (IMMUTABLE_CACHE_SERIALIZER_ARGS)
 {
 	smart_str strbuf = {0};
 	php_serialize_data_t var_hash;
 
-	/* Lock in case apcu is accessed inside Serializer::serialize() */
+	/* Lock in case immutable_cache is accessed inside Serializer::serialize() */
 	BG(serialize_lock)++;
 	PHP_VAR_SERIALIZE_INIT(var_hash);
 	php_var_serialize(&strbuf, (zval*) value, &var_hash);
@@ -161,13 +161,13 @@ PHP_APCU_API int IMMUTABLE_CACHE_SERIALIZER_NAME(php) (IMMUTABLE_CACHE_SERIALIZE
 } /* }}} */
 
 /* {{{ php unserializer */
-PHP_APCU_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS)
+PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS)
 {
 	const unsigned char *tmp = buf;
 	php_unserialize_data_t var_hash;
 	int result;
 
-	/* Lock in case apcu is accessed inside Serializer::unserialize() */
+	/* Lock in case immutable_cache is accessed inside Serializer::unserialize() */
 	BG(serialize_lock)++;
 	PHP_VAR_UNSERIALIZE_INIT(var_hash);
 	result = php_var_unserialize(value, &tmp, buf + buf_len, &var_hash);
@@ -183,7 +183,7 @@ PHP_APCU_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CACHE_UNSERIA
 } /* }}} */
 
 /* {{{ immutable_cache_cache_create */
-PHP_APCU_API immutable_cache_cache_t* immutable_cache_cache_create(immutable_cache_sma_t* sma, immutable_cache_serializer_t* serializer, zend_long size_hint) {
+PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(immutable_cache_sma_t* sma, immutable_cache_serializer_t* serializer, zend_long size_hint) {
 	immutable_cache_cache_t* cache;
 	zend_long cache_size;
 	size_t nslots;
@@ -352,7 +352,7 @@ static inline immutable_cache_cache_entry_t *immutable_cache_cache_rlocked_find_
 }
 
 /* {{{ immutable_cache_cache_store */
-PHP_APCU_API zend_bool immutable_cache_cache_store(
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_store(
 		immutable_cache_cache_t* cache, zend_string *key, const zval *val) {
 	immutable_cache_cache_entry_t tmp_entry, *entry;
 	time_t t = immutable_cache_time();
@@ -375,11 +375,11 @@ PHP_APCU_API zend_bool immutable_cache_cache_store(
 		return 0;
 	}
 
-	php_apc_try {
+	php_immutable_cache_try {
 		ret = immutable_cache_cache_wlocked_insert_exclusive(cache, entry);
-	} php_apc_finally {
+	} php_immutable_cache_finally {
 		immutable_cache_cache_wunlock(cache);
-	} php_apc_end_try();
+	} php_immutable_cache_end_try();
 
 	if (!ret) {
 		free_entry(cache, entry);
@@ -472,7 +472,7 @@ static int immutable_cache_load_data(immutable_cache_cache_t* cache, const char 
 #endif
 
 /* {{{ immutable_cache_cache_preload shall load the prepared data files in path into the specified cache */
-PHP_APCU_API zend_bool immutable_cache_cache_preload(immutable_cache_cache_t* cache, const char *path)
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_preload(immutable_cache_cache_t* cache, const char *path)
 {
 #ifndef ZTS
 	zend_bool result = 0;
@@ -508,7 +508,7 @@ PHP_APCU_API zend_bool immutable_cache_cache_preload(immutable_cache_cache_t* ca
 } /* }}} */
 
 /* {{{ immutable_cache_cache_detach */
-PHP_APCU_API void immutable_cache_cache_detach(immutable_cache_cache_t *cache)
+PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_detach(immutable_cache_cache_t *cache)
 {
 	/* Important: This function should not clean up anything that's in shared memory,
 	 * only detach our process-local use of it. In particular locks cannot be destroyed
@@ -523,7 +523,7 @@ PHP_APCU_API void immutable_cache_cache_detach(immutable_cache_cache_t *cache)
 /* }}} */
 
 /* {{{ immutable_cache_cache_find */
-PHP_APCU_API immutable_cache_cache_entry_t *immutable_cache_cache_find(immutable_cache_cache_t* cache, zend_string *key, time_t t)
+PHP_IMMUTABLE_CACHE_API immutable_cache_cache_entry_t *immutable_cache_cache_find(immutable_cache_cache_t* cache, zend_string *key, time_t t)
 {
 	immutable_cache_cache_entry_t *entry;
 
@@ -543,7 +543,7 @@ PHP_APCU_API immutable_cache_cache_entry_t *immutable_cache_cache_find(immutable
 /* }}} */
 
 /* {{{ immutable_cache_cache_fetch */
-PHP_APCU_API zend_bool immutable_cache_cache_fetch(immutable_cache_cache_t* cache, zend_string *key, time_t t, zval *dst)
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_fetch(immutable_cache_cache_t* cache, zend_string *key, time_t t, zval *dst)
 {
 	immutable_cache_cache_entry_t *entry;
 	zend_bool retval = 0;
@@ -569,7 +569,7 @@ PHP_APCU_API zend_bool immutable_cache_cache_fetch(immutable_cache_cache_t* cach
 } /* }}} */
 
 /* {{{ immutable_cache_cache_exists */
-PHP_APCU_API zend_bool immutable_cache_cache_exists(immutable_cache_cache_t* cache, zend_string *key, time_t t)
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_exists(immutable_cache_cache_t* cache, zend_string *key, time_t t)
 {
 	immutable_cache_cache_entry_t *entry;
 
@@ -589,7 +589,7 @@ PHP_APCU_API zend_bool immutable_cache_cache_exists(immutable_cache_cache_t* cac
 /* }}} */
 
 /* {{{ immutable_cache_cache_entry_fetch_zval */
-PHP_APCU_API zend_bool immutable_cache_cache_entry_fetch_zval(
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_entry_fetch_zval(
 		immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *entry, zval *dst)
 {
 	return immutable_cache_unpersist(dst, &entry->val, cache->serializer);
@@ -642,7 +642,7 @@ static zval immutable_cache_cache_link_info(immutable_cache_cache_t *cache, immu
 /* }}} */
 
 /* {{{ immutable_cache_cache_info */
-PHP_APCU_API zend_bool immutable_cache_cache_info(zval *info, immutable_cache_cache_t *cache, zend_bool limited)
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_info(zval *info, immutable_cache_cache_t *cache, zend_bool limited)
 {
 	zval list;
 	zval gc;
@@ -659,7 +659,7 @@ PHP_APCU_API zend_bool immutable_cache_cache_info(zval *info, immutable_cache_ca
 		return 0;
 	}
 
-	php_apc_try {
+	php_immutable_cache_try {
 		array_init(info);
 		add_assoc_long(info, "num_slots", cache->nslots);
 		array_add_long(info, immutable_cache_str_ttl, cache->ttl);
@@ -708,9 +708,9 @@ PHP_APCU_API zend_bool immutable_cache_cache_info(zval *info, immutable_cache_ca
 			add_assoc_zval(info, "deleted_list", &gc);
 			add_assoc_zval(info, "slot_distribution", &slots);
 		}
-	} php_apc_finally {
+	} php_immutable_cache_finally {
 		immutable_cache_cache_runlock(cache);
-	} php_apc_end_try();
+	} php_immutable_cache_end_try();
 
 	return 1;
 }
@@ -719,7 +719,7 @@ PHP_APCU_API zend_bool immutable_cache_cache_info(zval *info, immutable_cache_ca
 /*
  fetches information about the key provided
 */
-PHP_APCU_API void immutable_cache_cache_stat(immutable_cache_cache_t *cache, zend_string *key, zval *stat) {
+PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_stat(immutable_cache_cache_t *cache, zend_string *key, zval *stat) {
 	zend_ulong h;
 	size_t s;
 
@@ -735,7 +735,7 @@ PHP_APCU_API void immutable_cache_cache_stat(immutable_cache_cache_t *cache, zen
 		return;
 	}
 
-	php_apc_try {
+	php_immutable_cache_try {
 		/* find head */
 		immutable_cache_cache_entry_t *entry = cache->slots[s];
 
@@ -752,13 +752,13 @@ PHP_APCU_API void immutable_cache_cache_stat(immutable_cache_cache_t *cache, zen
 			/* next */
 			entry = entry->next;
 		}
-	} php_apc_finally {
+	} php_immutable_cache_finally {
 		immutable_cache_cache_runlock(cache);
-	} php_apc_end_try();
+	} php_immutable_cache_end_try();
 }
 
 /* {{{ immutable_cache_cache_serializer */
-PHP_APCU_API void immutable_cache_cache_serializer(immutable_cache_cache_t* cache, const char* name) {
+PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_serializer(immutable_cache_cache_t* cache, const char* name) {
 	if (cache && !cache->serializer) {
 		cache->serializer = immutable_cache_find_serializer(name);
 	}

@@ -45,9 +45,9 @@
 #include "ext/standard/md5.h"
 #include "ext/standard/php_var.h"
 #if PHP_VERSION_ID >= 80000
-# include "php_apc_arginfo.h"
+# include "php_immutable_cache_arginfo.h"
 #else
-# include "php_apc_legacy_arginfo.h"
+# include "php_immutable_cache_legacy_arginfo.h"
 #endif
 #include "php74_shim.h"
 
@@ -56,15 +56,15 @@
 #endif
 
 #include "SAPI.h"
-#include "php_apc.h"
+#include "php_immutable_cache.h"
 #include "Zend/zend_smart_str.h"
 
 #if HAVE_SIGACTION
 #include "immutable_cache_signal.h"
 #endif
 
-/* {{{ ZEND_DECLARE_MODULE_GLOBALS(apcu) */
-ZEND_DECLARE_MODULE_GLOBALS(apcu)
+/* {{{ ZEND_DECLARE_MODULE_GLOBALS(immutable_cache) */
+ZEND_DECLARE_MODULE_GLOBALS(immutable_cache)
 
 /* True globals */
 immutable_cache_cache_t* immutable_cache_user_cache = NULL;
@@ -77,7 +77,7 @@ immutable_cache_sma_t immutable_cache_sma;
 #undef X
 
 /* Global init functions */
-static void php_apc_init_globals(zend_apcu_globals* immutable_cache_globals)
+static void php_immutable_cache_init_globals(zend_apcu_globals* immutable_cache_globals)
 {
 	immutable_cache_globals->initialized = 0;
 	immutable_cache_globals->smart = 0;
@@ -154,8 +154,8 @@ zend_bool immutable_cache_is_enabled(void)
 	return APCG(enabled);
 }
 
-/* {{{ PHP_MINFO_FUNCTION(apcu) */
-static PHP_MINFO_FUNCTION(apcu)
+/* {{{ PHP_MINFO_FUNCTION(immutable_cache) */
+static PHP_MINFO_FUNCTION(immutable_cache)
 {
 	php_info_print_table_start();
 	php_info_print_table_row(2, "APCu Support", APCG(enabled) ? "Enabled" : "Disabled");
@@ -203,13 +203,13 @@ static PHP_MINFO_FUNCTION(apcu)
 }
 /* }}} */
 
-/* {{{ PHP_MINIT_FUNCTION(apcu) */
-static PHP_MINIT_FUNCTION(apcu)
+/* {{{ PHP_MINIT_FUNCTION(immutable_cache) */
+static PHP_MINIT_FUNCTION(immutable_cache)
 {
 #if defined(ZTS) && defined(COMPILE_DL_APCU)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
-	ZEND_INIT_MODULE_GLOBALS(apcu, php_apc_init_globals, NULL);
+	ZEND_INIT_MODULE_GLOBALS(immutable_cache, php_immutable_cache_init_globals, NULL);
 
 	REGISTER_INI_ENTRIES();
 
@@ -276,8 +276,8 @@ static PHP_MINIT_FUNCTION(apcu)
 }
 /* }}} */
 
-/* {{{ PHP_MSHUTDOWN_FUNCTION(apcu) */
-static PHP_MSHUTDOWN_FUNCTION(apcu)
+/* {{{ PHP_MSHUTDOWN_FUNCTION(immutable_cache) */
+static PHP_MSHUTDOWN_FUNCTION(immutable_cache)
 {
 #define X(str) zend_string_release(immutable_cache_str_ ## str);
 	IMMUTABLE_CACHE_STRINGS
@@ -308,8 +308,8 @@ static PHP_MSHUTDOWN_FUNCTION(apcu)
 	return SUCCESS;
 } /* }}} */
 
-/* {{{ PHP_RINIT_FUNCTION(apcu) */
-static PHP_RINIT_FUNCTION(apcu)
+/* {{{ PHP_RINIT_FUNCTION(immutable_cache) */
+static PHP_RINIT_FUNCTION(immutable_cache)
 {
 #if defined(ZTS) && defined(COMPILE_DL_APCU)
 	ZEND_TSRMLS_CACHE_UPDATE();
@@ -467,7 +467,7 @@ static void immutable_cache_store_helper(INTERNAL_FUNCTION_PARAMETERS)
 /* }}} */
 
 /* {{{ proto bool immutable_cache_enabled(void)
-	returns true when apcu is usable in the current environment */
+	returns true when immutable_cache is usable in the current environment */
 PHP_FUNCTION(immutable_cache_enabled) {
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -585,18 +585,18 @@ zend_module_entry immutable_cache_module_entry = {
 	STANDARD_MODULE_HEADER,
 	PHP_APCU_EXTNAME,
 	ext_functions,
-	PHP_MINIT(apcu),
-	PHP_MSHUTDOWN(apcu),
-	PHP_RINIT(apcu),
+	PHP_MINIT(immutable_cache),
+	PHP_MSHUTDOWN(immutable_cache),
+	PHP_RINIT(immutable_cache),
 	NULL,
-	PHP_MINFO(apcu),
+	PHP_MINFO(immutable_cache),
 	PHP_APCU_VERSION,
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
 
 #ifdef COMPILE_DL_APCU
-ZEND_GET_MODULE(apcu)
+ZEND_GET_MODULE(immutable_cache)
 #ifdef ZTS
 ZEND_TSRMLS_CACHE_DEFINE();
 #endif

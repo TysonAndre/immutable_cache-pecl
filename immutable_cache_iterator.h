@@ -20,7 +20,7 @@
 #ifndef IMMUTABLE_CACHE_ITERATOR_H
 #define IMMUTABLE_CACHE_ITERATOR_H
 
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_stack.h"
 
 #include "ext/pcre/php_pcre.h"
@@ -78,15 +78,15 @@ typedef struct _apc_iterator_item_t {
 } immutable_cache_iterator_item_t;
 /* }}} */
 
-PHP_APCU_API void immutable_cache_iterator_obj_init(
+PHP_IMMUTABLE_CACHE_API void immutable_cache_iterator_obj_init(
 	immutable_cache_iterator_t *iterator,
 	zval *search,
 	zend_long format,
 	size_t chunk_size,
 	zend_long list);
-PHP_APCU_API zend_class_entry* immutable_cache_iterator_get_ce(void);
-PHP_APCU_API int immutable_cache_iterator_init(int module_number);
-PHP_APCU_API int immutable_cache_iterator_shutdown(int module_number);
+PHP_IMMUTABLE_CACHE_API zend_class_entry* immutable_cache_iterator_get_ce(void);
+PHP_IMMUTABLE_CACHE_API int immutable_cache_iterator_init(int module_number);
+PHP_IMMUTABLE_CACHE_API int immutable_cache_iterator_shutdown(int module_number);
 
 #endif
 

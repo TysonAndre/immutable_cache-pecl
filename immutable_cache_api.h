@@ -19,7 +19,7 @@
 #ifndef IMMUTABLE_CACHE_API_H
 #define IMMUTABLE_CACHE_API_H
 
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_lock.h"
 #include "immutable_cache_sma.h"
 #include "immutable_cache_cache.h"

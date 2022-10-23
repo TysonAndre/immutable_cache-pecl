@@ -28,13 +28,13 @@ ZEND_END_ARG_INFO()
 #define arginfo_apcu_exists arginfo_apcu_key_info
 
 
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_cache_info);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_key_info);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_sma_info);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_enabled);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_add);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_fetch);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_exists);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_cache_info);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_key_info);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_sma_info);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_enabled);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_add);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_fetch);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_exists);
 
 
 static const zend_function_entry ext_functions[] = {

@@ -27,7 +27,7 @@
  */
 
 #include "immutable_cache_shm.h"
-#include "apc.h"
+#include "immutable_cache.h"
 #ifdef PHP_WIN32
 /* shm functions are available in TSRM */
 #include <tsrm/tsrm_win32.h>

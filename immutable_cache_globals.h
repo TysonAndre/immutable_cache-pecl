@@ -32,9 +32,9 @@
 #ifndef IMMUTABLE_CACHE_GLOBALS_H
 #define IMMUTABLE_CACHE_GLOBALS_H
 
-#include "apc.h"
+#include "immutable_cache.h"
 
-ZEND_BEGIN_MODULE_GLOBALS(apcu)
+ZEND_BEGIN_MODULE_GLOBALS(immutable_cache)
 	/* configuration parameters */
 	zend_bool enabled;      /* if true, apc is enabled (defaults to true) */
 	zend_long shm_segments;      /* number of shared memory segments to use */
@@ -62,10 +62,10 @@ ZEND_BEGIN_MODULE_GLOBALS(apcu)
 
 	/* Nesting level of immutable_cache_entry calls. */
 	unsigned int entry_level;
-ZEND_END_MODULE_GLOBALS(apcu)
+ZEND_END_MODULE_GLOBALS(immutable_cache)
 
-/* (the following is defined in php_apc.c) */
-ZEND_EXTERN_MODULE_GLOBALS(apcu)
+/* (the following is defined in php_immutable_cache.c) */
+ZEND_EXTERN_MODULE_GLOBALS(immutable_cache)
 
 #ifdef ZTS
 # define APCG(v) TSRMG(immutable_cache_globals_id, zend_apcu_globals *, v)

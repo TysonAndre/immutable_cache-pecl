@@ -30,13 +30,13 @@
 #ifndef PHP_APCU_H
 #define PHP_APCU_H
 
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_globals.h"
 
 #define PHP_APCU_VERSION "5.1.23-dev"
-#define PHP_APCU_EXTNAME "apcu"
+#define PHP_APCU_EXTNAME "immutable_cache"
 
-PHP_APCU_API zend_bool immutable_cache_is_enabled(void);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_is_enabled(void);
 
 extern zend_module_entry immutable_cache_module_entry;
 #define immutable_cache_module_ptr &immutable_cache_module_entry

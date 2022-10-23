@@ -32,7 +32,7 @@
  * be called in request init (RINIT)
  */
 
-#include "apc.h"
+#include "immutable_cache.h"
 
 #if HAVE_SIGACTION
 #include <signal.h>

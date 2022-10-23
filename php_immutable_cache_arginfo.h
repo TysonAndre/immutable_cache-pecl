@@ -30,13 +30,13 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_apcu_exists, 0, 1, MAY_BE_ARRAY|
 ZEND_END_ARG_INFO()
 
 
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_cache_info);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_key_info);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_sma_info);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_enabled);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_add);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_fetch);
-PHP_APCU_API ZEND_FUNCTION(immutable_cache_exists);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_cache_info);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_key_info);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_sma_info);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_enabled);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_add);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_fetch);
+PHP_IMMUTABLE_CACHE_API ZEND_FUNCTION(immutable_cache_exists);
 
 
 static const zend_function_entry ext_functions[] = {

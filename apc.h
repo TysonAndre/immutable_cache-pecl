@@ -36,11 +36,11 @@
  * This module defines utilities and helper functions used elsewhere in APC.
  */
 #ifdef PHP_WIN32
-# define PHP_APCU_API __declspec(dllexport)
+# define PHP_IMMUTABLE_CACHE_API __declspec(dllexport)
 #elif defined(__GNUC__) && __GNUC__ >= 4
-# define PHP_APCU_API __attribute__ ((visibility("default")))
+# define PHP_IMMUTABLE_CACHE_API __attribute__ ((visibility("default")))
 #else
-# define PHP_APCU_API
+# define PHP_IMMUTABLE_CACHE_API
 #endif
 
 /* Commonly needed C library headers. */
@@ -68,13 +68,13 @@
 #include "main/php_streams.h"
 
 /* console display functions */
-PHP_APCU_API void immutable_cache_error(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
-PHP_APCU_API void immutable_cache_warning(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
-PHP_APCU_API void immutable_cache_notice(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
-PHP_APCU_API void immutable_cache_debug(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_error(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_warning(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_notice(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_debug(const char *format, ...) ZEND_ATTRIBUTE_FORMAT(printf, 1, 2);
 
 /* immutable_cache_flip_hash flips keys and values for faster searching */
-PHP_APCU_API HashTable* immutable_cache_flip_hash(HashTable *hash);
+PHP_IMMUTABLE_CACHE_API HashTable* immutable_cache_flip_hash(HashTable *hash);
 
 #if defined(__GNUC__)
 # define IMMUTABLE_CACHE_UNUSED __attribute__((unused))
@@ -118,27 +118,27 @@ typedef struct immutable_cache_serializer_t {
 
 /* {{{ _apc_register_serializer
  registers the serializer using the given name and parameters */
-PHP_APCU_API int _apc_register_serializer(
+PHP_IMMUTABLE_CACHE_API int _apc_register_serializer(
         const char* name, immutable_cache_serialize_t serialize, immutable_cache_unserialize_t unserialize, void *config);
 /* }}} */
 
 /* {{{ immutable_cache_get_serializers
  fetches the list of serializers */
-PHP_APCU_API immutable_cache_serializer_t* immutable_cache_get_serializers(void); /* }}} */
+PHP_IMMUTABLE_CACHE_API immutable_cache_serializer_t* immutable_cache_get_serializers(void); /* }}} */
 
 /* {{{ immutable_cache_find_serializer
  finds a previously registered serializer by name */
-PHP_APCU_API immutable_cache_serializer_t* immutable_cache_find_serializer(const char* name); /* }}} */
+PHP_IMMUTABLE_CACHE_API immutable_cache_serializer_t* immutable_cache_find_serializer(const char* name); /* }}} */
 
 /* {{{ default serializers */
-PHP_APCU_API int IMMUTABLE_CACHE_SERIALIZER_NAME(php) (IMMUTABLE_CACHE_SERIALIZER_ARGS);
-PHP_APCU_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS); /* }}} */
+PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_SERIALIZER_NAME(php) (IMMUTABLE_CACHE_SERIALIZER_ARGS);
+PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS); /* }}} */
 
 /* {{{ eval serializers */
-PHP_APCU_API int IMMUTABLE_CACHE_SERIALIZER_NAME(eval) (IMMUTABLE_CACHE_SERIALIZER_ARGS);
-PHP_APCU_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(eval) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS); /* }}} */
+PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_SERIALIZER_NAME(eval) (IMMUTABLE_CACHE_SERIALIZER_ARGS);
+PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(eval) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS); /* }}} */
 
-#define php_apc_try                        \
+#define php_immutable_cache_try                        \
 {                                          \
 	JMP_BUF *zb = EG(bailout);             \
 	JMP_BUF ab;                            \
@@ -147,19 +147,19 @@ PHP_APCU_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(eval) (IMMUTABLE_CACHE_UNSERI
 	EG(bailout) = &ab;                     \
 	if (SETJMP(ab) == SUCCESS) {
 
-#define php_apc_finally                    \
+#define php_immutable_cache_finally                    \
 	} else {                               \
 		_bailout = 1;                      \
 	}
 
-#define php_apc_end_try()                  \
+#define php_immutable_cache_end_try()                  \
 	EG(bailout) = zb;                      \
 	if (_bailout) {                        \
 		zend_bailout();                    \
 	}                                      \
 }
 
-#define php_apc_try_finish() (EG(bailout) = zb)
+#define php_immutable_cache_try_finish() (EG(bailout) = zb)
 
 #endif
 

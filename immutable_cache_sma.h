@@ -33,7 +33,7 @@
 	Skip to the bottom macros for error free usage of the SMA API
 */
 
-#include "apc.h"
+#include "immutable_cache.h"
 
 /* {{{ struct definition: immutable_cache_segment_t */
 typedef struct _apc_segment_t {
@@ -80,66 +80,66 @@ typedef struct _apc_sma_t {
 *
 * should be called once per allocator per process
 */
-PHP_APCU_API void immutable_cache_sma_init(
+PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_init(
 		immutable_cache_sma_t* sma,
 		int32_t num, size_t size, char *mask);
 
 /*
  * immutable_cache_sma_detach will detach from shared memory and cleanup local allocations.
  */
-PHP_APCU_API void immutable_cache_sma_detach(immutable_cache_sma_t* sma);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_detach(immutable_cache_sma_t* sma);
 
 /*
 * immutable_cache_smap_api_malloc will allocate a block from the sma of the given size
 */
-PHP_APCU_API void* immutable_cache_sma_malloc(immutable_cache_sma_t* sma, size_t size);
+PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_malloc(immutable_cache_sma_t* sma, size_t size);
 
 /*
  * immutable_cache_sma_api_malloc_ex will allocate a block from the sma of the given size and
  * provide the size of the actual allocation.
  */
-PHP_APCU_API void *immutable_cache_sma_malloc_ex(
+PHP_IMMUTABLE_CACHE_API void *immutable_cache_sma_malloc_ex(
 		immutable_cache_sma_t *sma, size_t size, size_t *allocated);
 
 /*
 * immutable_cache_sma_api_free will free p (which should be a pointer to a block allocated from sma)
 */
-PHP_APCU_API void immutable_cache_sma_free(immutable_cache_sma_t* sma, void* p);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_free(immutable_cache_sma_t* sma, void* p);
 
 /*
 * immutable_cache_sma_api_protect will protect p (which should be a pointer to a block allocated from sma)
 */
-PHP_APCU_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void* p);
+PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void* p);
 
 /*
 * immutable_cache_sma_api_protect will uprotect p (which should be a pointer to a block allocated from sma)
 */
-PHP_APCU_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void *p);
+PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void *p);
 
 /*
 * immutable_cache_sma_api_info returns information about the allocator
 */
-PHP_APCU_API immutable_cache_sma_info_t* immutable_cache_sma_info(immutable_cache_sma_t* sma, zend_bool limited);
+PHP_IMMUTABLE_CACHE_API immutable_cache_sma_info_t* immutable_cache_sma_info(immutable_cache_sma_t* sma, zend_bool limited);
 
 /*
 * immutable_cache_sma_api_info_free_info is for freeing immutable_cache_sma_info_t* returned by immutable_cache_sma_api_info
 */
-PHP_APCU_API void immutable_cache_sma_free_info(immutable_cache_sma_t* sma, immutable_cache_sma_info_t* info);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_free_info(immutable_cache_sma_t* sma, immutable_cache_sma_info_t* info);
 
 /*
 * immutable_cache_sma_api_get_avail_mem will return the amount of memory available left to sma
 */
-PHP_APCU_API size_t immutable_cache_sma_get_avail_mem(immutable_cache_sma_t* sma);
+PHP_IMMUTABLE_CACHE_API size_t immutable_cache_sma_get_avail_mem(immutable_cache_sma_t* sma);
 
 /*
 * immutable_cache_sma_api_get_avail_size will return true if at least size bytes are available to the sma
 */
-PHP_APCU_API zend_bool immutable_cache_sma_get_avail_size(immutable_cache_sma_t* sma, size_t size);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_sma_get_avail_size(immutable_cache_sma_t* sma, size_t size);
 
 /*
 * immutable_cache_sma_api_check_integrity will check the integrity of sma
 */
-PHP_APCU_API void immutable_cache_sma_check_integrity(immutable_cache_sma_t* sma); /* }}} */
+PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_check_integrity(immutable_cache_sma_t* sma); /* }}} */
 
 /* {{{ ALIGNWORD: pad up x, aligned to the system's word boundary */
 typedef union { void* p; int i; long l; double d; void (*f)(void); } immutable_cache_word_t;

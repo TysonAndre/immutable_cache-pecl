@@ -27,7 +27,7 @@
  */
 
 #include "immutable_cache_sma.h"
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_globals.h"
 #include "immutable_cache_mutex.h"
 #include "immutable_cache_shm.h"
@@ -288,7 +288,7 @@ static IMMUTABLE_CACHE_HOTSPOT size_t sma_deallocate(void* shmaddr, size_t offse
 /* }}} */
 
 /* {{{ APC SMA API */
-PHP_APCU_API void immutable_cache_sma_init(immutable_cache_sma_t* sma, int32_t num, size_t size, char *mask) {
+PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_init(immutable_cache_sma_t* sma, int32_t num, size_t size, char *mask) {
 	int32_t i;
 
 	if (sma->initialized) {
@@ -376,7 +376,7 @@ PHP_APCU_API void immutable_cache_sma_init(immutable_cache_sma_t* sma, int32_t n
 	}
 }
 
-PHP_APCU_API void immutable_cache_sma_detach(immutable_cache_sma_t* sma) {
+PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_detach(immutable_cache_sma_t* sma) {
 	/* Important: This function should not clean up anything that's in shared memory,
 	 * only detach our process-local use of it. In particular locks cannot be destroyed
 	 * here. */
@@ -396,7 +396,7 @@ PHP_APCU_API void immutable_cache_sma_detach(immutable_cache_sma_t* sma) {
 	free(sma->segs);
 }
 
-PHP_APCU_API void *immutable_cache_sma_malloc_ex(immutable_cache_sma_t *sma, size_t n, size_t *allocated) {
+PHP_IMMUTABLE_CACHE_API void *immutable_cache_sma_malloc_ex(immutable_cache_sma_t *sma, size_t n, size_t *allocated) {
 	size_t fragment = MINBLOCKSIZE;
 	size_t off;
 	int32_t i;
@@ -448,13 +448,13 @@ restart:
 	return NULL;
 }
 
-PHP_APCU_API void* immutable_cache_sma_malloc(immutable_cache_sma_t* sma, size_t n)
+PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_malloc(immutable_cache_sma_t* sma, size_t n)
 {
 	size_t allocated;
 	return immutable_cache_sma_malloc_ex(sma, n, &allocated);
 }
 
-PHP_APCU_API void immutable_cache_sma_free(immutable_cache_sma_t* sma, void* p) {
+PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_free(immutable_cache_sma_t* sma, void* p) {
 	int32_t i;
 	size_t offset;
 
@@ -484,7 +484,7 @@ PHP_APCU_API void immutable_cache_sma_free(immutable_cache_sma_t* sma, void* p) 
 }
 
 #ifdef IMMUTABLE_CACHE_MEMPROTECT
-PHP_APCU_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void* p) {
+PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void* p) {
 	unsigned int i = 0;
 	size_t offset;
 
@@ -510,7 +510,7 @@ PHP_APCU_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void*
 	return NULL;
 }
 
-PHP_APCU_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void* p){
+PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void* p){
 	unsigned int i = 0;
 	size_t offset;
 
@@ -536,11 +536,11 @@ PHP_APCU_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, voi
 	return NULL;
 }
 #else
-PHP_APCU_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void *p) { return p; }
-PHP_APCU_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void *p) { return p; }
+PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void *p) { return p; }
+PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void *p) { return p; }
 #endif
 
-PHP_APCU_API immutable_cache_sma_info_t *immutable_cache_sma_info(immutable_cache_sma_t* sma, zend_bool limited) {
+PHP_IMMUTABLE_CACHE_API immutable_cache_sma_info_t *immutable_cache_sma_info(immutable_cache_sma_t* sma, zend_bool limited) {
 	immutable_cache_sma_info_t *info;
 	immutable_cache_sma_link_t **link;
 	int32_t i;
@@ -593,7 +593,7 @@ PHP_APCU_API immutable_cache_sma_info_t *immutable_cache_sma_info(immutable_cach
 }
 
 /* TODO remove? */
-PHP_APCU_API void immutable_cache_sma_free_info(immutable_cache_sma_t *sma, immutable_cache_sma_info_t *info) {
+PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_free_info(immutable_cache_sma_t *sma, immutable_cache_sma_info_t *info) {
 	int i;
 
 	for (i = 0; i < info->num_seg; i++) {
@@ -608,7 +608,7 @@ PHP_APCU_API void immutable_cache_sma_free_info(immutable_cache_sma_t *sma, immu
 	efree(info);
 }
 
-PHP_APCU_API size_t immutable_cache_sma_get_avail_mem(immutable_cache_sma_t* sma) {
+PHP_IMMUTABLE_CACHE_API size_t immutable_cache_sma_get_avail_mem(immutable_cache_sma_t* sma) {
 	size_t avail_mem = 0;
 	int32_t i;
 
@@ -619,7 +619,7 @@ PHP_APCU_API size_t immutable_cache_sma_get_avail_mem(immutable_cache_sma_t* sma
 	return avail_mem;
 }
 
-PHP_APCU_API zend_bool immutable_cache_sma_get_avail_size(immutable_cache_sma_t* sma, size_t size) {
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_sma_get_avail_size(immutable_cache_sma_t* sma, size_t size) {
 	int32_t i;
 
 	for (i = 0; i < sma->num; i++) {
@@ -631,7 +631,7 @@ PHP_APCU_API zend_bool immutable_cache_sma_get_avail_size(immutable_cache_sma_t*
 	return 0;
 }
 
-PHP_APCU_API void immutable_cache_sma_check_integrity(immutable_cache_sma_t* sma)
+PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_check_integrity(immutable_cache_sma_t* sma)
 {
 	/* dummy */
 }

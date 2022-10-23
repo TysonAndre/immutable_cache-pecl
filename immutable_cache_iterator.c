@@ -17,7 +17,7 @@
 
  */
 
-#include "php_apc.h"
+#include "php_immutable_cache.h"
 #include "immutable_cache_iterator.h"
 #include "immutable_cache_cache.h"
 #include "immutable_cache_strings.h"
@@ -193,7 +193,7 @@ static size_t immutable_cache_iterator_fetch_active(immutable_cache_iterator_t *
 		return count;
 	}
 
-	php_apc_try {
+	php_immutable_cache_try {
 		while (count <= iterator->chunk_size && iterator->slot_idx < immutable_cache_user_cache->nslots) {
 			immutable_cache_cache_entry_t *entry = immutable_cache_user_cache->slots[iterator->slot_idx];
 			while (entry) {
@@ -208,10 +208,10 @@ static size_t immutable_cache_iterator_fetch_active(immutable_cache_iterator_t *
 			}
 			iterator->slot_idx++;
 		}
-	} php_apc_finally {
+	} php_immutable_cache_finally {
 		iterator->stack_idx = 0;
 		immutable_cache_cache_runlock(immutable_cache_user_cache);
-	} php_apc_end_try();
+	} php_immutable_cache_end_try();
 
 	return count;
 }
@@ -223,7 +223,7 @@ static void immutable_cache_iterator_totals(immutable_cache_iterator_t *iterator
 		return;
 	}
 
-	php_apc_try {
+	php_immutable_cache_try {
 		size_t i;
 
 		for (i=0; i < immutable_cache_user_cache->nslots; i++) {
@@ -237,10 +237,10 @@ static void immutable_cache_iterator_totals(immutable_cache_iterator_t *iterator
 				entry = entry->next;
 			}
 		}
-	} php_apc_finally {
+	} php_immutable_cache_finally {
 		iterator->totals_flag = 1;
 		immutable_cache_cache_runlock(immutable_cache_user_cache);
-	} php_apc_end_try();
+	} php_immutable_cache_end_try();
 }
 /* }}} */
 

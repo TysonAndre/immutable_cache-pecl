@@ -25,7 +25,7 @@
 
  */
 
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_mmap.h"
 #include "immutable_cache_lock.h"
 
@@ -74,11 +74,11 @@ immutable_cache_segment_t immutable_cache_mmap(char *file_mask, size_t size)
 #endif
 
 #if 0
-	// This conflicts with apcu
+	// This conflicts with immutable_cache
 	} else if(!strcmp(file_mask,"/dev/zero")) {
 		/* See https://man7.org/linux/man-pages/man2/mmap.2.html for description of mmap options
 		 * When pages are read, they're read as 0, and nothing is written to the file.
-		 * This version would conflict with apcu */
+		 * This version would conflict with immutable_cache */
 		fd = open("/dev/zero", O_RDWR, S_IRUSR | S_IWUSR);
 		if(fd == -1) {
 			zend_error_noreturn(E_CORE_ERROR, "immutable_cache_mmap: open on /dev/zero failed");

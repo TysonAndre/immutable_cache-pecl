@@ -19,7 +19,7 @@
 #ifndef IMMUTABLE_CACHE_MUTEX_H
 #define IMMUTABLE_CACHE_MUTEX_H
 
-#include "apc.h"
+#include "immutable_cache.h"
 
 #ifdef IMMUTABLE_CACHE_HAS_PTHREAD_MUTEX
 
@@ -27,12 +27,12 @@
 
 typedef pthread_mutex_t immutable_cache_mutex_t;
 
-PHP_APCU_API zend_bool immutable_cache_mutex_init(void);
-PHP_APCU_API void immutable_cache_mutex_cleanup(void);
-PHP_APCU_API zend_bool immutable_cache_mutex_create(immutable_cache_mutex_t *lock);
-PHP_APCU_API zend_bool immutable_cache_mutex_lock(immutable_cache_mutex_t *lock);
-PHP_APCU_API zend_bool immutable_cache_mutex_unlock(immutable_cache_mutex_t *lock);
-PHP_APCU_API void immutable_cache_mutex_destroy(immutable_cache_mutex_t *lock);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_mutex_init(void);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_mutex_cleanup(void);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_mutex_create(immutable_cache_mutex_t *lock);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_mutex_lock(immutable_cache_mutex_t *lock);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_mutex_unlock(immutable_cache_mutex_t *lock);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_mutex_destroy(immutable_cache_mutex_t *lock);
 
 #define IMMUTABLE_CACHE_MUTEX_INIT()          immutable_cache_mutex_init()
 #define IMMUTABLE_CACHE_MUTEX_CLEANUP()       immutable_cache_mutex_cleanup()

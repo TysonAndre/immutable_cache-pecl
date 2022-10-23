@@ -22,7 +22,7 @@
 static zend_bool immutable_cache_mutex_ready = 0;
 static pthread_mutexattr_t immutable_cache_mutex_attr;
 
-PHP_APCU_API zend_bool immutable_cache_mutex_init() {
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_mutex_init() {
 	if (immutable_cache_mutex_ready) {
 		return 1;
 	}
@@ -39,7 +39,7 @@ PHP_APCU_API zend_bool immutable_cache_mutex_init() {
 	return 1;
 }
 
-PHP_APCU_API void immutable_cache_mutex_cleanup() {
+PHP_IMMUTABLE_CACHE_API void immutable_cache_mutex_cleanup() {
 	if (!immutable_cache_mutex_ready) {
 		return;
 	}
@@ -48,12 +48,12 @@ PHP_APCU_API void immutable_cache_mutex_cleanup() {
 	pthread_mutexattr_destroy(&immutable_cache_mutex_attr);
 }
 
-PHP_APCU_API zend_bool immutable_cache_mutex_create(immutable_cache_mutex_t *lock) {
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_mutex_create(immutable_cache_mutex_t *lock) {
 	pthread_mutex_init(lock, &immutable_cache_mutex_attr);
 	return 1;
 }
 
-PHP_APCU_API zend_bool immutable_cache_mutex_lock(immutable_cache_mutex_t *lock) {
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_mutex_lock(immutable_cache_mutex_t *lock) {
 	HANDLE_BLOCK_INTERRUPTIONS();
 	if (pthread_mutex_lock(lock) == 0) {
 		return 1;
@@ -64,13 +64,13 @@ PHP_APCU_API zend_bool immutable_cache_mutex_lock(immutable_cache_mutex_t *lock)
 	return 0;
 }
 
-PHP_APCU_API zend_bool immutable_cache_mutex_unlock(immutable_cache_mutex_t *lock) {
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_mutex_unlock(immutable_cache_mutex_t *lock) {
 	pthread_mutex_unlock(lock);
 	HANDLE_UNBLOCK_INTERRUPTIONS();
 	return 1;
 }
 
-PHP_APCU_API void immutable_cache_mutex_destroy(immutable_cache_mutex_t *lock) {
+PHP_IMMUTABLE_CACHE_API void immutable_cache_mutex_destroy(immutable_cache_mutex_t *lock) {
 	pthread_mutex_destroy(lock);
 }
 

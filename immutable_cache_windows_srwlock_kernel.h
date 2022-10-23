@@ -19,7 +19,7 @@
 #ifndef IMMUTABLE_CACHE_WINDOWS_CS_RWLOCK_H
 #define IMMUTABLE_CACHE_WINDOWS_CS_RWLOCK_H
 
-#include "apc.h"
+#include "immutable_cache.h"
 
 #ifdef IMMUTABLE_CACHE_SRWLOCK_KERNEL
 

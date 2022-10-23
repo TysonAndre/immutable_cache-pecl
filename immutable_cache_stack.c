@@ -25,7 +25,7 @@
 
  */
 
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_stack.h"
 
 struct immutable_cache_stack_t {

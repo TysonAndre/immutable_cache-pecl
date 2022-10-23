@@ -32,7 +32,7 @@
 # include <config.h>
 #endif
 
-#include "apc.h"
+#include "immutable_cache.h"
 
 #ifndef PHP_WIN32
 # ifndef __USE_UNIX98
@@ -72,17 +72,17 @@ typedef immutable_cache_windows_cs_rwlock_t immutable_cache_lock_t;
 	immutable_cache_lock_cleanup destroys those attributes
   This saves us from having to create and destroy attributes for
   every lock we use at runtime */
-PHP_APCU_API zend_bool immutable_cache_lock_init(void);
-PHP_APCU_API void      immutable_cache_lock_cleanup(void);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_lock_init(void);
+PHP_IMMUTABLE_CACHE_API void      immutable_cache_lock_cleanup(void);
 /*
   The following functions should be self explanitory:
 */
-PHP_APCU_API zend_bool immutable_cache_lock_create(immutable_cache_lock_t *lock);
-PHP_APCU_API zend_bool immutable_cache_lock_rlock(immutable_cache_lock_t *lock);
-PHP_APCU_API zend_bool immutable_cache_lock_wlock(immutable_cache_lock_t *lock);
-PHP_APCU_API zend_bool immutable_cache_lock_runlock(immutable_cache_lock_t *lock);
-PHP_APCU_API zend_bool immutable_cache_lock_wunlock(immutable_cache_lock_t *lock);
-PHP_APCU_API void immutable_cache_lock_destroy(immutable_cache_lock_t *lock); /* }}} */
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_lock_create(immutable_cache_lock_t *lock);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_lock_rlock(immutable_cache_lock_t *lock);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_lock_wlock(immutable_cache_lock_t *lock);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_lock_runlock(immutable_cache_lock_t *lock);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_lock_wunlock(immutable_cache_lock_t *lock);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_lock_destroy(immutable_cache_lock_t *lock); /* }}} */
 
 /* {{{ generic locking macros */
 #define CREATE_LOCK(lock)     immutable_cache_lock_create(lock)

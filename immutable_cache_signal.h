@@ -20,7 +20,7 @@
 #ifndef IMMUTABLE_CACHE_SIGNAL_H
 #define IMMUTABLE_CACHE_SIGNAL_H
 
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_php.h"
 
 typedef struct immutable_cache_signal_entry_t {

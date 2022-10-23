@@ -16,7 +16,7 @@
   +----------------------------------------------------------------------+
  */
 
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_cache.h"
 
 #if PHP_VERSION_ID < 70300
@@ -217,7 +217,7 @@ static zend_bool immutable_cache_persist_calc_zval(immutable_cache_persist_conte
 			ctxt->use_serialization = 1;
 			return 0;
 		case IS_RESOURCE:
-			immutable_cache_warning("Cannot store resources in apcu cache");
+			immutable_cache_warning("Cannot store resources in immutable_cache cache");
 			return 0;
 		EMPTY_SWITCH_DEFAULT_CASE()
 	}

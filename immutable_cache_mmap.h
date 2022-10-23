@@ -30,7 +30,7 @@
 
 #include <limits.h>
 
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_sma.h"
 
 /* Wrapper functions for shared memory mapped files */

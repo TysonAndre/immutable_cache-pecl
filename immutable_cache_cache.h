@@ -29,7 +29,7 @@
 #ifndef IMMUTABLE_CACHE_CACHE_H
 #define IMMUTABLE_CACHE_CACHE_H
 
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_sma.h"
 #include "immutable_cache_lock.h"
 #include "immutable_cache_globals.h"
@@ -111,35 +111,35 @@ typedef zend_bool (*immutable_cache_cache_atomic_updater_t)(immutable_cache_cach
  * It determines the physical size of the hash table. Passing 0 for
  * this argument will use a reasonable default value
  */
-PHP_APCU_API immutable_cache_cache_t* immutable_cache_cache_create(
+PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(
         immutable_cache_sma_t* sma, immutable_cache_serializer_t* serializer, zend_long size_hint);
 /*
 * immutable_cache_cache_preload preloads the data at path into the specified cache
 */
-PHP_APCU_API zend_bool immutable_cache_cache_preload(immutable_cache_cache_t* cache, const char* path);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_preload(immutable_cache_cache_t* cache, const char* path);
 
 /*
  * immutable_cache_cache_detach detaches from the shared memory cache and cleans up
  * local allocations. Under apache, this function can be safely called by
  * the child processes when they exit.
  */
-PHP_APCU_API void immutable_cache_cache_detach(immutable_cache_cache_t* cache);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_detach(immutable_cache_cache_t* cache);
 
 /*
  * immutable_cache_cache_clear empties a cache. This can safely be called at any time.
  */
-PHP_APCU_API void immutable_cache_cache_clear(immutable_cache_cache_t* cache);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_clear(immutable_cache_cache_t* cache);
 
 /*
  * immutable_cache_cache_store creates key, entry and context in which to make an insertion of val into the specified cache
  */
-PHP_APCU_API zend_bool immutable_cache_cache_store(
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_store(
         immutable_cache_cache_t* cache, zend_string *key, const zval *val);
 /*
  * immutable_cache_cache_update updates an entry in place. The updater function must not bailout.
  * The update is performed under write-lock and doesn't have to be atomic.
  */
-PHP_APCU_API zend_bool immutable_cache_cache_update(
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_update(
 		immutable_cache_cache_t *cache, zend_string *key, immutable_cache_cache_updater_t updater, void *data,
 		zend_bool insert_if_not_found, zend_long ttl);
 
@@ -148,23 +148,23 @@ PHP_APCU_API zend_bool immutable_cache_cache_update(
  * and returns a pointer to the entry if found, NULL otherwise.
  *
  */
-PHP_APCU_API immutable_cache_cache_entry_t* immutable_cache_cache_find(immutable_cache_cache_t* cache, zend_string *key, time_t t);
+PHP_IMMUTABLE_CACHE_API immutable_cache_cache_entry_t* immutable_cache_cache_find(immutable_cache_cache_t* cache, zend_string *key, time_t t);
 
 /*
  * immutable_cache_cache_fetch fetches an entry from the cache directly into dst
  *
  */
-PHP_APCU_API zend_bool immutable_cache_cache_fetch(immutable_cache_cache_t* cache, zend_string *key, time_t t, zval *dst);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_fetch(immutable_cache_cache_t* cache, zend_string *key, time_t t, zval *dst);
 
 /*
  * immutable_cache_cache_exists searches for a cache entry by its hashed identifier,
  * and returns whether the entry exists.
  */
-PHP_APCU_API zend_bool immutable_cache_cache_exists(immutable_cache_cache_t* cache, zend_string *key, time_t t);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_exists(immutable_cache_cache_t* cache, zend_string *key, time_t t);
 
 /* immutable_cache_cache_fetch_zval copies a cache entry value to be usable at runtime.
  */
-PHP_APCU_API zend_bool immutable_cache_cache_entry_fetch_zval(
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_entry_fetch_zval(
 		immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *entry, zval *dst);
 
 /*
@@ -176,24 +176,24 @@ PHP_APCU_API zend_bool immutable_cache_cache_entry_fetch_zval(
  *
  * entry is the cache entry whose ref count you want to decrement.
  */
-PHP_APCU_API void immutable_cache_cache_entry_release(immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *entry);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_entry_release(immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *entry);
 
 /*
  fetches information about the cache provided for userland status functions
 */
-PHP_APCU_API zend_bool immutable_cache_cache_info(zval *info, immutable_cache_cache_t *cache, zend_bool limited);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_info(zval *info, immutable_cache_cache_t *cache, zend_bool limited);
 
 /*
  fetches information about the key provided
 */
-PHP_APCU_API void immutable_cache_cache_stat(immutable_cache_cache_t *cache, zend_string *key, zval *stat);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_stat(immutable_cache_cache_t *cache, zend_string *key, zval *stat);
 
 /*
 * immutable_cache_cache_serializer
 * sets the serializer for a cache, and by proxy contexts created for the cache
 * Note: this avoids race conditions between third party serializers and APCu
 */
-PHP_APCU_API void immutable_cache_cache_serializer(immutable_cache_cache_t* cache, const char* name);
+PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_serializer(immutable_cache_cache_t* cache, const char* name);
 
 /* immutable_cache_entry() holds a write lock on the cache while executing user code.
  * That code may call other immutable_cache_* functions, which also try to acquire a

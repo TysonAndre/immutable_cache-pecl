@@ -29,7 +29,7 @@
 
  */
 
-#include "apc.h"
+#include "immutable_cache.h"
 #include "immutable_cache_cache.h"
 #include "immutable_cache_globals.h"
 #include "php.h"
@@ -91,7 +91,7 @@ static immutable_cache_serializer_t immutable_cache_serializers[IMMUTABLE_CACHE_
 /* }}} */
 
 /* {{{ immutable_cache_register_serializer */
-PHP_APCU_API int _apc_register_serializer(
+PHP_IMMUTABLE_CACHE_API int _apc_register_serializer(
         const char* name, immutable_cache_serialize_t serialize, immutable_cache_unserialize_t unserialize, void *config) {
 	int i;
 	immutable_cache_serializer_t *serializer;
@@ -115,12 +115,12 @@ PHP_APCU_API int _apc_register_serializer(
 } /* }}} */
 
 /* {{{ immutable_cache_get_serializers */
-PHP_APCU_API immutable_cache_serializer_t* immutable_cache_get_serializers()  {
+PHP_IMMUTABLE_CACHE_API immutable_cache_serializer_t* immutable_cache_get_serializers()  {
 	return &(immutable_cache_serializers[0]);
 } /* }}} */
 
 /* {{{ immutable_cache_find_serializer */
-PHP_APCU_API immutable_cache_serializer_t* immutable_cache_find_serializer(const char* name) {
+PHP_IMMUTABLE_CACHE_API immutable_cache_serializer_t* immutable_cache_find_serializer(const char* name) {
 	int i;
 	immutable_cache_serializer_t *serializer;
 
