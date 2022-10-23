@@ -7,7 +7,7 @@ jobs:
           version: ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout apcu
+      - name: Checkout immutable_cache
         uses: actions/checkout@v2
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -16,15 +16,15 @@ jobs:
       - name: phpize
         run: phpize
       - name: configure
-        run: ./configure --enable-apcu-debug
+        run: ./configure --enable-immutable-cache-debug
       - name: make
         run: make
       - name: test
         run: |
-            make test TESTS="--show-diff -d apc.serializer=default tests"
-            make test TESTS="--show-diff -d apc.serializer=php tests"
-            make test TESTS="--show-diff -d apc.serializer=default -d opcache.enable_cli=1 tests"
-            make test TESTS="--show-diff -d apc.serializer=php -d opcache.enable_cli=1 tests"
+            make test TESTS="--show-diff -d immutable_cache.serializer=default tests"
+            make test TESTS="--show-diff -d immutable_cache.serializer=php tests"
+            make test TESTS="--show-diff -d immutable_cache.serializer=default -d opcache.enable_cli=1 tests"
+            make test TESTS="--show-diff -d immutable_cache.serializer=php -d opcache.enable_cli=1 tests"
   windows:
     defaults:
       run:
@@ -36,7 +36,7 @@ jobs:
           ts: [nts, ts]
     runs-on: windows-latest
     steps:
-      - name: Checkout apcu
+      - name: Checkout immutable_cache
         uses: actions/checkout@v2
       - name: Setup PHP
         id: setup-php
@@ -53,7 +53,7 @@ jobs:
       - name: phpize
         run: phpize
       - name: configure
-        run: configure --enable-apcu --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
+        run: configure --enable-immutable-cache --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
       - name: make
         run: nmake
       - name: test
@@ -67,10 +67,10 @@ jobs:
           ) else (
             if exist Release (set prefix=Release) else set prefix=Release_TS
           )
-          copy %prefix%\php_apcu.dll .install
-          copy %prefix%\php_apcu.pdb .install
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: apcu-${{matrix.version}}-${{matrix.arch}}-${{matrix.ts}}
-          path: .install
+          copy %prefix%\php_immutable_cache.dll .install
+          copy %prefix%\php_immutable_cache.pdb .install
+#     - name: Upload artifacts
+#       uses: actions/upload-artifact@v2
+#       with:
+#         name: immutable_cache-${{matrix.version}}-${{matrix.arch}}-${{matrix.ts}}
+#         path: .install
