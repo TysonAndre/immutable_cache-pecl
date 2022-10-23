@@ -40,9 +40,6 @@ ZEND_BEGIN_MODULE_GLOBALS(immutable_cache)
 	zend_long shm_segments;      /* number of shared memory segments to use */
 	zend_long shm_size;          /* size of each shared memory segment (in MB) */
 	zend_long entries_hint;      /* hint at the number of entries expected */
-	zend_long gc_ttl;            /* parameter to immutable_cache_cache_create */
-	zend_long ttl;               /* parameter to immutable_cache_cache_create */
-	zend_long smart;             /* smart value */
 
 #if IMMUTABLE_CACHE_MMAP
 	char *mmap_file_mask;   /* mktemp-style file-mask to pass to mmap */
@@ -51,7 +48,6 @@ ZEND_BEGIN_MODULE_GLOBALS(immutable_cache)
 	/* module variables */
 	zend_bool initialized;       /* true if module was initialized */
 	zend_bool enable_cli;        /* Flag to override turning APC off for CLI */
-	zend_bool slam_defense;      /* true for user cache slam defense */
 
 	char *preload_path;          /* preload path */
 	zend_bool coredump_unmap;    /* trap signals that coredump and unmap shared memory */

@@ -69,7 +69,7 @@ ZEND_DECLARE_MODULE_GLOBALS(immutable_cache)
 /* True globals */
 immutable_cache_cache_t* immutable_cache_user_cache = NULL;
 
-/* External APC SMA */
+/* External immutable_cache SMA */
 immutable_cache_sma_t immutable_cache_sma;
 
 #define X(str) zend_string *immutable_cache_str_ ## str;
@@ -80,7 +80,6 @@ immutable_cache_sma_t immutable_cache_sma;
 static void php_immutable_cache_init_globals(zend_immutable_cache_globals* immutable_cache_globals)
 {
 	immutable_cache_globals->initialized = 0;
-	immutable_cache_globals->smart = 0;
 	immutable_cache_globals->preload_path = NULL;
 	immutable_cache_globals->coredump_unmap = 0;
 	immutable_cache_globals->serializer_name = NULL;
@@ -95,7 +94,7 @@ static PHP_INI_MH(OnUpdateShmSegments) /* {{{ */
 	zend_long shm_segments = ZEND_STRTOL(new_value->val, NULL, 10);
 #if IMMUTABLE_CACHE_MMAP
 	if (shm_segments != 1) {
-		php_error_docref(NULL, E_WARNING, "apc.shm_segments setting ignored in MMAP mode");
+		php_error_docref(NULL, E_WARNING, "immutable_cache.shm_segments setting ignored in MMAP mode");
 	}
 	IMMUTABLE_CACHE_G(shm_segments) = 1;
 #else
@@ -120,7 +119,7 @@ static PHP_INI_MH(OnUpdateShmSize) /* {{{ */
 	if (s < Z_L(1048576)) {
 		/* if it's less than 1Mb, they are probably using the old syntax */
 		php_error_docref(
-			NULL, E_WARNING, "apc.shm_size now uses M/G suffixes, please update your ini files");
+			NULL, E_WARNING, "immutable_cache.shm_size now uses M/G suffixes, please update your ini files");
 		s = s * Z_L(1048576);
 	}
 
@@ -131,13 +130,10 @@ static PHP_INI_MH(OnUpdateShmSize) /* {{{ */
 /* }}} */
 
 PHP_INI_BEGIN()
-STD_PHP_INI_BOOLEAN("apc.enabled",      "1",    PHP_INI_SYSTEM, OnUpdateBool,              enabled,          zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("apc.shm_segments",   "1",    PHP_INI_SYSTEM, OnUpdateShmSegments,       shm_segments,     zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("apc.shm_size",       "32M",  PHP_INI_SYSTEM, OnUpdateShmSize,           shm_size,         zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("apc.entries_hint",   "4096", PHP_INI_SYSTEM, OnUpdateLong,              entries_hint,     zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("apc.gc_ttl",         "3600", PHP_INI_SYSTEM, OnUpdateLong,              gc_ttl,           zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("apc.ttl",            "0",    PHP_INI_SYSTEM, OnUpdateLong,              ttl,              zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("apc.smart",          "0",    PHP_INI_SYSTEM, OnUpdateLong,              smart,            zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_BOOLEAN("immutable_cache.enabled",      "1",    PHP_INI_SYSTEM, OnUpdateBool,              enabled,          zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.shm_segments",   "1",    PHP_INI_SYSTEM, OnUpdateShmSegments,       shm_segments,     zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.shm_size",       "32M",  PHP_INI_SYSTEM, OnUpdateShmSize,           shm_size,         zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.entries_hint",   "4096", PHP_INI_SYSTEM, OnUpdateLong,              entries_hint,     zend_immutable_cache_globals, immutable_cache_globals)
 #if IMMUTABLE_CACHE_MMAP
 STD_PHP_INI_ENTRY("apc.mmap_file_mask",  NULL,  PHP_INI_SYSTEM, OnUpdateString,            mmap_file_mask,   zend_immutable_cache_globals, immutable_cache_globals)
 #endif
@@ -206,7 +202,7 @@ static PHP_MINFO_FUNCTION(immutable_cache)
 /* {{{ PHP_MINIT_FUNCTION(immutable_cache) */
 static PHP_MINIT_FUNCTION(immutable_cache)
 {
-#if defined(ZTS) && defined(COMPILE_DL_APCU)
+#if defined(ZTS) && defined(COMPILE_DL_IMMUTABLE_CACHE)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 	ZEND_INIT_MODULE_GLOBALS(immutable_cache, php_immutable_cache_init_globals, NULL);
@@ -246,10 +242,10 @@ static PHP_MINIT_FUNCTION(immutable_cache)
 				&immutable_cache_sma,
 				IMMUTABLE_CACHE_G(shm_segments), IMMUTABLE_CACHE_G(shm_size), mmap_file_mask);
 
-			REGISTER_LONG_CONSTANT(IMMUTABLE_CACHE_SERIALIZER_CONSTANT, (zend_long)&_apc_register_serializer, CONST_PERSISTENT | CONST_CS);
+			REGISTER_LONG_CONSTANT(IMMUTABLE_CACHE_SERIALIZER_CONSTANT, (zend_long)&_immutable_cache_register_serializer, CONST_PERSISTENT | CONST_CS);
 
 			/* register default serializer */
-			_apc_register_serializer(
+			_immutable_cache_register_serializer(
 				"php", IMMUTABLE_CACHE_SERIALIZER_NAME(php), IMMUTABLE_CACHE_UNSERIALIZER_NAME(php), NULL);
 
 			/* test out the constant function pointer */
@@ -311,7 +307,7 @@ static PHP_MSHUTDOWN_FUNCTION(immutable_cache)
 /* {{{ PHP_RINIT_FUNCTION(immutable_cache) */
 static PHP_RINIT_FUNCTION(immutable_cache)
 {
-#if defined(ZTS) && defined(COMPILE_DL_APCU)
+#if defined(ZTS) && defined(COMPILE_DL_IMMUTABLE_CACHE)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 
@@ -595,7 +591,7 @@ zend_module_entry immutable_cache_module_entry = {
 };
 /* }}} */
 
-#ifdef COMPILE_DL_APCU
+#ifdef COMPILE_DL_IMMUTABLE_CACHE
 ZEND_GET_MODULE(immutable_cache)
 #ifdef ZTS
 ZEND_TSRMLS_CACHE_DEFINE();

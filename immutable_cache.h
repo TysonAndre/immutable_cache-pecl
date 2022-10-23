@@ -96,10 +96,10 @@ PHP_IMMUTABLE_CACHE_API HashTable* immutable_cache_flip_hash(HashTable *hash);
 * Serializer API
 */
 #define IMMUTABLE_CACHE_SERIALIZER_ABI "0"
-#define IMMUTABLE_CACHE_SERIALIZER_CONSTANT "\000apc_register_serializer-" IMMUTABLE_CACHE_SERIALIZER_ABI
+#define IMMUTABLE_CACHE_SERIALIZER_CONSTANT "\000immutable_cache_register_serializer-" IMMUTABLE_CACHE_SERIALIZER_ABI
 
-#define IMMUTABLE_CACHE_SERIALIZER_NAME(module) module##_apc_serializer
-#define IMMUTABLE_CACHE_UNSERIALIZER_NAME(module) module##_apc_unserializer
+#define IMMUTABLE_CACHE_SERIALIZER_NAME(module) module##_immutable_cache_serializer
+#define IMMUTABLE_CACHE_UNSERIALIZER_NAME(module) module##_immutable_cache_unserializer
 
 #define IMMUTABLE_CACHE_SERIALIZER_ARGS unsigned char **buf, size_t *buf_len, const zval *value, void *config
 #define IMMUTABLE_CACHE_UNSERIALIZER_ARGS zval *value, unsigned char *buf, size_t buf_len, void *config
@@ -116,9 +116,9 @@ typedef struct immutable_cache_serializer_t {
 } immutable_cache_serializer_t;
 /* }}} */
 
-/* {{{ _apc_register_serializer
+/* {{{ _immutable_cache_register_serializer
  registers the serializer using the given name and parameters */
-PHP_IMMUTABLE_CACHE_API int _apc_register_serializer(
+PHP_IMMUTABLE_CACHE_API int _immutable_cache_register_serializer(
         const char* name, immutable_cache_serialize_t serialize, immutable_cache_unserialize_t unserialize, void *config);
 /* }}} */
 

@@ -91,7 +91,7 @@ static immutable_cache_serializer_t immutable_cache_serializers[IMMUTABLE_CACHE_
 /* }}} */
 
 /* {{{ immutable_cache_register_serializer */
-PHP_IMMUTABLE_CACHE_API int _apc_register_serializer(
+PHP_IMMUTABLE_CACHE_API int _immutable_cache_register_serializer(
         const char* name, immutable_cache_serialize_t serialize, immutable_cache_unserialize_t unserialize, void *config) {
 	int i;
 	immutable_cache_serializer_t *serializer;
