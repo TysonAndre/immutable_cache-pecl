@@ -27,9 +27,9 @@ if (\$b) {
 FL;
 
 $args = array(
-	'apc.enabled=1',
-	'apc.enable_cli=1',
-	'apc.preload_path=' . dirname(__FILE__) . '/bad',
+	'immutable_cache.enabled=1',
+	'immutable_cache.enable_cli=1',
+	'immutable_cache.preload_path=' . dirname(__FILE__) . '/bad',
 );
 
 server_start($file, $args);

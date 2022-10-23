@@ -8,4 +8,4 @@ immutable_cache.entries_hint=1000000
 --FILE--
 Irrelevant
 --EXPECTF--
-%A: Unable to allocate %d bytes of shared memory for cache structures. Either apc.shm_size is too small or apc.entries_hint too large in Unknown on line 0
+%A: Unable to allocate %d bytes of shared memory for cache structures. Either immutable_cache.shm_size is too small or immutable_cache.entries_hint too large in Unknown on line 0

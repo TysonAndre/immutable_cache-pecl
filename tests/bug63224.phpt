@@ -54,9 +54,9 @@ session_write_close();
 FL;
 
 $args = array(
-	'apc.enabled=1',
-	'apc.cache_by_default=1',
-	'apc.enable_cli=1',
+	'immutable_cache.enabled=1',
+	'immutable_cache.cache_by_default=1',
+	'immutable_cache.enable_cli=1',
     'session.gc_probability=0',
 );
 
