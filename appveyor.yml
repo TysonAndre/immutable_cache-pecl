@@ -5,7 +5,7 @@ branches:
   only:
     - master
 
-clone_folder:  c:\projects\apcu
+clone_folder:  c:\projects\immutable_cache
 
 install:
   ps: .appveyor\install.ps1
