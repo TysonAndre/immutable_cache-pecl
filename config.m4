@@ -1,80 +1,80 @@
-PHP_ARG_ENABLE(apcu, whether to enable APCu support,
-[  --enable-apcu           Enable APCu support])
+PHP_ARG_ENABLE(immutable_cache, whether to enable immutable_cache support,
+[  --enable-immutable-cache           Enable immutable_cache support])
 
-AC_MSG_CHECKING(if APCu should be allowed to use rwlocks)
-AC_ARG_ENABLE(apcu-rwlocks,
-[  --disable-apcu-rwlocks  Disable rwlocks in APCu],
+AC_MSG_CHECKING(if immutable_cache should be allowed to use rwlocks)
+AC_ARG_ENABLE(immutable-cache-rwlocks,
+[  --disable-immutable-cache-rwlocks  Disable rwlocks in immutable_cache],
 [
-  PHP_APCU_RWLOCKS=$enableval
+  PHP_IMMUTABLE_CACHE_RWLOCKS=$enableval
   AC_MSG_RESULT($enableval)
 ],
 [
-  PHP_APCU_RWLOCKS=yes
+  PHP_IMMUTABLE_CACHE_RWLOCKS=yes
   AC_MSG_RESULT(yes)
 ])
 
-AC_MSG_CHECKING(if APCu should be built in debug mode)
-AC_ARG_ENABLE(apcu-debug,
-[  --enable-apcu-debug     Enable APCu debugging],
+AC_MSG_CHECKING(if immutable_cache should be built in debug mode)
+AC_ARG_ENABLE(immutable-cache-debug,
+[  --enable-immutable-cache-debug     Enable immutable_cache debugging],
 [
-  PHP_APCU_DEBUG=$enableval
+  PHP_IMMUTABLE_CACHE_DEBUG=$enableval
 ], 
 [
-  PHP_APCU_DEBUG=no
+  PHP_IMMUTABLE_CACHE_DEBUG=no
 ])
-AC_MSG_RESULT($PHP_APCU_DEBUG)
+AC_MSG_RESULT($PHP_IMMUTABLE_CACHE_DEBUG)
 
-PHP_APCU_MMAP=yes
-AC_MSG_CHECKING([if APCu will use mmap (or shm)])
-AC_ARG_ENABLE(apcu-mmap,
-[  --disable-apcu-mmap     Disable mmap, falls back on shm],
+PHP_IMMUTABLE_CACHE_MMAP=yes
+AC_MSG_CHECKING([if immutable_cache will use mmap (or shm)])
+AC_ARG_ENABLE(immutable-cache-mmap,
+[  --disable-immutable-cache-mmap     Disable mmap, falls back on shm],
 [
   if test "x$enableval" = "xno"; then
-    PHP_APCU_MMAP=no
+    PHP_IMMUTABLE_CACHE_MMAP=no
   else
-    PHP_APCU_MMAP=yes
+    PHP_IMMUTABLE_CACHE_MMAP=yes
   fi
 ])
-AC_MSG_RESULT($PHP_APCU_MMAP)
+AC_MSG_RESULT($PHP_IMMUTABLE_CACHE_MMAP)
 
-PHP_APCU_SPINLOCK=no
-AC_MSG_CHECKING(if APCu should utilize spinlocks before flocks)
-AC_ARG_ENABLE(apcu-spinlocks,
-[  --enable-apcu-spinlocks        Use spinlocks before flocks],
+PHP_IMMUTABLE_CACHE_SPINLOCK=no
+AC_MSG_CHECKING(if immutable_cache should utilize spinlocks before flocks)
+AC_ARG_ENABLE(immutable-cache-spinlocks,
+[  --enable-immutable-cache-spinlocks        Use spinlocks before flocks],
 [ if test "x$enableval" = "xno"; then
-    PHP_APCU_SPINLOCK=no
+    PHP_IMMUTABLE_CACHE_SPINLOCK=no
   else
-    PHP_APCU_SPINLOCK=yes
+    PHP_IMMUTABLE_CACHE_SPINLOCK=yes
   fi
 ])
-AC_MSG_RESULT($PHP_APCU_SPINLOCK)
+AC_MSG_RESULT($PHP_IMMUTABLE_CACHE_SPINLOCK)
 
-if test "$PHP_APCU_RWLOCKS" != "no"; then
-	AC_CACHE_CHECK([whether the target compiler supports builtin atomics], PHP_cv_APCU_GCC_ATOMICS, [
+if test "$PHP_IMMUTABLE_CACHE_RWLOCKS" != "no"; then
+	AC_CACHE_CHECK([whether the target compiler supports builtin atomics], PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS, [
 
 		AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[
 				int foo = 0;
 				__sync_add_and_fetch(&foo, 1);
 				__sync_sub_and_fetch(&foo, 1);
 				return 0;
-			]])],[PHP_cv_APCU_GCC_ATOMICS=yes],[PHP_cv_APCU_GCC_ATOMICS=no])
+			]])],[PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS=yes],[PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS=no])
 	])
 
-	if test "x${PHP_cv_APCU_GCC_ATOMICS}" != "xyes"; then
+	if test "x${PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS}" != "xyes"; then
 		AC_MSG_ERROR([Compiler does not support atomics])
 	fi
 fi
 
-if test "$PHP_APCU" != "no"; then
-	if test "$PHP_APCU_DEBUG" != "no"; then
+if test "$PHP_IMMUTABLE_CACHE" != "no"; then
+	if test "$PHP_IMMUTABLE_CACHE_DEBUG" != "no"; then
 		AC_DEFINE(APC_DEBUG, 1, [ ])
 	fi
   
-	if test "$PHP_APCU_MMAP" != "no"; then
+	if test "$PHP_IMMUTABLE_CACHE_MMAP" != "no"; then
 		AC_DEFINE(APC_MMAP, 1, [ ])
 	fi
 
-  if test "$PHP_APCU_RWLOCKS" != "no"; then
+  if test "$PHP_IMMUTABLE_CACHE_RWLOCKS" != "no"; then
 	    orig_LIBS="$LIBS"
 	    LIBS="$LIBS -lpthread"
         AC_MSG_CHECKING([for pthread rwlocks])
@@ -117,7 +117,7 @@ if test "$PHP_APCU" != "no"; then
 			    AC_MSG_RESULT([yes])
 		    ],[ dnl -Failure-
 			    AC_MSG_RESULT([no])
-    			PHP_APCU_RWLOCKS=no
+    			PHP_IMMUTABLE_CACHE_RWLOCKS=no
 		    ],[
 			    APCU_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
 			    PHP_ADD_LIBRARY(pthread)
@@ -126,7 +126,7 @@ if test "$PHP_APCU" != "no"; then
     LIBS="$orig_LIBS"
   fi
   
-  if test "$PHP_APCU" != "no"; then
+  if test "$PHP_IMMUTABLE_CACHE" != "no"; then
     orig_LIBS="$LIBS"
 	  LIBS="$LIBS -lpthread"
       AC_MSG_CHECKING([for pthread mutexes])
@@ -168,7 +168,7 @@ if test "$PHP_APCU" != "no"; then
 				  AC_DEFINE(APC_HAS_PTHREAD_MUTEX, 1, [ ])
 			  ],[ dnl -Failure-
 				  AC_MSG_RESULT([no])
-    			PHP_APCU_MUTEX=no
+    			PHP_IMMUTABLE_CACHE_MUTEX=no
 			  ],[
 				  APCU_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
 				  PHP_ADD_LIBRARY(pthread)
@@ -177,14 +177,14 @@ if test "$PHP_APCU" != "no"; then
 	  LIBS="$orig_LIBS"
   fi
   
-  if test "$PHP_APCU_RWLOCKS" = "no"; then
-   if test "$PHP_APCU_MUTEX" = "no"; then
-    if test "$PHP_APCU_SPINLOCK" != "no"; then
+  if test "$PHP_IMMUTABLE_CACHE_RWLOCKS" = "no"; then
+   if test "$PHP_IMMUTABLE_CACHE_MUTEX" = "no"; then
+    if test "$PHP_IMMUTABLE_CACHE_SPINLOCK" != "no"; then
       AC_DEFINE(APC_SPIN_LOCK, 1, [ ])
-      AC_MSG_WARN([APCu spin locking enabled])
+      AC_MSG_WARN([immutable_cache spin locking enabled])
     else
       AC_DEFINE(APC_FCNTL_LOCK, 1, [ ])
-      AC_MSG_WARN([APCu file locking enabled])
+      AC_MSG_WARN([immutable_cache file locking enabled])
     fi
    fi
   fi
@@ -212,9 +212,9 @@ if test "$PHP_APCU" != "no"; then
   [  --disable-valgrind-checks
                           Disable valgrind based memory checks],
   [
-    PHP_APCU_VALGRIND=no
+    PHP_IMMUTABLE_CACHE_VALGRIND=no
   ], [
-    PHP_APCU_VALGRIND=yes
+    PHP_IMMUTABLE_CACHE_VALGRIND=yes
     AC_CHECK_HEADER(valgrind/memcheck.h, 
   		[AC_DEFINE([HAVE_VALGRIND_MEMCHECK_H],1, [enable valgrind memchecks])])
   ])
@@ -235,12 +235,12 @@ if test "$PHP_APCU" != "no"; then
                  apc_persist.c"
 							   
   PHP_CHECK_LIBRARY(rt, shm_open, [PHP_ADD_LIBRARY(rt,,APCU_SHARED_LIBADD)])
-  PHP_NEW_EXTENSION(apcu, $apc_sources, $ext_shared,, \\$(APCU_CFLAGS))
+  PHP_NEW_EXTENSION(immutable_cache, $apc_sources, $ext_shared,, \\$(APCU_CFLAGS))
   PHP_SUBST(APCU_SHARED_LIBADD)
   PHP_SUBST(APCU_CFLAGS)
   PHP_SUBST(PHP_LDFLAGS)
-  PHP_INSTALL_HEADERS(ext/apcu, [php_apc.h apc.h apc_api.h apc_cache.h apc_globals.h apc_iterator.h apc_lock.h apc_mutex.h apc_sma.h apc_serializer.h apc_stack.h apc_arginfo.h php_apc_legacy_arginfo.h])
-  AC_DEFINE(HAVE_APCU, 1, [ ])
+  PHP_INSTALL_HEADERS(ext/immutable_cache, [php_apc.h apc.h apc_api.h apc_cache.h apc_globals.h apc_iterator.h apc_lock.h apc_mutex.h apc_sma.h apc_serializer.h apc_stack.h apc_arginfo.h php_apc_legacy_arginfo.h])
+  AC_DEFINE(HAVE_IMMUTABLE_CACHE, 1, [ ])
 fi
 
 PHP_ARG_ENABLE(coverage,  whether to include code coverage symbols,
