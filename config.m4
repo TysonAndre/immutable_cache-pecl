@@ -223,23 +223,23 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
     AX_CHECK_COMPILE_FLAG([$i], [APCU_CFLAGS="$APCU_CFLAGS $i"])
   done
 
-  apc_sources="apc.c apc_lock.c apc_mutex.c php_apc.c \
-                 apc_cache.c \
-                 apc_mmap.c \
-                 apc_shm.c \
-                 apc_sma.c \
-                 apc_stack.c \
-                 apc_signal.c \
-                 apc_time.c \
-                 apc_iterator.c \
-                 apc_persist.c"
+  immutable_cache_sources="immutable_cache.c immutable_cache_lock.c immutable_cache_mutex.c php_immutable_cache.c \
+                 immutable_cache_cache.c \
+                 immutable_cache_mmap.c \
+                 immutable_cache_shm.c \
+                 immutable_cache_sma.c \
+                 immutable_cache_stack.c \
+                 immutable_cache_signal.c \
+                 immutable_cache_time.c \
+                 immutable_cache_iterator.c \
+                 immutable_cache_persist.c"
 							   
   PHP_CHECK_LIBRARY(rt, shm_open, [PHP_ADD_LIBRARY(rt,,APCU_SHARED_LIBADD)])
-  PHP_NEW_EXTENSION(immutable_cache, $apc_sources, $ext_shared,, \\$(APCU_CFLAGS))
+  PHP_NEW_EXTENSION(immutable_cache, $immutable_cache_sources, $ext_shared,, \\$(APCU_CFLAGS))
   PHP_SUBST(APCU_SHARED_LIBADD)
   PHP_SUBST(APCU_CFLAGS)
   PHP_SUBST(PHP_LDFLAGS)
-  PHP_INSTALL_HEADERS(ext/immutable_cache, [php_apc.h apc.h apc_api.h apc_cache.h apc_globals.h apc_iterator.h apc_lock.h apc_mutex.h apc_sma.h apc_serializer.h apc_stack.h apc_arginfo.h php_apc_legacy_arginfo.h])
+  PHP_INSTALL_HEADERS(ext/immutable_cache, [php_immutable_cache.h immutable_cache.h immutable_cache_api.h immutable_cache_cache.h immutable_cache_globals.h immutable_cache_iterator.h immutable_cache_lock.h immutable_cache_mutex.h immutable_cache_sma.h immutable_cache_serializer.h immutable_cache_stack.h immutable_cache_arginfo.h php_immutable_cache_legacy_arginfo.h])
   AC_DEFINE(HAVE_IMMUTABLE_CACHE, 1, [ ])
 fi
 
