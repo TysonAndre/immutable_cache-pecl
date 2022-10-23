@@ -219,12 +219,12 @@ static PHP_MINIT_FUNCTION(immutable_cache)
 	immutable_cache_lock_init();
 	IMMUTABLE_CACHE_MUTEX_INIT();
 
-	/* Disable APC in cli mode unless overridden by immutable_cache.enable_cli */
+	/* Disable immutable_cache in cli mode unless overridden by immutable_cache.enable_cli */
 	if (!IMMUTABLE_CACHE_G(enable_cli) && !strcmp(sapi_module.name, "cli")) {
 		IMMUTABLE_CACHE_G(enabled) = 0;
 	}
 
-	/* only run initialization if APC is enabled */
+	/* only run initialization if immutable_cache is enabled */
 	if (IMMUTABLE_CACHE_G(enabled)) {
 
 		if (!IMMUTABLE_CACHE_G(initialized)) {
@@ -283,7 +283,7 @@ static PHP_MSHUTDOWN_FUNCTION(immutable_cache)
 	immutable_cache_lock_cleanup();
 	IMMUTABLE_CACHE_MUTEX_CLEANUP();
 
-	/* only shut down if APC is enabled */
+	/* only shut down if immutable_cache is enabled */
 	if (IMMUTABLE_CACHE_G(enabled)) {
 		if (IMMUTABLE_CACHE_G(initialized)) {
 			/* Detach cache and shared memory allocator from shared memory. */
@@ -336,7 +336,7 @@ PHP_FUNCTION(immutable_cache_cache_info)
 	}
 
 	if (!immutable_cache_cache_info(return_value, immutable_cache_user_cache, limited)) {
-		php_error_docref(NULL, E_WARNING, "No APC info available.  Perhaps APC is not enabled? Check immutable_cache.enabled in your ini file");
+		php_error_docref(NULL, E_WARNING, "No immutable_cache info available.  Perhaps immutable_cache is not enabled? Check immutable_cache.enabled in your ini file");
 		RETURN_FALSE;
 	}
 }
@@ -369,7 +369,7 @@ PHP_FUNCTION(immutable_cache_sma_info)
 	info = immutable_cache_sma_info(&immutable_cache_sma, limited);
 
 	if (!info) {
-		php_error_docref(NULL, E_WARNING, "No APC SMA info available.  Perhaps APC is disabled via immutable_cache.enabled?");
+		php_error_docref(NULL, E_WARNING, "No immutable_cache SMA info available.  Perhaps immutable_cache is disabled via immutable_cache.enabled?");
 		RETURN_FALSE;
 	}
 	array_init(return_value);

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <package packagerversion="1.9.4" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
- <name>apcu</name>
+ <name>immutable_cache</name>
  <channel>pecl.php.net</channel>
- <summary>APCu - APC User Cache</summary>
- <description>APC User Caching</description>
+ <summary>immutable_cache - an shared memory cache of immutable values</summary>
+ <description>immutable_cache - an shared memory cache of immutable values. Based on APCu.</description>
+ <!-- The leads of the APCu project, which immutable_cache is forked from
  <lead>
   <name>Joe Watkins</name>
   <user>krakjoe</user>
@@ -28,7 +29,14 @@
   <email>nikic@php.net</email>
   <active>yes</active>
  </lead>
- <date>2022-09-19</date>
+ -->
+ <lead>
+  <name>Tyson Andre</name>
+  <user>tandre</user>
+  <email>tandre@php.net</email>
+  <active>yes</active>
+ </lead>
+ <date>2022-10-23</date>
  <version>
   <release>5.1.23dev</release>
   <api>5.1.18</api>
@@ -39,7 +47,7 @@
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
-- Revert use of monotonic clock for TTL (#451)
+- Create immutable_cache based on APCu 5.1.23dev
  </notes>
  <contents>
   <dir name="/">
@@ -57,32 +65,20 @@
     <file name="apc_006.phpt" role="test" />
     <file name="apc_006_php73.phpt" role="test" />
     <file name="apc_006_php81.phpt" role="test" />
-    <file name="apc_007.phpt" role="test" />
-    <file name="apc_008.phpt" role="test" />
     <file name="apc_010.phpt" role="test" />
     <file name="apc_011.phpt" role="test" />
-    <file name="apc_012.phpt" role="test" />
     <file name="apc_013_exists.phpt" role="test" />
     <file name="apc_014_store_ref.phpt" role="test" />
     <file name="apc_015.phpt" role="test" />
     <file name="apc_016.phpt" role="test" />
     <file name="apc_017.phpt" role="test" />
-    <file name="apc_018.phpt" role="test" />
-    <file name="apc_019.phpt" role="test" />
     <file name="apc_020.phpt" role="test" />
-    <file name="apc_021.phpt" role="test" />
     <file name="apc_022.phpt" role="test" />
     <file name="apc_023.phpt" role="test" />
     <file name="apc_024.phpt" role="test" />
-    <file name="apc_099.phpt" role="test" />
     <file name="apc54_014.phpt" role="test" />
     <file name="apc54_018.phpt" role="test" />
     <file name="apc_disabled.phpt" role="test" />
-    <file name="apc_entry_001.phpt" role="test" />
-    <file name="apc_entry_002.phpt" role="test" />
-    <file name="apc_entry_003.phpt" role="test" />
-    <file name="apc_entry_recursion.phpt" role="test" />
-    <file name="apc_inc_perf.phpt" role="test" />
     <file name="apc_store_array_int_keys.phpt" role="test" />
     <file name="apc_store_array_with_refs.phpt" role="test" />
     <file name="apc_store_reference.phpt" role="test" />
@@ -100,70 +96,66 @@
     <file name="ghbug247.phpt" role="test" />
     <file name="ghbug248.phpt" role="test" />
     <file name="ghbug335-fail.phpt" role="test" />
-    <file name="ghbug335.phpt" role="test" />
     <file name="iterator_001.phpt" role="test" />
     <file name="iterator_002.phpt" role="test" />
     <file name="iterator_003.phpt" role="test" />
     <file name="iterator_004.phpt" role="test" />
-    <file name="iterator_005.phpt" role="test" />
     <file name="iterator_006.phpt" role="test" />
     <file name="iterator_007.phpt" role="test" />
     <file name="iterator_008.phpt" role="test" />
     <file name="iterator_009.phpt" role="test" />
-    <file name="iterator_010.phpt" role="test" />
     <file name="iterator_011.phpt" role="test" />
     <file name="not_enough_shm.phpt" role="test" />
     <file name="server_test.inc" role="test" />
     <file name="skipif.inc" role="test" />
-    <file name="sma001.phpt" role="test" />
     <file name="typed_prop.phpt" role="test" />
     <file name="data/abc.data" role="test" />
     <file name="bad/abc.data" role="test" />
    </dir>
-   <file name="apc_api.h" role="src" />
-   <file name="apc_arginfo.h" role="src" />
-   <file name="php_apc.stub.php" role="src" />
-   <file name="php_apc_arginfo.h" role="src" />
-   <file name="php_apc_legacy_arginfo.h" role="src" />
-   <file name="apc.c" role="src" />
-   <file name="apc_cache.c" role="src" />
-   <file name="apc_cache.h" role="src" />
-   <file name="apc_globals.h" role="src" />
-   <file name="apc.h" role="src" />
-   <file name="apc_iterator.c" role="src" />
-   <file name="apc_iterator.h" role="src" />
-   <file name="apc_iterator.stub.php" role="src" />
-   <file name="apc_iterator_arginfo.h" role="src" />
-   <file name="apc_iterator_legacy_arginfo.h" role="src" />
-   <file name="apc_lock.c" role="src" />
-   <file name="apc_lock.h" role="src" />
-   <file name="apc_mmap.c" role="src" />
-   <file name="apc_mmap.h" role="src" />
-   <file name="apc_mutex.c" role="src" />
-   <file name="apc_mutex.h" role="src" />
-   <file name="apc_persist.c" role="src" />
-   <file name="apc.php" role="src" />
-   <file name="apc_php.h" role="src" />
-   <file name="apc_shm.c" role="src" />
-   <file name="apc_shm.h" role="src" />
-   <file name="apc_signal.c" role="src" />
-   <file name="apc_signal.h" role="src" />
-   <file name="apc_sma.c" role="src" />
-   <file name="apc_sma.h" role="src" />
-   <file name="apc_strings.h" role="src" />
-   <file name="apc_time.c" role="src" />
-   <file name="apc_time.h" role="src" />
-   <file name="apc_windows_srwlock_kernel.c" role="src" />
-   <file name="apc_windows_srwlock_kernel.h" role="src" />
-   <file name="apc_serializer.h" role="src" />
+   <file name="immutable_cache_api.h" role="src" />
+   <file name="immutable_cache_arginfo.h" role="src" />
+   <file name="php_immutable_cache.stub.php" role="src" />
+   <file name="php_immutable_cache_arginfo.h" role="src" />
+   <file name="php_immutable_cache_legacy_arginfo.h" role="src" />
+   <file name="immutable_cache.c" role="src" />
+   <file name="immutable_cache_cache.c" role="src" />
+   <file name="immutable_cache_cache.h" role="src" />
+   <file name="immutable_cache_globals.h" role="src" />
+   <file name="immutable_cache.h" role="src" />
+   <file name="immutable_cache_iterator.c" role="src" />
+   <file name="immutable_cache_iterator.h" role="src" />
+   <file name="immutable_cache_iterator.stub.php" role="src" />
+   <file name="immutable_cache_iterator_arginfo.h" role="src" />
+   <file name="immutable_cache_iterator_legacy_arginfo.h" role="src" />
+   <file name="immutable_cache_lock.c" role="src" />
+   <file name="immutable_cache_lock.h" role="src" />
+   <file name="immutable_cache_mmap.c" role="src" />
+   <file name="immutable_cache_mmap.h" role="src" />
+   <file name="immutable_cache_mutex.c" role="src" />
+   <file name="immutable_cache_mutex.h" role="src" />
+   <file name="immutable_cache_persist.c" role="src" />
+   <file name="immutable_cache.php" role="src" />
+   <file name="immutable_cache_php.h" role="src" />
+   <file name="immutable_cache_shm.c" role="src" />
+   <file name="immutable_cache_shm.h" role="src" />
+   <file name="immutable_cache_signal.c" role="src" />
+   <file name="immutable_cache_signal.h" role="src" />
+   <file name="immutable_cache_sma.c" role="src" />
+   <file name="immutable_cache_sma.h" role="src" />
+   <file name="immutable_cache_strings.h" role="src" />
+   <file name="immutable_cache_time.c" role="src" />
+   <file name="immutable_cache_time.h" role="src" />
+   <file name="immutable_cache_windows_srwlock_kernel.c" role="src" />
+   <file name="immutable_cache_windows_srwlock_kernel.h" role="src" />
+   <file name="immutable_cache_serializer.h" role="src" />
    <file name="config.m4" role="src" />
    <file name="config.w32" role="src" />
    <file name="LICENSE" role="doc" />
    <file name="Makefile.frag" role="src" />
    <file name="NOTICE" role="doc" />
    <file name="php74_shim.h" role="src" />
-   <file name="php_apc.c" role="src" />
-   <file name="php_apc.h" role="src" />
+   <file name="php_immutable_cache.c" role="src" />
+   <file name="php_immutable_cache.h" role="src" />
    <file name="README.md" role="doc" />
    <file name="TECHNOTES.txt" role="doc" />
   </dir>
@@ -178,565 +170,10 @@
    </pearinstaller>
   </required>
  </dependencies>
- <providesextension>apcu</providesextension>
+ <providesextension>immutable_cache</providesextension>
  <extsrcrelease>
-  <configureoption name="enable-apcu-debug" default="no" prompt="Enable internal debugging in APCu" />
+  <configureoption name="enable-immutable-cache-debug" default="no" prompt="Enable internal debugging in APCu" />
  </extsrcrelease>
  <changelog>
-  <release>
-   <date>2022-09-19</date>
-   <version>
-    <release>5.1.22</release>
-    <api>5.1.18</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- PHP 8.2 compatibility
-- PHP 8.1 compatibility in apc.php
-- Fix --enable-apcu-rwlocks configure option
-- Enable transparent huge pages for mmap memory
-- Use monotonic clock for TTL
-   </notes>
-  </release>
-  <release>
-   <date>2021-10-07</date>
-   <version>
-    <release>5.1.21</release>
-    <api>5.1.18</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- Fixed compatibility with PHP 8.1 by adding return types to APCUIterator.
-- APCUIterator::current() and ::key() can no longer be called on an invalid iterator.
-   </notes>
-  </release>
-  <release>
-   <date>2021-03-04</date>
-   <version>
-    <release>5.1.20</release>
-    <api>5.1.18</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- Fix deadlocks when other apcu_* functions are used inside apcu_entry(). It should now be safe to use any functions inside the apcu_entry() callback.
-- Fix division by zero exception in apc.php.
-- Fix handling of references in PHP 8 if "default" serializer is used (which is not the default).
-- Fix string reuse handling if "default" serializer is used (which is not the default).
-- Check for failures when acquiring read locks to report problems earlier (write locks were already checked previously).
-- Adjust tests for current PHP 8.1 development branch.
-- Remove *_api.h headers. Use apc_cache.h instead of apc_cache_api.h etc.
-   </notes>
-  </release>
-  <release>
-   <date>2020-10-05</date>
-   <version>
-    <release>5.1.19</release>
-    <api>5.1.18</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- Fixed apcu_store() with integer keys (#388).
-- Made apc.use_request_time=0 the default (#391).
-- Made apcu compatible with PHP 8.0.
-   </notes>
-  </release>
-  <release>
-   <date>2019-10-28</date>
-   <version>
-    <release>5.1.18</release>
-    <api>5.1.18</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- Implement apcu_inc() and apcu_dec() using atomic operations. This means that these functions no longer have to acquire a write lock. These functions will now wraparound on overflow, instead of saturating to a floating point value.
-- Make table header in apc.php sticky.
-- Fix compile warnings related to mktemp() usage.
-- Fix compatibility with PHP 8.0.
-- Fix required number of arguments for apcu_store() returned by Reflection.
-   </notes>
-  </release>
-  <release>
-   <date>2019-02-08</date>
-   <version>
-    <release>5.1.17</release>
-    <api>5.1.15</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- Fixed compatibility with PHP 7.4 and PHP 8.0.
-   </notes>
-  </release>
-  <release>
-   <date>2018-12-16</date>
-   <version>
-    <release>5.1.16</release>
-    <api>5.1.15</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- Fix build on OSX.
-   </notes>
-  </release>
-  <release>
-   <date>2018-12-07</date>
-   <version>
-    <release>5.1.15</release>
-    <api>5.1.15</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- Restore apc.serializer=php as the default, as the "default" serializer still/again has issues.
-- Fix possible issues in persistence of arrays with the "default" serializer.
-- Attempt to reduce shared memory fragmentation.
-   </notes>
-  </release>
-  <release>
-   <date>2018-11-21</date>
-   <version>
-    <release>5.1.14</release>
-    <api>5.1.14</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- Fixed GH #347: Disable slam defense by default.
-- Fix potential issue with destruction of locks. This does not affect Linux, but might affect Windows and BSD.
-- Use mutex instead of rwlock for shared memory allocator (if pthreads mutex available).
-- Require only read-lock for apcu_cas(), by using atomic compare-and-swap.
-   </notes>
-  </release>
-  <release>
-   <date>2018-11-19</date>
-   <version>
-    <release>5.1.13</release>
-    <api>5.1.13</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- Reimplement persistence logic using precise allocation rather than memory pools. This reduces
-memory usage of cache entries, especially for small values, and improves performance of persisting
-and unpersisting values.
-- Fixed GH #335: Stampede protection is broken.
-- Fixed GH #328: Segfault in apcu_key_info() if APCu is disabled.
-- Generally make the behavior of functions if APCu is disabled more consistent.
-- Fixed PHP bug #72980: Empty strings are now consistently allowed as cache keys.
-- Optimized apcu_key_info() and apcu_cache_info() by using interned strings.
-- Fix build against PHP master (PHP 7.4).
-- Many changes to internal C APIs.
-   </notes>
-  </release>
-  <release>
-   <date>2018-07-09</date>
-   <version>
-    <release>5.1.12</release>
-    <api>5.1.12</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- gh#307: Fix 'Timout' sort option (apc.php).
-- gh#308: Keep search parameter on cache entry detail link (apc.php).
-- Fix --enable-apcu-clear-signal support.
-- Show entries with expired global TTL in APCuIterator.
-- Respect TTL when calculating APCuIterator totals.
-- The per-entry TTL now always takes precedence over the global TTL.
-- The global TTL is now always relative to the access time.
-- apcu_inc() and apcu_dec() no longer update hard-expired entries. Instead a new entry is created.
-- Added optional $ttl argument to apcu_inc() and apcu_dec(), used when creating a new entry.
-- PHP bug #76145: Fix use of APCu inside Serializer::(un)serialize().
-- gh#304: If apcu_cas() is used on a non-existing entry, don't insert it.
-- gh#295: Improve APCuIterator performance by using PCRE JIT and preallocating key strings.
-- Reduce the memory overhead of cache entries.
-- Prevent potential memory corruption in the cache slam defense implementation.
-- Ensure cache entry references are released on bailout during unserialization.
-- Make support for atomic operations a hard requirement for building APCu.
-- Check write-lock acquisition for failure, to help debugging deadlock situations.
-- Make sure apcu_inc/dec are atomic when working on a non-existing entry.
-- Many changes to internal C APIs.
-   </notes>
-  </release>
-  <release>
-   <date>2018-03-08</date>
-   <version>
-    <release>5.1.11</release>
-    <api>5.1.11</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fix gh#246 apcu_entry hangs
-- fix gh#259 deadlock in apcu_store
-- fix gh#281 undefined variable in apc.php
-- fix handling of fatal errors in apcu_entry
-- check string lengths when looking up keys
-- many internal C APIs changed
-   </notes>
-  </release>
-  <release>
-   <date>2018-02-16</date>
-   <version>
-    <release>5.1.10</release>
-    <api>5.1.2</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fix gh#247 when a NUL char is used as key, apcu_fetch(array) truncates the key
-- fix gh#248 apcu_fetch may return values causing zend_mm_corruption or segfaults
-  when custom serializer is used
-- fix gh#260 apcu.serializer=default results in segfault
-- fix gh#274 non-portable shell == in config.m4
-- fix crash when passing bad array to apcu_delete
-- improve fix gh#266 refcounting errors in APCIterator
-- fix for PHP 7.3 compatibility
-   </notes>
-  </release>
-  <release>
-   <date>2018-01-02</date>
-   <version>
-    <release>5.1.9</release>
-    <api>5.1.2</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fix gh#234 mmap disabled when configure is called with --enable-apcu-mmap
-- fix gh#226 Warning: apcu_fetch(): apc_fetch() expects a string or array of strings.
-- mitigate gh#223 Fatal error when starting php on windows
-- add support for PCRE2 in 7.3
-- use row formatting for information in phpinfo() tables
-- set IS_STR_PERSISTENT so refcounting failures are reported by -DRC_DEBUG=1
-- fix gh#266 refcounting errors in APCIterator
-   </notes>
-  </release>
-  <release>
-   <date>2017-01-16</date>
-   <version>
-    <release>5.1.8</release>
-    <api>5.1.2</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fix gh#207 Segmentation fault in apc_sma_api_free()
-- fix gh#221 memory leak
-- update to apc dashboard (Tyson Andre)
-   </notes>
-  </release>
-  <release>
-   <date>2016-10-21</date>
-   <version>
-    <release>5.1.7</release>
-    <api>5.1.2</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fixes gh#19: hung apaches on pthread wrlocks
-- fixes gh#203: segfaults in bailout / longjmp
-   </notes>
-  </release>
-  <release>
-   <date>2016-10-06</date>
-   <version>
-    <release>5.1.6</release>
-    <api>5.1.2</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fixes gh#19:  Hung apaches on pthread wrlocks
-- fixes gh#188: Fix Segfault in ZTS build when locking (Tyson Andre)
-- fixes gh#194: apcu_entry ttl not working
-- fixes gh#189: SegFault in apc_copy_zval
-- fixes gh#185: zend_mm_heap corrupted
-- fixes gh#190: memory leak/failed check for duplicates
-   </notes>
-  </release>
-  <release>
-   <date>2016-06-07</date>
-   <version>
-    <release>5.1.5</release>
-    <api>5.1.2</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fix version check in control panel page (gh#182, lennartwesdijk)
-- do not create null strings, palloc may fail
-   </notes>
-  </release>
-  <release>
-   <date>2016-05-12</date>
-   <version>
-    <release>5.1.4</release>
-    <api>5.1.2</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fix possible memory leak
-- fix gh#168 drop trying to return strings from shm
-- fix gh#170 do not create entries when serialization fails
- </notes>
-  </release>
-  <release>
-   <date>2016-01-15</date>
-   <version>
-    <release>5.1.3</release>
-    <api>5.1.2</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fixed macro using interlocked increment in Windows
-- fix gh#158 apc_inc() with negative step value hangs the process
-- fix gh#164 apc_inc() can take minutes with huge step value
-   </notes>
-  </release>
-  <release>
-   <date>2015-12-02</date>
-   <version>
-    <release>5.1.2</release>
-    <api>5.1.2</api>
-   </version>
-   <stability>
-    <release>stable</release>
-    <api>stable</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- be wholly consistent with APC in use of atomics
-   </notes>
-  </release>
-  <release>
-   <date>2015-11-20</date>
-   <version>
-    <release>5.1.0</release>
-    <api>5.1.0</api>
-   </version>
-   <stability>
-    <release>beta</release>
-    <api>beta</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- PHP 7 compatibility
-- provide APC compatibility in "apc" optional extension
-- move APCIterator to APC compatibility extension
-- add APCuIterator without cache argument
-- drop apcu_bin_* functions
-- add apcu_entry(key, callback, ttl) function
-- fix race on refcount of entry when using rwlocks (or on windows)
-   </notes>
-  </release>
-  <release>
-   <date>2014-10-11</date>
-   <time>17:02:21</time>
-   <version>
-    <release>4.0.7</release>
-    <api>4.0.7</api>
-   </version>
-   <stability>
-    <release>beta</release>
-    <api>beta</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fix inconsistent member names for entries in userland
-   </notes>
-  </release>
-  <release>
-   <date>2014-06-12</date>
-   <time>13:39:04</time>
-   <version>
-    <release>4.0.6</release>
-    <api>4.0.6</api>
-   </version>
-   <stability>
-    <release>beta</release>
-    <api>beta</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fix issues with stddef inclusion causing compilation issue
-   </notes>
-  </release>
-  <release>
-   <date>2014-06-11</date>
-   <time>05:48:25</time>
-   <version>
-    <release>4.0.5</release>
-    <api>4.0.5</api>
-   </version>
-   <stability>
-    <release>beta</release>
-    <api>beta</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- fix compile with 5.6 beta
-   </notes>
-  </release>
-  <release>
-   <date>2014-03-01</date>
-   <time>07:29:53</time>
-   <version>
-    <release>4.0.4</release>
-    <api>4.0.4</api>
-   </version>
-   <stability>
-    <release>beta</release>
-    <api>beta</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-- Fix deadlocking due to destroyed locks
-- Fix various compatibility bugs
-   </notes>
-  </release>
-  <release>
-	<date>2014-01-27</date>
- 	<time>09:00:00</time>
-  	<version>
-    <release>4.0.3</release>
-    <api>4.0.3</api>
-   </version>
-   <stability>
-    <release>beta</release>
-    <api>beta</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-  - Fix various compatibility problems
-  - Fix a few lingering faults
-  - Remove experimental eval serializer
-  - Fix iterator for compatibility
-   </notes>
-  </release>
-  <release>
-   <date>2013-09-14</date>
-   <time>21:00:00</time>
-   <version>
-    <release>4.0.2</release>
-    <api>4.0.2</api>
-   </version>
-   <stability>
-    <release>beta</release>
-    <api>beta</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-  - Fixed bug #15 APC compatibility option broken (Anatol)
-  - Changes to m4/w32, various (Anatol)
-  - Fix build is always in debug mode, Related to #15 (Anatol)
-  - Fix apc_clear_cache compatibility issues, Issue #18 (Joe)
-  - Fix APCIterator compatibility issues, Issue #20 (Anatol)
-  - Assert cache clear only when 'user' was passed #18 (Anatol)
-  - fix type casts time_t vs ulong (Anatol)
-  - Fixed the gc routine (Anatol)
-  - Restore APC hook for register serializer, Issue #24, #25 (Remi Collet)
-  - Compiler warnings avoided, various (Remi Collet)
-  - Don't segfault if mmap() failed, Issue #27 (Anatol)
-  - Fix variable typo in config.m4 for php_cv_semun (Kevin Abel)
-  - Revert horribleness related to APC_ALIGN (Joe)
-  - Fix call to stream open wrapper (Joe)
-  - php_apcu.dll does not load anymore under X64, Issue #29 (Anatol)
-  - Fix external api functionality (Joe)
-  - Bring back fcntl support for FreeBSD, Issue #36 (Joe)
-  - Bring back spinlocks, various issues (Joe)
-  - Fixed symbol clashing, windows debug mode, again (Anatol)
-  - apcu_key_info / apc_cache_stat functions (Joe)
-
-   </notes>
-  </release>
-  <release>
-   <date>2013-03-27</date>
-   <time>03:10:00</time>
-   <version>
-    <release>4.0.0</release>
-    <api>4.0.0</api>
-   </version>
-   <stability>
-    <release>beta</release>
-    <api>beta</api>
-   </stability>
-   <license uri="http://www.php.net/license">PHP License</license>
-   <notes>
-  All opcode caching abilities removed
-  The default locking is now rwlocks
-  APCu API installed in build environment
-  Please see TECHNOTES/README.md
-   </notes>
-  </release>
  </changelog>
 </package>
