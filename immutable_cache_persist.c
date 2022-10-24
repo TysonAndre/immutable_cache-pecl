@@ -41,7 +41,7 @@
  * PERSIST: Copy from request memory to SHM.
  */
 
-typedef struct _apc_persist_context_t {
+typedef struct _immutable_cache_persist_context_t {
 	/* Serializer to use */
 	immutable_cache_serializer_t *serializer;
 	/* Computed size of the needed SMA allocation */
@@ -496,7 +496,7 @@ immutable_cache_cache_entry_t *immutable_cache_persist(
  * UNPERSIST: Copy from SHM to request memory.
  */
 
-typedef struct _apc_unpersist_context_t {
+typedef struct _immutable_cache_unpersist_context_t {
 	/* Whether we need to memoize already copied refcounteds. */
 	zend_bool memoization_needed;
 	/* HashTable storing already copied refcounteds. */
@@ -514,6 +514,9 @@ static inline void immutable_cache_unpersist_zval(immutable_cache_unpersist_cont
 	immutable_cache_unpersist_zval_impl(ctxt, zv);
 }
 
+/* Unserialize the value from string str into dst.
+ * Returns 1 if successful.
+ * Sets dst to PHP NULL and returns 0 if unsuccessful */
 static zend_bool immutable_cache_unpersist_serialized(
 		zval *dst, zend_string *str, immutable_cache_serializer_t *serializer) {
 	immutable_cache_unserialize_t unserialize = IMMUTABLE_CACHE_UNSERIALIZER_NAME(php);
@@ -532,9 +535,12 @@ static zend_bool immutable_cache_unpersist_serialized(
 	return 0;
 }
 
+/*
+ * Returns the pointer if one was already copied from shared memory into emalloc
+ */
 static inline void *immutable_cache_unpersist_get_already_copied(immutable_cache_unpersist_context_t *ctxt, void *ptr) {
 	if (ctxt->memoization_needed) {
-		return zend_hash_index_find_ptr(&ctxt->already_copied, (uintptr_t) ptr);
+		return zend_hash_index_find_ptr(&ctxt->already_copied, immutable_cache_shr3((zend_ulong)(uintptr_t)ptr));
 	}
 	return NULL;
 }
@@ -542,11 +548,12 @@ static inline void *immutable_cache_unpersist_get_already_copied(immutable_cache
 static inline void immutable_cache_unpersist_add_already_copied(
 		immutable_cache_unpersist_context_t *ctxt, const void *old_ptr, void *new_ptr) {
 	if (ctxt->memoization_needed) {
-		zend_hash_index_add_new_ptr(&ctxt->already_copied, (uintptr_t) old_ptr, new_ptr);
+		zend_hash_index_add_new_ptr(&ctxt->already_copied, immutable_cache_shr3((zend_ulong)(uintptr_t)old_ptr), new_ptr);
 	}
 }
 
 static zend_string *immutable_cache_unpersist_zstr(immutable_cache_unpersist_context_t *ctxt, const zend_string *orig_str) {
+	/* TODO: Mark strings as persistent and immutable, and avoid allocating a new string entirely */
 	zend_string *str = zend_string_init(ZSTR_VAL(orig_str), ZSTR_LEN(orig_str), 0);
 	ZSTR_H(str) = ZSTR_H(orig_str);
 	immutable_cache_unpersist_add_already_copied(ctxt, orig_str, str);
@@ -576,11 +583,15 @@ static zend_array *immutable_cache_unpersist_ht(
 	immutable_cache_unpersist_add_already_copied(ctxt, orig_ht, ht);
 	memcpy(ht, orig_ht, sizeof(HashTable));
 	GC_TYPE_INFO(ht) = GC_ARRAY;
-
+#if PHP_VERSION_ID >= 70300
+	/* Caller used ZVAL_EMPTY_ARRAY and set different zval flags instead */
+	ZEND_ASSERT(ht->nNumOfElements > 0 && ht->nNumUsed > 0);
+#else
 	if (ht->nNumUsed == 0) {
 		HT_SET_DATA_ADDR(ht, &uninitialized_bucket);
 		return ht;
 	}
+#endif
 
 	HT_SET_DATA_ADDR(ht, emalloc(HT_SIZE(ht)));
 	memcpy(HT_GET_DATA_ADDR(ht), HT_GET_DATA_ADDR(orig_ht), HT_HASH_SIZE(ht->nTableMask));
@@ -639,6 +650,12 @@ static void immutable_cache_unpersist_zval_impl(immutable_cache_unpersist_contex
 			Z_REF_P(zv) = immutable_cache_unpersist_ref(ctxt, Z_REF_P(zv));
 			return;
 		case IS_ARRAY:
+#if PHP_VERSION_ID >= 70300
+			if (Z_ARR_P(zv)->nNumOfElements == 0) {
+				ZVAL_EMPTY_ARRAY(zv); /* #323 */
+				return;
+			}
+#endif
 			Z_ARR_P(zv) = immutable_cache_unpersist_ht(ctxt, Z_ARR_P(zv));
 			return;
 		default:

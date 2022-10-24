@@ -83,6 +83,7 @@
     <file name="apc54_014.phpt" role="test" />
     <file name="apc54_018.phpt" role="test" />
     <file name="apc_disabled.phpt" role="test" />
+    <file name="apcu_fetch_empty_array_reference.phpt" role="test" />
     <file name="apc_store_array_int_keys.phpt" role="test" />
     <file name="apc_store_array_with_refs.phpt" role="test" />
     <file name="apc_store_reference.phpt" role="test" />
