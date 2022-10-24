@@ -535,6 +535,11 @@ static zend_bool immutable_cache_unpersist_serialized(
 	return 0;
 }
 
+/* Used to reduce hash collisions when using pointers in hash tables. (#175) */
+static zend_ulong immutable_cache_shr3(zend_ulong index) {
+    return (index >> 3) | (index << (SIZEOF_ZEND_LONG * 8 - 3));
+}
+
 /*
  * Returns the pointer if one was already copied from shared memory into emalloc
  */
