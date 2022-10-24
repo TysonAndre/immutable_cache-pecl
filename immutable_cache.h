@@ -32,6 +32,13 @@
 #ifndef IMMUTABLE_CACHE_H
 #define IMMUTABLE_CACHE_H
 
+#include "php_version.h"
+
+#if PHP_VERSION_ID < 80000
+/* Not tested yet, this will crash in older php versions */
+#error This release of immutable_cache only supports php 8.0+
+#endif
+
 /*
  * This module defines utilities and helper functions used elsewhere in APC.
  */

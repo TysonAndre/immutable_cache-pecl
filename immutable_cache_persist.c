@@ -19,6 +19,9 @@
 #include "immutable_cache.h"
 #include "immutable_cache_cache.h"
 
+/* TODO Look into whether macros and functionality can be made to work in PHP < 8.0
+ * with true immutability. */
+
 #if PHP_VERSION_ID < 70300
 # define GC_SET_REFCOUNT(ref, rc) (GC_REFCOUNT(ref) = (rc))
 # define GC_ADDREF(ref) GC_REFCOUNT(ref)++
