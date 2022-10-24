@@ -19,6 +19,12 @@
 *.tgz
 *.tar.gz
 *.tar.bz2
+*.dep
+configure.ac
+build
+run-tests.php
+tags
+
 .FBCIndex
 .FBCLockFolder
 .deps
