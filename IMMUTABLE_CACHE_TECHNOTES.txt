@@ -1,0 +1,46 @@
+immutable_cache tech notes
+==========================
+
+Types of strings
+----------------
+
+### Background
+See https://www.npopov.com/2015/06/19/Internal-value-representation-in-PHP-7-part-2.html#strings for background.
+From Nikita Popov's blog post:
+
+> There are a number of flags a string can have (which are stored in the GC flags field):
+> 
+> ```
+> #define IS_STR_PERSISTENT           (1<<0) /* allocated using malloc */
+> #define IS_STR_INTERNED             (1<<1) /* interned string */
+> #define IS_STR_PERMANENT            (1<<2) /* interned string surviving request boundary */
+> ```
+>
+> Persistent strings use the normal system allocator instead of the Zend memory manager (ZMM) and as such can live longer
+> than one request. Specifying the used allocator as a flag allows us to transparently use persistent strings in zvals,
+> while previously in PHP 5 a copy into the ZMM was required beforehand.
+> 
+> Interned strings are strings that won't be destroyed until the end of a request and as such don't need to use
+> refcounting. They are also deduplicated, so if a new interned string is created the engine first checks if an interned
+> string with the given content already exists. All strings that occur literally in PHP source code (this includes string
+> literals, variable and function names, etc) are usually interned. Permanent strings are interned strings that were
+> created before a request starts. While normal interned strings are destroyed on request shutdowns, permanent strings
+> are kept alive.
+> 
+> If opcache is used interned strings will be stored in shared memory (SHM) and as such shared across all PHP worker
+> processes. In this case the notion of permanent strings becomes irrelevant, because interned strings will never be
+> destroyed.
+
+The opposite of a persistent (`IS_STR_PERSISTENT`) string is referred to as a request-lifetime string in immutable_cache.
+The opposite of an interned (`IS_STR_INTERNED`) string is referred to as a temporary string in immutable_cache.
+Permanent strings are a type of interned strings.
+
+Strings stored in opcache are 
+- For opcache.file_cache_only: `IS_STR_INTERNED`
+- When the file cache is not used: `IS_STR_INTERNED | IS_STR_PERMANENT`
+
+### immutable_cache
+
+immutable_cache creates its own permanent interned strings
+(`IS_STR_INTERNED | IS_STR_PERMANENT`), which is the same type 
+that opcache would use for storage in the in memory cache.
