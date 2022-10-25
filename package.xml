@@ -36,14 +36,14 @@
   <email>tandre@php.net</email>
   <active>yes</active>
  </lead>
- <date>2022-10-24</date>
+ <date>2022-10-25</date>
  <version>
-  <release>5.1.23</release>
-  <api>5.1.18</api>
+  <release>6.0.0beta1</release>
+  <api>6.0.0beta1</api>
  </version>
  <stability>
-  <release>stable</release>
-  <api>stable</api>
+  <release>beta</release>
+  <api>beta</api>
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
@@ -150,6 +150,8 @@
    <file name="immutable_cache_signal.h" role="src" />
    <file name="immutable_cache_sma.c" role="src" />
    <file name="immutable_cache_sma.h" role="src" />
+   <file name="immutable_cache_stack.c" role="src" />
+   <file name="immutable_cache_stack.h" role="src" />
    <file name="immutable_cache_strings.h" role="src" />
    <file name="immutable_cache_time.c" role="src" />
    <file name="immutable_cache_time.h" role="src" />
@@ -180,7 +182,7 @@
  </dependencies>
  <providesextension>immutable_cache</providesextension>
  <extsrcrelease>
-  <configureoption name="enable-immutable-cache-debug" default="no" prompt="Enable internal debugging in APCu" />
+  <configureoption name="enable-immutable-cache-debug" default="no" prompt="Enable internal debugging in immutable_cache" />
  </extsrcrelease>
  <changelog>
  </changelog>
