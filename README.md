@@ -1,7 +1,7 @@
 immutable\_cache
 ================
 
-**This is currently a prototype. Error handling and API design will likely change in subsequent releases. There may be bugs.**
+**This is currently a prototype. Error handling and API design will likely change in subsequent releases. Features from APCu not mentioned in this README are likely unsupported and dropped later. There may be bugs.**
 
 This is a work in progress PECL repo adding functionality similar to APCu,
 but with immutable values (an immutable serialized copy of mutable values is stored in the serializer)
@@ -30,8 +30,25 @@ Features
 
 `immutable_cache` only supports userland caching of immutable representations of keys.
 
-See [`php_immutable_cache.stub.php`](./php_immutable_cache.stub.php) for the api.
-This provides an API similar to a subset of https://php.net/apcu , but does not allow for modifying a created key.
+### API reference
+
+See [`php_immutable_cache.stub.php`](./php_immutable_cache.stub.php) for the current api.
+This provides an API similar to a subset of the functions in https://php.net/apcu , but does not allow for modifying, deleting, incrementing, etc. on a created key.
+
+When storing mutable values such as objects, it will instead call PHP's serialize() on the entire object.
+
+### Ini settings
+
+Similar to https://www.php.net/manual/en/apcu.configuration.php
+
+- `immutable_cache.enabled` (bool, defaults to 1(on))
+- `immutable_cache.enable_cli` (bool, defaults to 0(off))
+- `immutable_cache.shm_size`
+- `immutable_cache.entries_hint`
+- `immutable_cache.shm_size`
+- `immutable_cache.serializer` (currently `php` or `default`. Defaults to `php`. This is used to serialize data that doesn't have an immutable representation (e.g. objects, references (for now, it isn't converted)))
+
+This is an immutable cache where entries can't be removed, so there is no need for ttl or gc_ttl.
 
 ### Benefits
 
@@ -39,7 +56,8 @@ Immutability allows `immutable_cache` to keep strings and arrays in shared memor
 Different processes (e.g. from apache worker pools) or threads (in ZTS builds) would
 all be performing read-only access to the same constant arrays (like they would with opcache)
 
-### Benchmarks
+Benchmarks
+==========
 
 Note that when the data is completely immutable (i.e. does not need to call the php serializer for anything),
 it can be stored in shared memory and retrieved from
@@ -60,19 +78,6 @@ immutable_cache Elapsed: 0.117099 throughput    3415902 / second
 immutable_cache Elapsed: 0.099313 throughput    4027680 / second
 immutable_cache Elapsed: 0.105851 throughput    3778904 / second
 ```
-
-### Ini settings
-
-Similar to https://www.php.net/manual/en/apcu.configuration.php
-
-- `immutable_cache.enabled` (bool, defaults to 1(on))
-- `immutable_cache.enable_cli` (bool, defaults to 0(off))
-- `immutable_cache.shm_size`
-- `immutable_cache.entries_hint`
-- `immutable_cache.shm_size`
-- `immutable_cache.serializer` (currently `php` or `default`. Defaults to `php`. This is used to serialize data that doesn't have an immutable representation (e.g. objects, references (for now, it isn't converted)))
-
-This is an immutable cache where entries can't be removed, so there is no need for ttl or gc_ttl.
 
 Installing
 ==========

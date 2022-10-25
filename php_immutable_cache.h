@@ -33,7 +33,7 @@
 #include "immutable_cache.h"
 #include "immutable_cache_globals.h"
 
-#define PHP_IMMUTABLE_CACHE_VERSION "5.1.23-dev"
+#define PHP_IMMUTABLE_CACHE_VERSION "5.1.23"
 #define PHP_IMMUTABLE_CACHE_EXTNAME "immutable_cache"
 
 PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_is_enabled(void);

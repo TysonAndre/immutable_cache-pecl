@@ -36,9 +36,9 @@
   <email>tandre@php.net</email>
   <active>yes</active>
  </lead>
- <date>2022-10-23</date>
+ <date>2022-10-24</date>
  <version>
-  <release>5.1.23dev</release>
+  <release>5.1.23</release>
   <api>5.1.18</api>
  </version>
  <stability>
@@ -47,11 +47,11 @@
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
-- Initial release
+- Initial release tag on https://github.com/TysonAndre/immutable_cache-pecl
 - Create immutable_cache based on APCu 5.1.23dev
 - Change the extension name, all ini settings, header/source files and symbols
   to avoid conflicting with the installation of APCu on all OSes
-- Drop support for PHP 7.1
+- Drop support for PHP &lt; 8.0 in the initial release (earlier PHP versions not tested yet)
  </notes>
  <contents>
   <dir name="/">
