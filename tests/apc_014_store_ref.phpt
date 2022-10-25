@@ -15,11 +15,23 @@ $_items = [
 $items = [];
 foreach($_items as $k => $v) {
 	$items["prefix_$k"] = &$v;
+	unset($v);
 }
 var_dump(immutable_cache_add($items));
+var_dump(immutable_cache_fetch('prefix_key1'));
+var_dump($items);
+echo "After add\n";
+var_dump(immutable_cache_fetch('prefix_key1'));
 ?>
-===DONE===
 --EXPECT--
 array(0) {
 }
-===DONE===
+string(6) "value1"
+array(2) {
+  ["prefix_key1"]=>
+  string(6) "value1"
+  ["prefix_key2"]=>
+  string(6) "value2"
+}
+After add
+string(6) "value1"
