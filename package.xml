@@ -102,6 +102,7 @@
     <file name="ghbug248.phpt" role="test" />
     <file name="ghbug335-fail.phpt" role="test" />
     <file name="immutable_cache_intern_strings.phpt" role="test" />
+    <file name="immutable_cache_immutable_arrays.phpt" role="test" />
     <file name="iterator_001.phpt" role="test" />
     <file name="iterator_002.phpt" role="test" />
     <file name="iterator_003.phpt" role="test" />

@@ -232,8 +232,12 @@ static zend_bool immutable_cache_persist_calc_zval(immutable_cache_persist_conte
 		case IS_ARRAY:
 			return immutable_cache_persist_calc_ht(ctxt, Z_ARRVAL_P(zv));
 		case IS_REFERENCE:
+			/* TODO support creating copies of references mixed with immutable arrays.
+			 * Not yet tested, so fall through and use a serializer
 			ADD_SIZE(sizeof(zend_reference));
 			return immutable_cache_persist_calc_zval(ctxt, Z_REFVAL_P(zv));
+			*/
+			/* FALLTHROUGH */
 		case IS_OBJECT:
 			ctxt->use_serialization = 1;
 			return 0;
@@ -315,9 +319,10 @@ static inline zend_string *immutable_cache_persist_copy_zstr(
 	return str;
 }
 
+/* Allocates a persistent copy of the PHP reference group in shared memory, setting a reference count of 1 */
+/*
 static zend_reference *immutable_cache_persist_copy_ref(
 		immutable_cache_persist_context_t *ctxt, const zend_reference *orig_ref) {
-	/* Allocates a persistent copy of the PHP reference group in shared memory, setting a reference count of 1 */
 	zend_reference *ref = ALLOC(sizeof(zend_reference));
 	immutable_cache_persist_add_already_allocated(ctxt, orig_ref, ref);
 
@@ -332,6 +337,7 @@ static zend_reference *immutable_cache_persist_copy_ref(
 
 	return ref;
 }
+*/
 
 static const uint32_t uninitialized_bucket[-HT_MIN_MASK] = {HT_INVALID_IDX, HT_INVALID_IDX};
 
@@ -340,18 +346,21 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 	uint32_t idx;
 	immutable_cache_persist_add_already_allocated(ctxt, orig_ht, ht);
 
-	GC_SET_REFCOUNT(ht, 1);
-	GC_SET_PERSISTENT_TYPE(ht, GC_ARRAY);
+	GC_SET_REFCOUNT(ht, 2);
+	GC_SET_IMMUTABLE_PERMANENT_TYPE(ht, GC_ARRAY);
 
 	/* Immutable arrays from opcache may lack a dtor and the apply protection flag. */
-	/* FIXME this is an immutable cache. This won't get called? */
-	ht->pDestructor = ZVAL_PTR_DTOR;
+	/* NOTE: immutable arrays immutable_cache should not have elements freed by design. This won't get called. */
+	ht->pDestructor = NULL; // ht->pDestructor = ZVAL_PTR_DTOR;
+	ht->nInternalPointer = 0;
+
 #if PHP_VERSION_ID < 70300
 	ht->u.flags |= HASH_FLAG_APPLY_PROTECTION;
 #endif
 
 	ht->u.flags |= HASH_FLAG_STATIC_KEYS;
 	if (ht->nNumUsed == 0) {
+		/* TODO save memory (44 bytes per array padded to alignment) by storing a copy of the empty zend_array at a fixed position on startup */
 #if PHP_VERSION_ID >= 70400
 		ht->u.flags = HASH_FLAG_UNINITIALIZED;
 #else
@@ -446,11 +455,17 @@ static void immutable_cache_persist_copy_zval_impl(immutable_cache_persist_conte
 		case IS_ARRAY:
 			if (!ptr) ptr = immutable_cache_persist_copy_ht(ctxt, Z_ARRVAL_P(zv));
 			ZVAL_ARR(zv, ptr);
+			/* make immutable array. Based on opcache's zend_persist_zval. */
+			Z_TYPE_FLAGS_P(zv) = 0;
 			return;
 		/* TODO handle unserializing references, test that modifying references doesn't change the original. Add flags to array to indicate the array needs to be copied? */
 		case IS_REFERENCE:
+			/* This did not put a reference into shared memory */
+			zend_error_noreturn(E_CORE_ERROR, "immutable_cache serializer somehow called with a reference instead of a string serialization function");
+			/*
 			if (!ptr) ptr = immutable_cache_persist_copy_ref(ctxt, Z_REF_P(zv));
 			ZVAL_REF(zv, ptr);
+			*/
 			return;
 		EMPTY_SWITCH_DEFAULT_CASE()
 	}
@@ -593,6 +608,7 @@ static zend_string *immutable_cache_unpersist_zstr(immutable_cache_unpersist_con
 	return (zend_string *)orig_str;
 }
 
+/*
 static zend_reference *immutable_cache_unpersist_ref(
 		immutable_cache_unpersist_context_t *ctxt, const zend_reference *orig_ref) {
 	zend_reference *ref = emalloc(sizeof(zend_reference));
@@ -608,9 +624,14 @@ static zend_reference *immutable_cache_unpersist_ref(
 	immutable_cache_unpersist_zval(ctxt, &ref->val);
 	return ref;
 }
+*/
 
 static zend_array *immutable_cache_unpersist_ht(
 		immutable_cache_unpersist_context_t *ctxt, const HashTable *orig_ht) {
+	ZEND_ASSERT((GC_FLAGS(orig_ht) & GC_IMMUTABLE_PERSISTENT_FLAGS) == GC_IMMUTABLE_PERSISTENT_FLAGS);
+	return (HashTable *)orig_ht;
+	/* Original implementation for copying the hash table. TODO: Restore when ready to test mixes of references and immutables in mutable arrays */
+#if 0
 	HashTable *ht = emalloc(sizeof(HashTable));
 
 	immutable_cache_unpersist_add_already_copied(ctxt, orig_ht, ht);
@@ -665,6 +686,7 @@ static zend_array *immutable_cache_unpersist_ht(
 	}
 
 	return ht;
+#endif /* End #if 0 commenting out code */
 }
 
 static void immutable_cache_unpersist_zval_impl(immutable_cache_unpersist_context_t *ctxt, zval *zv) {
@@ -680,7 +702,8 @@ static void immutable_cache_unpersist_zval_impl(immutable_cache_unpersist_contex
 			ZVAL_INTERNED_STR(zv, immutable_cache_unpersist_zstr(ctxt, Z_STR_P(zv)));
 			return;
 		case IS_REFERENCE:
-			Z_REF_P(zv) = immutable_cache_unpersist_ref(ctxt, Z_REF_P(zv));
+			zend_error_noreturn(E_CORE_ERROR, "immutable_cache_unpersist_zval_impl: Found a reference in shared memory. Is shared memory corrupt?");
+			/* Z_REF_P(zv) = immutable_cache_unpersist_ref(ctxt, Z_REF_P(zv)); */
 			return;
 		case IS_ARRAY:
 #if PHP_VERSION_ID >= 70300

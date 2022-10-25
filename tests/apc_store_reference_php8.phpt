@@ -15,6 +15,9 @@ immutable_cache.serializer=default
 
 $value = [&$value];
 immutable_cache_add(["key" => &$value]);
+// NOTE: immutable_cache currently gives up and serializes the value to a string instead.
+// TODO: Implement and test a way to combine immutable arrays (kept in shared memory)
+// and mutable arrays with PHP references (copied to process memory) with serializer=default.
 $result = immutable_cache_fetch("key");
 var_dump($result);
 
@@ -22,5 +25,8 @@ var_dump($result);
 --EXPECT--
 array(1) {
   [0]=>
-  *RECURSION*
+  &array(1) {
+    [0]=>
+    *RECURSION*
+  }
 }
