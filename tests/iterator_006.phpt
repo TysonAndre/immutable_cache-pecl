@@ -347,57 +347,57 @@ IT #5
 string(4) "key0"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key1"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key2"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key3"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key4"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key5"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key6"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key7"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key8"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key9"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(5) "key10"
 array(1) {
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 ============================
 
@@ -453,7 +453,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key1"
 array(6) {
@@ -468,7 +468,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key2"
 array(6) {
@@ -483,7 +483,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key3"
 array(6) {
@@ -498,7 +498,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key4"
 array(6) {
@@ -513,7 +513,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key5"
 array(6) {
@@ -528,7 +528,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key6"
 array(6) {
@@ -543,7 +543,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key7"
 array(6) {
@@ -558,7 +558,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key8"
 array(6) {
@@ -573,7 +573,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key9"
 array(6) {
@@ -588,7 +588,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(5) "key10"
 array(6) {
@@ -603,7 +603,7 @@ array(6) {
   ["access_time"]=>
   int(%d)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 ============================
 
@@ -616,7 +616,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key1"
 array(3) {
@@ -625,7 +625,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key2"
 array(3) {
@@ -634,7 +634,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key3"
 array(3) {
@@ -643,7 +643,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key4"
 array(3) {
@@ -652,7 +652,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key5"
 array(3) {
@@ -661,7 +661,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key6"
 array(3) {
@@ -670,7 +670,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key7"
 array(3) {
@@ -679,7 +679,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key8"
 array(3) {
@@ -688,7 +688,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(4) "key9"
 array(3) {
@@ -697,7 +697,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 string(5) "key10"
 array(3) {
@@ -706,7 +706,7 @@ array(3) {
   ["num_hits"]=>
   int(0)
   ["mem_size"]=>
-  int(128)
+  int(%d)
 }
 ============================
 
