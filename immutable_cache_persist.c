@@ -34,6 +34,9 @@
 #else
 # define GC_SET_PERSISTENT_TYPE(ref, type) \
 	(GC_TYPE_INFO(ref) = type | (GC_PERSISTENT << GC_FLAGS_SHIFT))
+# define GC_IMMUTABLE_PERSISTENT_FLAGS (GC_IMMUTABLE | GC_PERSISTENT)
+# define GC_SET_IMMUTABLE_PERMANENT_TYPE(ref, type) \
+	(GC_TYPE_INFO(ref) = type | (GC_IMMUTABLE_PERSISTENT_FLAGS << GC_FLAGS_SHIFT))
 #endif
 
 #if PHP_VERSION_ID < 80000
@@ -84,6 +87,16 @@ static inline void immutable_cache_persist_copy_zval(immutable_cache_persist_con
 	}
 
 	immutable_cache_persist_copy_zval_impl(ctxt, zv);
+}
+
+static bool immutable_cache_is_already_cached_for_persist_context(immutable_cache_persist_context_t *ctxt, void *ptr) {
+	if (ptr >= ((void*)ctxt->alloc) && ptr < (void*)(ctxt->alloc + ctxt->size)) {
+		ZEND_ASSERT(ptr < (void*)ctxt->alloc_cur);
+		ZEND_ASSERT((ZEND_MM_ALIGNMENT_MASK & (uintptr_t)ptr) == 0);
+		return true;
+	}
+	ZEND_ASSERT(ptr != NULL);
+	return false;
 }
 
 void immutable_cache_persist_init_context(immutable_cache_persist_context_t *ctxt, immutable_cache_serializer_t *serializer) {
@@ -237,7 +250,14 @@ static zend_bool immutable_cache_persist_calc(immutable_cache_persist_context_t 
 	return immutable_cache_persist_calc_zval(ctxt, &entry->val);
 }
 
+/* Used when persisting to get any immutable_cache shared memory copy of ptr that was already created.
+ * If ptr is already in immutable_cache (e.g. in a previously allocated entry), returns ptr.
+ * If ptr is found as a key in the already_allocated hash map, then it returns that. */
 static inline void *immutable_cache_persist_get_already_allocated(immutable_cache_persist_context_t *ctxt, void *ptr) {
+	if (immutable_cache_is_already_cached_for_persist_context(ctxt, ptr)) {
+		fprintf(stderr, "%s: returning already allocated %p\n", __func__, ptr);
+		return ptr;
+	}
 	if (ctxt->memoization_needed) {
 		return zend_hash_index_find_ptr(&ctxt->already_allocated, (uintptr_t) ptr);
 	}
@@ -270,8 +290,8 @@ static zend_string *immutable_cache_persist_copy_cstr(
 		immutable_cache_persist_context_t *ctxt, const char *orig_buf, size_t buf_len, zend_ulong hash) {
 	zend_string *str = ALLOC(_ZSTR_STRUCT_SIZE(buf_len));
 
-	GC_SET_REFCOUNT(str, 1);
-	GC_SET_PERSISTENT_TYPE(str, IS_STRING);
+	GC_SET_REFCOUNT(str, 2);
+	GC_SET_IMMUTABLE_PERMANENT_TYPE(str, IS_STRING);
 
 	ZSTR_H(str) = hash;
 	ZSTR_LEN(str) = buf_len;
@@ -404,6 +424,7 @@ static void immutable_cache_persist_copy_serialize(
 	ZVAL_PTR(zv, str);
 }
 
+/* Persist a copy of the zval into the shared memory cache at zval zv. */
 static void immutable_cache_persist_copy_zval_impl(immutable_cache_persist_context_t *ctxt, zval *zv) {
 	void *ptr;
 
@@ -412,12 +433,16 @@ static void immutable_cache_persist_copy_zval_impl(immutable_cache_persist_conte
 		return;
 	}
 
+	/* Check if the pointer is already an immutable part of immutable_cache shared memory,
+	 * or is found in the hash map */
 	ptr = immutable_cache_persist_get_already_allocated(ctxt, Z_COUNTED_P(zv));
 	switch (Z_TYPE_P(zv)) {
-		case IS_STRING:
+		case IS_STRING: {
+			/* TODO check if string is already in cache */
 			if (!ptr) ptr = immutable_cache_persist_copy_zstr(ctxt, Z_STR_P(zv));
 			ZVAL_STR(zv, ptr);
 			return;
+		}
 		case IS_ARRAY:
 			if (!ptr) ptr = immutable_cache_persist_copy_ht(ctxt, Z_ARRVAL_P(zv));
 			ZVAL_ARR(zv, ptr);
@@ -562,10 +587,10 @@ static inline void immutable_cache_unpersist_add_already_copied(
 
 static zend_string *immutable_cache_unpersist_zstr(immutable_cache_unpersist_context_t *ctxt, const zend_string *orig_str) {
 	/* TODO: Mark strings as persistent and immutable, and avoid allocating a new string entirely */
-	zend_string *str = zend_string_init(ZSTR_VAL(orig_str), ZSTR_LEN(orig_str), 0);
-	ZSTR_H(str) = ZSTR_H(orig_str);
-	immutable_cache_unpersist_add_already_copied(ctxt, orig_str, str);
-	return str;
+	// TODO: Implement immutable_cache_is_already_cached_for_unpersist_context, add fields to it
+	// ZEND_ASSERT(immutable_cache_is_already_cached_for_unpersist_context(ctxt, orig_str));
+	ZEND_ASSERT((GC_FLAGS(orig_str) & GC_IMMUTABLE_PERSISTENT_FLAGS) == GC_IMMUTABLE_PERSISTENT_FLAGS);
+	return (zend_string *)orig_str;
 }
 
 static zend_reference *immutable_cache_unpersist_ref(
@@ -652,7 +677,7 @@ static void immutable_cache_unpersist_zval_impl(immutable_cache_unpersist_contex
 
 	switch (Z_TYPE_P(zv)) {
 		case IS_STRING:
-			Z_STR_P(zv) = immutable_cache_unpersist_zstr(ctxt, Z_STR_P(zv));
+			ZVAL_INTERNED_STR(zv, immutable_cache_unpersist_zstr(ctxt, Z_STR_P(zv)));
 			return;
 		case IS_REFERENCE:
 			Z_REF_P(zv) = immutable_cache_unpersist_ref(ctxt, Z_REF_P(zv));
