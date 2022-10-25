@@ -37,10 +37,10 @@ bool(false)
 
 cache/sma_info
 
-Warning: immutable_cache_cache_info(): No immutable_cache info available.  Perhaps immutable_cache is not enabled? Check immutable_cache.enabled in your ini file in /home/tyson/programming/immutable_cache-pecl/tests/apc_disabled.php on line 7
+Warning: immutable_cache_cache_info(): No immutable_cache info available.  Perhaps immutable_cache is not enabled? Check immutable_cache.enabled in your ini file in %sapc_disabled.php on line 7
 bool(false)
 
-Warning: immutable_cache_sma_info(): No immutable_cache SMA info available.  Perhaps immutable_cache is disabled via immutable_cache.enabled? in /home/tyson/programming/immutable_cache-pecl/tests/apc_disabled.php on line 8
+Warning: immutable_cache_sma_info(): No immutable_cache SMA info available.  Perhaps immutable_cache is disabled via immutable_cache.enabled? in %sapc_disabled.php on line 8
 bool(false)
 \add/exists/fetch/key_info
 bool(false)
