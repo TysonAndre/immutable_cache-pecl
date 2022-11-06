@@ -9,7 +9,15 @@ immutable_cache.serializer=default
 --FILE--
 <?php
 
+// Arrays containing nan are only identical if the array pointers are identical
 $str = 'a';
+$orig = [NAN];
+immutable_cache_add("x$str", $orig);
+$c1 = immutable_cache_fetch('xa');
+var_dump($c1);
+immutable_cache_add("y$str", $c1);
+$c2 = immutable_cache_fetch("y$str");
+var_dump($c1 === $c2);
 $orig = [NAN, "{$str}xyz", 'a', 'a'];
 immutable_cache_add("z$str", $orig);
 $v1 = immutable_cache_fetch('za');
@@ -24,6 +32,12 @@ var_dump($v2);
 unset($v1, $v2, $orig);
 ?>
 --EXPECT--
+array(1) {
+  [0]=>
+  float(NAN)
+}
+Already persisted this array
+bool(true)
 is same array?
 bool(true)
 is shared memory array different from original?

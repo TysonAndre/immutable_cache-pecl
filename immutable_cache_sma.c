@@ -400,10 +400,8 @@ PHP_IMMUTABLE_CACHE_API void *immutable_cache_sma_malloc_ex(immutable_cache_sma_
 	size_t fragment = MINBLOCKSIZE;
 	size_t off;
 	int32_t i;
-	zend_bool nuked = 0;
 	int32_t last = sma->last;
 
-restart:
 	assert(sma->initialized);
 
 	if (!SMA_LOCK(sma, last)) {
@@ -634,6 +632,18 @@ PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_sma_get_avail_size(immutable_c
 PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_check_integrity(immutable_cache_sma_t* sma)
 {
 	/* dummy */
+}
+
+PHP_IMMUTABLE_CACHE_API bool immutable_cache_sma_contains_pointer(const immutable_cache_sma_t *sma, const void *ptr) {
+	int i;
+
+	for (i = 0; i < sma->num; i++) {
+		const immutable_cache_segment_t *seg = &sma->segs[i];
+		if (ptr >= seg->shmaddr && ptr < seg->shmaddr + seg->size) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /* }}} */

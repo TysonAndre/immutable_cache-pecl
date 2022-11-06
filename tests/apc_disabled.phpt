@@ -58,4 +58,4 @@ array(0) {
 }
 
 iterator
-APC must be enabled to use ImmutableCacheIterator
+ImmutableCache must be enabled to use ImmutableCacheIterator

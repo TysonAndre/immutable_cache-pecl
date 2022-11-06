@@ -51,6 +51,8 @@
 typedef struct _immutable_cache_persist_context_t {
 	/* Serializer to use */
 	immutable_cache_serializer_t *serializer;
+	/* Shared memory allocator */
+	const immutable_cache_sma_t *sma;
 	/* Computed size of the needed SMA allocation */
 	size_t size;
 	/* Whether or not we may have to memoize refcounted addresses */
@@ -95,18 +97,9 @@ static inline void immutable_cache_persist_copy_zval(immutable_cache_persist_con
 	immutable_cache_persist_copy_zval_impl(ctxt, zv);
 }
 
-static bool immutable_cache_is_already_cached_for_persist_context(immutable_cache_persist_context_t *ctxt, void *ptr) {
-	if (ptr >= ((void*)ctxt->alloc) && ptr < (void*)(ctxt->alloc + ctxt->size)) {
-		ZEND_ASSERT(ptr < (void*)ctxt->alloc_cur);
-		ZEND_ASSERT((ZEND_MM_ALIGNMENT_MASK & (uintptr_t)ptr) == 0);
-		return true;
-	}
-	ZEND_ASSERT(ptr != NULL);
-	return false;
-}
-
-void immutable_cache_persist_init_context(immutable_cache_persist_context_t *ctxt, immutable_cache_serializer_t *serializer) {
+void immutable_cache_persist_init_context(immutable_cache_persist_context_t *ctxt, immutable_cache_serializer_t *serializer, const immutable_cache_sma_t *sma) {
 	ctxt->serializer = serializer;
+	ctxt->sma = sma;
 	ctxt->size = 0;
 	ctxt->memoization_needed = 0;
 	ctxt->use_serialization = 0;
@@ -144,15 +137,18 @@ static zend_bool immutable_cache_persist_calc_memoize(immutable_cache_persist_co
 static zend_bool immutable_cache_persist_calc_ht(immutable_cache_persist_context_t *ctxt, const HashTable *ht) {
 	uint32_t idx;
 
-	ADD_SIZE(sizeof(HashTable));
 	if (ht->nNumUsed == 0) {
+#if PHP_VERSION_ID >= 70300
+		ADD_SIZE(sizeof(HashTable));
+#endif
 		return 1;
 	}
+	ADD_SIZE(sizeof(HashTable));
 
 	/* TODO Too sparse hashtables could be compacted here */
-	ADD_SIZE(HT_USED_SIZE(ht));
 #if PHP_VERSION_ID >= 80200
 	if (HT_IS_PACKED(ht)) {
+		ADD_SIZE(HT_PACKED_USED_SIZE(ht));
 		for (idx = 0; idx < ht->nNumUsed; idx++) {
 			zval *val = ht->arPacked + idx;
 			ZEND_ASSERT(Z_TYPE_P(val) != IS_INDIRECT && "INDIRECT in packed array?");
@@ -163,6 +159,7 @@ static zend_bool immutable_cache_persist_calc_ht(immutable_cache_persist_context
 	} else
 #endif
 	{
+		ADD_SIZE(HT_USED_SIZE(ht));
 		for (idx = 0; idx < ht->nNumUsed; idx++) {
 			Bucket *p = ht->arData + idx;
 			if (Z_TYPE(p->val) == IS_UNDEF) continue;
@@ -226,6 +223,11 @@ static zend_bool immutable_cache_persist_calc_zval(immutable_cache_persist_conte
 	if (ctxt->use_serialization) {
 		return immutable_cache_persist_calc_serialize(ctxt, zv);
 	}
+	if (immutable_cache_sma_contains_pointer(ctxt->sma, Z_PTR_P(zv))) {
+		fprintf(stderr, "Already persisted this array\n");
+		ZEND_ASSERT(Z_TYPE_P(zv) == IS_STRING || Z_TYPE_P(zv) == IS_ARRAY);
+		return 1;
+	}
 
 	if (immutable_cache_persist_calc_memoize(ctxt, Z_COUNTED_P(zv))) {
 		return 1;
@@ -264,7 +266,7 @@ static zend_bool immutable_cache_persist_calc(immutable_cache_persist_context_t 
  * If ptr is already in immutable_cache (e.g. in a previously allocated entry), returns ptr.
  * If ptr is found as a key in the already_allocated hash map, then it returns that. */
 static inline void *immutable_cache_persist_get_already_allocated(immutable_cache_persist_context_t *ctxt, void *ptr) {
-	if (immutable_cache_is_already_cached_for_persist_context(ctxt, ptr)) {
+	if (immutable_cache_sma_contains_pointer(ctxt->sma, ptr)) {
 		// fprintf(stderr, "%s: returning already allocated %p\n", __func__, ptr);
 		return ptr;
 	}
@@ -489,7 +491,7 @@ immutable_cache_cache_entry_t *immutable_cache_persist(
 	immutable_cache_persist_context_t ctxt;
 	immutable_cache_cache_entry_t *entry;
 
-	immutable_cache_persist_init_context(&ctxt, serializer);
+	immutable_cache_persist_init_context(&ctxt, serializer, sma);
 
 	/* The top-level value should never be a reference */
 	ZEND_ASSERT(Z_TYPE(orig_entry->val) != IS_REFERENCE);
@@ -517,7 +519,7 @@ immutable_cache_cache_entry_t *immutable_cache_persist(
 
 		/* Try again with serialization */
 		immutable_cache_persist_destroy_context(&ctxt);
-		immutable_cache_persist_init_context(&ctxt, serializer);
+		immutable_cache_persist_init_context(&ctxt, serializer, sma);
 		ctxt.use_serialization = 1;
 		if (!immutable_cache_persist_calc(&ctxt, orig_entry)) {
 			immutable_cache_persist_destroy_context(&ctxt);
@@ -532,6 +534,7 @@ immutable_cache_cache_entry_t *immutable_cache_persist(
 	}
 
 	entry = immutable_cache_persist_copy(&ctxt, orig_entry);
+	// fprintf(stderr, "alloc_size=%d size=%d\n", (int)(ctxt.alloc_cur-ctxt.alloc), (int)ctxt.size);
 	ZEND_ASSERT(ctxt.alloc_cur == ctxt.alloc + ctxt.size);
 
 	entry->mem_size = ctxt.size;
