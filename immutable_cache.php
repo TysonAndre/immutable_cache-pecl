@@ -1,6 +1,9 @@
 <?php
 /*
   +----------------------------------------------------------------------+
+  | immutable_cache                                                      |
+  | Based on files from apcu with the below license.                     |
+  +----------------------------------------------------------------------+
   | APC                                                                  |
   +----------------------------------------------------------------------+
   | Copyright (c) 2006-2011 The PHP Group                                |
@@ -23,7 +26,7 @@
  */
 
 ////////// READ OPTIONAL CONFIGURATION FILE ////////////
-if (file_exists("apc.conf.php")) include("apc.conf.php");
+if (file_exists("immutable_cache.conf.php")) include("immutable_cache.conf.php");
 ////////////////////////////////////////////////////////
 
 ////////// BEGIN OF DEFAULT CONFIG AREA ///////////////////////////////////////////////////////////
@@ -36,7 +39,7 @@ defaults('USE_AUTHENTICATION',1);			// Use (internal) authentication - best choi
 											// If set to 1:
 											//  You need to change ADMIN_PASSWORD to make
 											//  this work!
-defaults('ADMIN_USERNAME','apc'); 			// Admin Username
+defaults('ADMIN_USERNAME','immutable_cache'); 			// Admin Username
 defaults('ADMIN_PASSWORD','password');  	// Admin Password - CHANGE THIS TO ENABLE!!!
 
 // (beckerr) I'm using a clear text password here, because I've no good idea how to let
@@ -171,21 +174,21 @@ EOB;
 
 // clear cache
 if ($AUTHENTICATED && isset($MYREQUEST['CC']) && $MYREQUEST['CC']) {
-	apcu_clear_cache();
+	immutable_cache_clear_cache();
 }
 
 if ($AUTHENTICATED && !empty($MYREQUEST['DU'])) {
-	apcu_delete($MYREQUEST['DU']);
+	immutable_cache_delete($MYREQUEST['DU']);
 }
 
-if(!function_exists('apcu_cache_info')) {
+if(!function_exists('immutable_cache_cache_info')) {
 	echo "No cache info available.  APC does not appear to be running.";
   exit;
 }
 
-$cache = apcu_cache_info();
+$cache = immutable_cache_cache_info();
 
-$mem=apcu_sma_info();
+$mem=immutable_cache_sma_info();
 
 // don't cache this page
 //
@@ -483,7 +486,7 @@ function put_login_link($s="Login")
 	} else if (ADMIN_PASSWORD=='password')
 	{
 		print <<<EOB
-			<a href="#" onClick="javascript:alert('You need to set a password at the top of apc.php before this will work!');return false";>$s</a>
+			<a href="#" onClick="javascript:alert('You need to set a password at the top of immutable_cache.php before this will work!');return false";>$s</a>
 EOB;
 	} else if ($AUTHENTICATED) {
 		print <<<EOB
@@ -509,7 +512,7 @@ function block_sort($array1, $array2)
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
-<head><title>APCu INFO <?php echo $host ?></title>
+<head><title>immutable_cache INFO <?php echo $host ?></title>
 <style><!--
 body { background:white; font-size:100.01%; margin:0; padding:0; }
 body,p,td,th,input,submit { font-size:0.8em;font-family:arial,helvetica,sans-serif; }
@@ -547,10 +550,10 @@ div.head div.login a:hover {
 	background:rgb(193,193,244);
 	}
 
-h1.apc { background:rgb(153,153,204); margin:0; padding:0.5em 1em 0.5em 1em; }
-* html h1.apc { margin-bottom:-7px; }
-h1.apc a:hover { text-decoration:none; color:rgb(90,90,90); }
-h1.apc div.logo span.logo {
+h1.immutable_cache { background:rgb(153,153,204); margin:0; padding:0.5em 1em 0.5em 1em; }
+* html h1.immutable_cache { margin-bottom:-7px; }
+h1.immutable_cache a:hover { text-decoration:none; color:rgb(90,90,90); }
+h1.immutable_cache div.logo span.logo {
 	background:rgb(119,123,180);
 	color:black;
 	border-right: solid black 1px;
@@ -561,10 +564,10 @@ h1.apc div.logo span.logo {
 	padding-right:1.2em;
 	text-align:right;
 	}
-h1.apc div.logo span.name { color:white; font-size:0.7em; padding:0 0.8em 0 2em; }
-h1.apc div.nameinfo { color:white; display:inline; font-size:0.4em; margin-left: 3em; }
-h1.apc div.copy { color:black; font-size:0.4em; position:absolute; right:1em; }
-hr.apc {
+h1.immutable_cache div.logo span.name { color:white; font-size:0.7em; padding:0 0.8em 0 2em; }
+h1.immutable_cache div.nameinfo { color:white; display:inline; font-size:0.4em; margin-left: 3em; }
+h1.immutable_cache div.copy { color:black; font-size:0.4em; position:absolute; right:1em; }
+hr.immutable_cache {
 	background:white;
 	border-bottom:solid rgb(102,102,153) 1px;
 	border-style:none;
@@ -711,14 +714,14 @@ input {
 </head>
 <body>
 <div class="head">
-	<h1 class="apc">
-		<div class="logo"><span class="logo"><a href="https://pecl.php.net/package/APCu">APCu</a></span></div>
+	<h1 class="immutable_cache">
+		<div class="logo"><span class="logo"><a href="https://pecl.php.net/package/immutable_cache">immutable_cache</a></span></div>
 		<div class="nameinfo">User Cache</div>
 	</h1>
 	<div class="login">
 	<?php put_login_link(); ?>
 	</div>
-	<hr class="apc">
+	<hr class="immutable_cache">
 </div>
 
 <?php
@@ -762,7 +765,7 @@ case OB_HOST_STATS:
 	$hit_rate_user = sprintf("%.2f", $cache['num_hits'] ? (($cache['num_hits'])/($time-$cache['start_time'])) : 0);
 	$miss_rate_user = sprintf("%.2f", $cache['num_misses'] ? (($cache['num_misses'])/($time-$cache['start_time'])) : 0);
 	$insert_rate_user = sprintf("%.2f", $cache['num_inserts'] ? (($cache['num_inserts'])/($time-$cache['start_time'])) : 0);
-	$apcversion = phpversion('apcu');
+	$immutable_cacheversion = phpversion('immutable_cache');
 	$phpversion = phpversion();
 	$number_vars = $cache['num_entries'];
 	$size_vars = bsize($cache['mem_size']);
@@ -772,12 +775,12 @@ case OB_HOST_STATS:
 	echo <<< EOB
 		<div class="info div1"><h2>General Cache Information</h2>
 		<table cellspacing=0><tbody>
-		<tr class=tr-0><td class=td-0>APCu Version</td><td>$apcversion</td></tr>
+		<tr class=tr-0><td class=td-0>immutable_cache Version</td><td>$immutable_cacheversion</td></tr>
 		<tr class=tr-1><td class=td-0>PHP Version</td><td>$phpversion</td></tr>
 EOB;
 
 	if(!empty($_SERVER['SERVER_NAME']))
-		echo "<tr class=tr-0><td class=td-0>APCu Host</td><td>{$_SERVER['SERVER_NAME']} $host</td></tr>\n";
+		echo "<tr class=tr-0><td class=td-0>immutable_cache Host</td><td>{$_SERVER['SERVER_NAME']} $host</td></tr>\n";
 	if(!empty($_SERVER['SERVER_SOFTWARE']))
 		echo "<tr class=tr-1><td class=td-0>Server Software</td><td>{$_SERVER['SERVER_SOFTWARE']}</td></tr>\n";
 
@@ -811,7 +814,7 @@ EOB;
 EOB;
 
 	$j = 0;
-	foreach (ini_get_all('apcu') as $k => $v) {
+	foreach (ini_get_all('immutable_cache') as $k => $v) {
 		echo "<tr class=tr-$j><td class=td-0>",$k,"</td><td>",str_replace(',',',<br />',$v['local_value'] ?? ''),"</td></tr>\n";
 		$j = 1 - $j;
 	}
@@ -1060,7 +1063,7 @@ EOB;
 				echo '</tr>';
 				if ($sh == $MYREQUEST["SH"]) {
 					echo '<tr>';
-					echo '<td colspan="7"><a class="entry-info" href="'.$href.'"><pre>'.htmlentities(print_r(apcu_fetch($entry['info']), 1)).'</pre></a></td>';
+					echo '<td colspan="7"><a class="entry-info" href="'.$href.'"><pre>'.htmlentities(print_r(immutable_cache_fetch($entry['info']), 1)).'</pre></a></td>';
 					echo '</tr>';
 				}
 				$i++;
@@ -1091,7 +1094,7 @@ EOB;
 // -----------------------------------------------
 case OB_VERSION_CHECK:
 	echo <<<EOB
-		<div class="info"><h2>APCu Version Information</h2>
+		<div class="info"><h2>immutable_cache Version Information</h2>
 		<table cellspacing=0><tbody>
 		<tr>
 		<th></th>
@@ -1099,24 +1102,24 @@ case OB_VERSION_CHECK:
 EOB;
 	if (defined('PROXY')) {
 		$ctxt = stream_context_create( array( 'http' => array( 'proxy' => PROXY, 'request_fulluri' => true ) ) );
-		$rss = @file_get_contents("https://pecl.php.net/feeds/pkg_apcu.rss", false, $ctxt);
+		$rss = @file_get_contents("https://pecl.php.net/feeds/pkg_immutable_cache.rss", false, $ctxt);
 	} else {
-		$rss = @file_get_contents("https://pecl.php.net/feeds/pkg_apcu.rss");
+		$rss = @file_get_contents("https://pecl.php.net/feeds/pkg_immutable_cache.rss");
 	}
 	if (!$rss) {
 		echo '<tr class="td-last center"><td>Unable to fetch version information.</td></tr>';
 	} else {
-		$apcversion = phpversion('apcu');
+		$immutable_cacheversion = phpversion('immutable_cache');
 
-		preg_match('!<title>APCu ([0-9.]+)</title>!', $rss, $match);
+		preg_match('!<title>immutable_cache ([0-9.]+)</title>!', $rss, $match);
 		echo '<tr class="tr-0 center"><td>';
-		if (version_compare($apcversion, $match[1], '>=')) {
-			echo '<div class="ok">You are running the latest version of APCu ('.$apcversion.')</div>';
+		if (version_compare($immutable_cacheversion, $match[1], '>=')) {
+			echo '<div class="ok">You are running the latest version of immutable_cache ('.$immutable_cacheversion.')</div>';
 			$i = 3;
 		} else {
-			echo '<div class="failed">You are running an older version of APCu ('.$apcversion.'),
-				newer version '.$match[1].' is available at <a href="https://pecl.php.net/package/APCu/'.$match[1].'">
-				https://pecl.php.net/package/APCu/'.$match[1].'</a>
+			echo '<div class="failed">You are running an older version of immutable_cache ('.$immutable_cacheversion.'),
+				newer version '.$match[1].' is available at <a href="https://pecl.php.net/package/immutable_cache/'.$match[1].'">
+				https://pecl.php.net/package/immutable_cache/'.$match[1].'</a>
 				</div>';
 			$i = -1;
 		}
@@ -1129,13 +1132,13 @@ EOB;
 		for ($j = 2; $j + 1 < count($changelog); $j += 2) {
 			$v = $changelog[$j];
 			list(, $ver) = explode(' ', $v, 2);
-			if ($i < 0 && version_compare($apcversion, $ver, '>=')) {
+			if ($i < 0 && version_compare($immutable_cacheversion, $ver, '>=')) {
 				break;
 			} else if (!$i--) {
 				break;
 			}
 			$changes = $changelog[$j + 1];
-			echo "<b><a href=\"https://pecl.php.net/package/APCu/$ver\">".htmlspecialchars($v, ENT_QUOTES, 'UTF-8')."</a></b><br><blockquote>";
+			echo "<b><a href=\"https://pecl.php.net/package/immutable_cache/$ver\">".htmlspecialchars($v, ENT_QUOTES, 'UTF-8')."</a></b><br><blockquote>";
 			echo nl2br(htmlspecialchars($changes, ENT_QUOTES, 'UTF-8'))."</blockquote>";
 		}
 		echo '</td></tr>';
