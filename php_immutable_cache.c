@@ -1,5 +1,15 @@
 /*
   +----------------------------------------------------------------------+
+  | immutable_cache                                                      |
+  +----------------------------------------------------------------------+
+  | Copyright (c) 2022 Tyson Andre                                       |
+  | This is a fork of the APCu module providing fast immutable caching   |
+  | functionality. The original APCu license is below.                   |
+  +----------------------------------------------------------------------+
+  | Authors of immutable_cache patches: Tyson Andre <tandre@php.net>     |
+  +----------------------------------------------------------------------+
+
+  +----------------------------------------------------------------------+
   | APC                                                                  |
   +----------------------------------------------------------------------+
   | Copyright (c) 2006-2011 The PHP Group                                |
@@ -49,7 +59,7 @@
 #else
 # include "php_immutable_cache_legacy_arginfo.h"
 #endif
-#include "php74_shim.h"
+#include "immutable_cache_php74_shim.h"
 
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>

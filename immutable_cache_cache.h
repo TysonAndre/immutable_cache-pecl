@@ -1,5 +1,15 @@
 /*
   +----------------------------------------------------------------------+
+  | immutable_cache                                                      |
+  +----------------------------------------------------------------------+
+  | Copyright (c) 2022 Tyson Andre                                       |
+  | This is a fork of the APCu module providing fast immutable caching   |
+  | functionality. The original APCu license is below.                   |
+  +----------------------------------------------------------------------+
+  | Authors of immutable_cache patches: Tyson Andre <tandre@php.net>     |
+  +----------------------------------------------------------------------+
+
+  +----------------------------------------------------------------------+
   | APC                                                                  |
   +----------------------------------------------------------------------+
   | Copyright (c) 2006-2011 The PHP Group                                |
@@ -62,7 +72,7 @@ struct immutable_cache_cache_entry_t {
 
 /* {{{ struct definition: immutable_cache_cache_header_t
    Any values that must be shared among processes should go in here. */
-typedef struct _apc_cache_header_t {
+typedef struct _immmutable_cache_cache_header_t {
 	immutable_cache_lock_t lock;                /* header lock */
 	zend_long nhits;                /* hit count */
 	zend_long nmisses;              /* miss count */
@@ -77,7 +87,7 @@ typedef struct _apc_cache_header_t {
 } immutable_cache_cache_header_t; /* }}} */
 
 /* {{{ struct definition: immutable_cache_cache_t */
-typedef struct _apc_cache_t {
+typedef struct _immmutable_cache_cache_t {
 	// FIXME when is this process local?
 	void* shmaddr;                /* process (local) address of shared cache */
 	immutable_cache_cache_header_t* header;   /* cache header (stored in SHM) */

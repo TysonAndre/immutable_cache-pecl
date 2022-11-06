@@ -1,5 +1,15 @@
 /*
   +----------------------------------------------------------------------+
+  | immutable_cache                                                      |
+  +----------------------------------------------------------------------+
+  | Copyright (c) 2022 Tyson Andre                                       |
+  | This is a fork of the APCu module providing fast immutable caching   |
+  | functionality. The original APCu license is below.                   |
+  +----------------------------------------------------------------------+
+  | Authors of immutable_cache patches: Tyson Andre <tandre@php.net>     |
+  +----------------------------------------------------------------------+
+
+  +----------------------------------------------------------------------+
   | APC                                                                  |
   +----------------------------------------------------------------------+
   | Copyright (c) 2006-2011 The PHP Group                                |
@@ -44,10 +54,10 @@
 #define IMMUTABLE_CACHE_ITER_ALL        (0xffffffffL)
 
 /* {{{ immutable_cache_iterator_t */
-typedef struct _apc_iterator_t {
+typedef struct _immmutable_cache_iterator_t {
 	short int initialized;   /* sanity check in case __construct failed */
 	zend_long format;             /* format bitmask of the return values ie: key, value, info */
-	size_t (*fetch)(struct _apc_iterator_t *iterator);
+	size_t (*fetch)(struct _immmutable_cache_iterator_t *iterator);
 							 /* fetch callback to fetch items from cache slots or lists */
 	size_t slot_idx;           /* index to the slot array or linked list */
 	size_t chunk_size;         /* number of entries to pull down per fetch */
@@ -72,7 +82,7 @@ typedef struct _apc_iterator_t {
 #define immutable_cache_iterator_fetch(z) immutable_cache_iterator_fetch_from(Z_OBJ_P(z))
 
 /* {{{ immutable_cache_iterator_item */
-typedef struct _apc_iterator_item_t {
+typedef struct _immmutable_cache_iterator_item_t {
 	zend_string *key;
 	zval value;
 } immutable_cache_iterator_item_t;

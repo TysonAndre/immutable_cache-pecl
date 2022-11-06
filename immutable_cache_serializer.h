@@ -1,5 +1,15 @@
 /*
   +----------------------------------------------------------------------+
+  | immutable_cache                                                      |
+  +----------------------------------------------------------------------+
+  | Copyright (c) 2022 Tyson Andre                                       |
+  | This is a fork of the APCu module providing fast immutable caching   |
+  | functionality. The original APCu license is below.                   |
+  +----------------------------------------------------------------------+
+  | Authors of immutable_cache patches: Tyson Andre <tandre@php.net>     |
+  +----------------------------------------------------------------------+
+
+  +----------------------------------------------------------------------+
   | APC                                                                  |
   +----------------------------------------------------------------------+
   | Copyright (c) 2006-2011 The PHP Group                                |
@@ -21,8 +31,8 @@
 #define IMMUTABLE_CACHE_SERIALIZER_H
 
 /* this is a shipped .h file, do not include any other header in this file */
-#define IMMUTABLE_CACHE_SERIALIZER_NAME(module) module##_apc_serializer
-#define IMMUTABLE_CACHE_UNSERIALIZER_NAME(module) module##_apc_unserializer
+#define IMMUTABLE_CACHE_SERIALIZER_NAME(module) module##_immmutable_cache_serializer
+#define IMMUTABLE_CACHE_UNSERIALIZER_NAME(module) module##_immmutable_cache_unserializer
 
 #define IMMUTABLE_CACHE_SERIALIZER_ARGS unsigned char **buf, size_t *buf_len, const zval *value, void *config
 #define IMMUTABLE_CACHE_UNSERIALIZER_ARGS zval *value, unsigned char *buf, size_t buf_len, void *config
@@ -37,7 +47,7 @@ typedef int (*immutable_cache_register_serializer_t)(const char* name, immutable
  * to any function in this file.
  */
 #define IMMUTABLE_CACHE_SERIALIZER_ABI "0"
-#define IMMUTABLE_CACHE_SERIALIZER_CONSTANT "\000apc_register_serializer-" IMMUTABLE_CACHE_SERIALIZER_ABI
+#define IMMUTABLE_CACHE_SERIALIZER_CONSTANT "\000immutable_cache_register_serializer-" IMMUTABLE_CACHE_SERIALIZER_ABI
 
 #if !defined(IMMUTABLE_CACHE_UNUSED)
 # if defined(__GNUC__)

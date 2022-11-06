@@ -81,7 +81,6 @@
     <file name="apc_023.phpt" role="test" />
     <file name="apc_024.phpt" role="test" />
     <file name="apc_025.phpt" role="test" />
-    <file name="apc_099.phpt" role="test" />
     <file name="apc54_014.phpt" role="test" />
     <file name="apc54_018.phpt" role="test" />
     <file name="apc_disabled.phpt" role="test" />
@@ -146,6 +145,7 @@
    <file name="immutable_cache_persist.c" role="src" />
    <file name="immutable_cache.php" role="src" />
    <file name="immutable_cache_php.h" role="src" />
+   <file name="immutable_cache_php74_shim.h" role="src" />
    <file name="immutable_cache_shm.c" role="src" />
    <file name="immutable_cache_shm.h" role="src" />
    <file name="immutable_cache_signal.c" role="src" />
@@ -165,7 +165,6 @@
    <file name="LICENSE" role="doc" />
    <file name="Makefile.frag" role="src" />
    <file name="NOTICE" role="doc" />
-   <file name="php74_shim.h" role="src" />
    <file name="php_immutable_cache.c" role="src" />
    <file name="php_immutable_cache.h" role="src" />
    <file name="README.md" role="doc" />

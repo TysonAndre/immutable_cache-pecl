@@ -1,5 +1,15 @@
 /*
   +----------------------------------------------------------------------+
+  | immutable_cache                                                      |
+  +----------------------------------------------------------------------+
+  | Copyright (c) 2022 Tyson Andre                                       |
+  | This is a fork of the APCu module providing fast immutable caching   |
+  | functionality. The original APCu license is below.                   |
+  +----------------------------------------------------------------------+
+  | Authors of immutable_cache patches: Tyson Andre <tandre@php.net>     |
+  +----------------------------------------------------------------------+
+
+  +----------------------------------------------------------------------+
   | APC                                                                  |
   +----------------------------------------------------------------------+
   | Copyright (c) 2006-2011 The PHP Group                                |
@@ -69,7 +79,7 @@ ZEND_EXTERN_MODULE_GLOBALS(immutable_cache)
 # define IMMUTABLE_CACHE_G(v) (immutable_cache_globals.v)
 #endif
 
-extern struct _apc_cache_t* immutable_cache_user_cache;
+extern struct _immmutable_cache_cache_t* immutable_cache_user_cache;
 
 #endif
 

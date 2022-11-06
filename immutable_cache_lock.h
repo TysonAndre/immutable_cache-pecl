@@ -1,5 +1,15 @@
 /*
   +----------------------------------------------------------------------+
+  | immutable_cache                                                      |
+  +----------------------------------------------------------------------+
+  | Copyright (c) 2022 Tyson Andre                                       |
+  | This is a fork of the APCu module providing fast immutable caching   |
+  | functionality. The original APCu license is below.                   |
+  +----------------------------------------------------------------------+
+  | Authors of immutable_cache patches: Tyson Andre <tandre@php.net>     |
+  +----------------------------------------------------------------------+
+
+  +----------------------------------------------------------------------+
   | APCu                                                                 |
   +----------------------------------------------------------------------+
   | Copyright (c) 2013 The PHP Group                                |
@@ -26,6 +36,7 @@
  While APCu is emulating read/write locks, reads and writes are exclusive,
 	additionally the write lock prefers readers, as is the default behaviour of
 	the majority of Posix rwlock implementations
+ (this works the same way in immutable_cache)
 */
 
 #ifdef HAVE_CONFIG_H
