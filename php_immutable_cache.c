@@ -424,9 +424,8 @@ static void immutable_cache_store_helper(INTERNAL_FUNCTION_PARAMETERS)
 {
 	zval *key;
 	zval *val = NULL;
-	zend_long ttl = 0L;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|zl", &key, &val, &ttl) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z", &key, &val) == FAILURE) {
 		return;
 	}
 

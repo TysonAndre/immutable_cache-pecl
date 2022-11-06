@@ -38,8 +38,8 @@
  </lead>
  <date>2022-11-06</date>
  <version>
-  <release>6.0.0beta2</release>
-  <api>6.0.0beta2</api>
+  <release>6.0.0beta3</release>
+  <api>6.0.0beta3</api>
  </version>
  <stability>
   <release>beta</release>
@@ -47,11 +47,9 @@
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
-- Initial release tag on https://github.com/TysonAndre/immutable_cache-pecl
-- Create immutable_cache based on APCu 5.1.23dev
-- Change the extension name, all ini settings, header/source files and symbols
-  to avoid conflicting with the installation of APCu on all OSes
-- Drop support for PHP &lt; 8.0 in the initial release (earlier PHP versions not tested yet)
+- Remove unsupported $ttl from parameter list of immutable_cache_add.
+- Update documentation
+- TBD
  </notes>
  <contents>
   <dir name="/">
@@ -186,5 +184,24 @@
   <configureoption name="enable-immutable-cache-debug" default="no" prompt="Enable internal debugging in immutable_cache" />
  </extsrcrelease>
  <changelog>
+  <release>
+   <date>2022-11-06</date>
+   <version>
+    <release>6.0.0beta2</release>
+    <api>6.0.0beta2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+- Initial release tag on https://github.com/TysonAndre/immutable_cache-pecl
+- Create immutable_cache based on APCu 5.1.23dev
+- Change the extension name, all ini settings, header/source files and symbols
+  to avoid conflicting with the installation of APCu on all OSes
+- Drop support for PHP &lt; 8.0 in the initial release (earlier PHP versions not tested yet)
+   </notes>
+  </release>
  </changelog>
 </package>

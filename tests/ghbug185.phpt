@@ -29,9 +29,9 @@ class MyApc
         return $counters;
     }
 
-    public function add($key, $data, $ttl = 0)
+    public function add($key, $data)
     {
-        $ret =  immutable_cache_add($key, $data, $ttl);
+        $ret =  immutable_cache_add($key, $data);
 
         if (true !== $ret) {
             throw new \UnexpectedValueException("immutable_cache_store call failed");
