@@ -43,7 +43,7 @@
 #include "immutable_cache.h"
 #include "immutable_cache_globals.h"
 
-#define PHP_IMMUTABLE_CACHE_VERSION "6.0.0beta1"
+#define PHP_IMMUTABLE_CACHE_VERSION "6.0.0beta2"
 #define PHP_IMMUTABLE_CACHE_EXTNAME "immutable_cache"
 
 PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_is_enabled(void);
