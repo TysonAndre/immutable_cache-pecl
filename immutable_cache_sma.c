@@ -639,7 +639,7 @@ PHP_IMMUTABLE_CACHE_API bool immutable_cache_sma_contains_pointer(const immutabl
 
 	for (i = 0; i < sma->num; i++) {
 		const immutable_cache_segment_t *seg = &sma->segs[i];
-		if (ptr >= seg->shmaddr && ptr < seg->shmaddr + seg->size) {
+		if (ptr >= seg->shmaddr && ptr < (void *)(((const char*)seg->shmaddr) + seg->size)) {
 			return true;
 		}
 	}
