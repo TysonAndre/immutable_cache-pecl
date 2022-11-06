@@ -247,7 +247,7 @@ static void immutable_cache_iterator_totals(immutable_cache_iterator_t *iterator
 void immutable_cache_iterator_obj_init(immutable_cache_iterator_t *iterator, zval *search, zend_long format, size_t chunk_size, zend_long list)
 {
 	if (!IMMUTABLE_CACHE_G(enabled)) {
-		zend_throw_error(NULL, "APC must be enabled to use ImmutableCacheIterator");
+		zend_throw_error(NULL, "ImmutableCache must be enabled to use ImmutableCacheIterator");
 		return;
 	}
 
@@ -302,9 +302,13 @@ PHP_METHOD(ImmutableCacheIterator, __construct) {
 	zval *search = NULL;
 	zend_long list = IMMUTABLE_CACHE_LIST_ACTIVE;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|z!lll", &search, &format, &chunk_size, &list) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(0, 4)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_ZVAL_EX(search, 1, 0)
+		Z_PARAM_LONG(format)
+		Z_PARAM_LONG(chunk_size)
+		Z_PARAM_LONG(list)
+	ZEND_PARSE_PARAMETERS_END();
 
 	if (chunk_size < 0) {
 		immutable_cache_error("ImmutableCacheIterator chunk size must be 0 or greater");

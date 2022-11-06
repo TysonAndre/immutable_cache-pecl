@@ -18,7 +18,7 @@ AC_ARG_ENABLE(immutable-cache-debug,
 [  --enable-immutable-cache-debug     Enable immutable_cache debugging],
 [
   PHP_IMMUTABLE_CACHE_DEBUG=$enableval
-], 
+],
 [
   PHP_IMMUTABLE_CACHE_DEBUG=no
 ])
@@ -50,133 +50,133 @@ AC_ARG_ENABLE(immutable-cache-spinlocks,
 AC_MSG_RESULT($PHP_IMMUTABLE_CACHE_SPINLOCK)
 
 if test "$PHP_IMMUTABLE_CACHE_RWLOCKS" != "no"; then
-	AC_CACHE_CHECK([whether the target compiler supports builtin atomics], PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS, [
+  AC_CACHE_CHECK([whether the target compiler supports builtin atomics], PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS, [
 
-		AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[
-				int foo = 0;
-				__sync_add_and_fetch(&foo, 1);
-				__sync_sub_and_fetch(&foo, 1);
-				return 0;
-			]])],[PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS=yes],[PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS=no])
-	])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[
+        int foo = 0;
+        __sync_add_and_fetch(&foo, 1);
+        __sync_sub_and_fetch(&foo, 1);
+        return 0;
+      ]])],[PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS=yes],[PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS=no])
+  ])
 
-	if test "x${PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS}" != "xyes"; then
-		AC_MSG_ERROR([Compiler does not support atomics])
-	fi
+  if test "x${PHP_cv_IMMUTABLE_CACHE_GCC_ATOMICS}" != "xyes"; then
+    AC_MSG_ERROR([Compiler does not support atomics])
+  fi
 fi
 
 if test "$PHP_IMMUTABLE_CACHE" != "no"; then
-	if test "$PHP_IMMUTABLE_CACHE_DEBUG" != "no"; then
-		AC_DEFINE(IMMUTABLE_CACHE_DEBUG, 1, [ ])
-	fi
-  
-	if test "$PHP_IMMUTABLE_CACHE_MMAP" != "no"; then
-		AC_DEFINE(IMMUTABLE_CACHE_MMAP, 1, [ ])
-	fi
+  if test "$PHP_IMMUTABLE_CACHE_DEBUG" != "no"; then
+    AC_DEFINE(IMMUTABLE_CACHE_DEBUG, 1, [ ])
+  fi
+
+  if test "$PHP_IMMUTABLE_CACHE_MMAP" != "no"; then
+    AC_DEFINE(IMMUTABLE_CACHE_MMAP, 1, [ ])
+  fi
 
   if test "$PHP_IMMUTABLE_CACHE_RWLOCKS" != "no"; then
-	    orig_LIBS="$LIBS"
-	    LIBS="$LIBS -lpthread"
+      orig_LIBS="$LIBS"
+      LIBS="$LIBS -lpthread"
         AC_MSG_CHECKING([for pthread rwlocks])
-	    AC_RUN_IFELSE([AC_LANG_SOURCE([[
-			    #include <sys/types.h>
-			    #include <pthread.h>
+      AC_RUN_IFELSE([AC_LANG_SOURCE([[
+          #include <sys/types.h>
+          #include <pthread.h>
                 #include <stdio.h>
           int main() {
-			      pthread_rwlock_t rwlock;
-			      pthread_rwlockattr_t attr;	
+            pthread_rwlock_t rwlock;
+            pthread_rwlockattr_t attr;
 
-			      if(pthread_rwlockattr_init(&attr)) { 
-				      puts("Unable to initialize pthread attributes (pthread_rwlockattr_init).");
-				      return -1; 
-			      }
-			      if(pthread_rwlockattr_setpshared(&attr, PTHREAD_PROCESS_SHARED)) { 
-				      puts("Unable to set PTHREAD_PROCESS_SHARED (pthread_rwlockattr_setpshared), your system may not support shared rwlock's.");
-				      return -1; 
-			      }	
-			      if(pthread_rwlock_init(&rwlock, &attr)) { 
-				      puts("Unable to initialize the rwlock (pthread_rwlock_init).");
-				      return -1; 
-			      }
-			      if(pthread_rwlockattr_destroy(&attr)) { 
-				      puts("Unable to destroy rwlock attributes (pthread_rwlockattr_destroy).");
-				      return -1; 
-			      }
-			      if(pthread_rwlock_destroy(&rwlock)) { 
-				      puts("Unable to destroy rwlock (pthread_rwlock_destroy).");
-				      return -1; 
-			      }
+            if(pthread_rwlockattr_init(&attr)) {
+              puts("Unable to initialize pthread attributes (pthread_rwlockattr_init).");
+              return -1;
+            }
+            if(pthread_rwlockattr_setpshared(&attr, PTHREAD_PROCESS_SHARED)) {
+              puts("Unable to set PTHREAD_PROCESS_SHARED (pthread_rwlockattr_setpshared), your system may not support shared rwlock's.");
+              return -1;
+            }
+            if(pthread_rwlock_init(&rwlock, &attr)) {
+              puts("Unable to initialize the rwlock (pthread_rwlock_init).");
+              return -1;
+            }
+            if(pthread_rwlockattr_destroy(&attr)) {
+              puts("Unable to destroy rwlock attributes (pthread_rwlockattr_destroy).");
+              return -1;
+            }
+            if(pthread_rwlock_destroy(&rwlock)) {
+              puts("Unable to destroy rwlock (pthread_rwlock_destroy).");
+              return -1;
+            }
 
-			      return 0;
+            return 0;
           }
-		    ]])],[ dnl -Success-
-			    IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
-			    PHP_ADD_LIBRARY(pthread)
-				  PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
-			    AC_DEFINE(IMMUTABLE_CACHE_NATIVE_RWLOCK, 1, [ ])
-			    AC_MSG_RESULT([yes])
-		    ],[ dnl -Failure-
-			    AC_MSG_RESULT([no])
-    			PHP_IMMUTABLE_CACHE_RWLOCKS=no
-		    ],[
-			    IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
-			    PHP_ADD_LIBRARY(pthread)
-				  PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
+        ]])],[ dnl -Success-
+          IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
+          PHP_ADD_LIBRARY(pthread)
+          PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
+          AC_DEFINE(IMMUTABLE_CACHE_NATIVE_RWLOCK, 1, [ ])
+          AC_MSG_RESULT([yes])
+        ],[ dnl -Failure-
+          AC_MSG_RESULT([no])
+          PHP_IMMUTABLE_CACHE_RWLOCKS=no
+        ],[
+          IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
+          PHP_ADD_LIBRARY(pthread)
+          PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
     ])
     LIBS="$orig_LIBS"
   fi
-  
+
   if test "$PHP_IMMUTABLE_CACHE" != "no"; then
     orig_LIBS="$LIBS"
-	  LIBS="$LIBS -lpthread"
+    LIBS="$LIBS -lpthread"
       AC_MSG_CHECKING([for pthread mutexes])
-	  AC_RUN_IFELSE([AC_LANG_SOURCE([[
-				  #include <sys/types.h>
-				  #include <pthread.h>
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
+          #include <sys/types.h>
+          #include <pthread.h>
                   #include <stdio.h>
           int main() {
-				    pthread_mutex_t mutex;
-				    pthread_mutexattr_t attr;	
+            pthread_mutex_t mutex;
+            pthread_mutexattr_t attr;
 
-				    if(pthread_mutexattr_init(&attr)) { 
-					    puts("Unable to initialize pthread attributes (pthread_mutexattr_init).");
-					    return -1; 
-				    }
-				    if(pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED)) { 
-					    puts("Unable to set PTHREAD_PROCESS_SHARED (pthread_mutexattr_setpshared), your system may not support shared mutex's.");
-					    return -1; 
-				    }	
-				    if(pthread_mutex_init(&mutex, &attr)) { 
-					    puts("Unable to initialize the mutex (pthread_mutex_init).");
-					    return -1; 
-				    }
-				    if(pthread_mutexattr_destroy(&attr)) { 
-					    puts("Unable to destroy mutex attributes (pthread_mutexattr_destroy).");
-					    return -1; 
-				    }
-				    if(pthread_mutex_destroy(&mutex)) { 
-					    puts("Unable to destroy mutex (pthread_mutex_destroy).");
-					    return -1; 
-				    }
-				    return 0;
+            if(pthread_mutexattr_init(&attr)) {
+              puts("Unable to initialize pthread attributes (pthread_mutexattr_init).");
+              return -1;
+            }
+            if(pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED)) {
+              puts("Unable to set PTHREAD_PROCESS_SHARED (pthread_mutexattr_setpshared), your system may not support shared mutex's.");
+              return -1;
+            }
+            if(pthread_mutex_init(&mutex, &attr)) {
+              puts("Unable to initialize the mutex (pthread_mutex_init).");
+              return -1;
+            }
+            if(pthread_mutexattr_destroy(&attr)) {
+              puts("Unable to destroy mutex attributes (pthread_mutexattr_destroy).");
+              return -1;
+            }
+            if(pthread_mutex_destroy(&mutex)) {
+              puts("Unable to destroy mutex (pthread_mutex_destroy).");
+              return -1;
+            }
+            return 0;
         }
-			  ]])],[ dnl -Success-
-				  IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
-				  PHP_ADD_LIBRARY(pthread)
-				  PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
-				  AC_MSG_RESULT([yes])
-				  AC_DEFINE(IMMUTABLE_CACHE_HAS_PTHREAD_MUTEX, 1, [ ])
-			  ],[ dnl -Failure-
-				  AC_MSG_RESULT([no])
-    			PHP_IMMUTABLE_CACHE_MUTEX=no
-			  ],[
-				  IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
-				  PHP_ADD_LIBRARY(pthread)
-				  PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
-	  ])
-	  LIBS="$orig_LIBS"
+        ]])],[ dnl -Success-
+          IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
+          PHP_ADD_LIBRARY(pthread)
+          PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
+          AC_MSG_RESULT([yes])
+          AC_DEFINE(IMMUTABLE_CACHE_HAS_PTHREAD_MUTEX, 1, [ ])
+        ],[ dnl -Failure-
+          AC_MSG_RESULT([no])
+          PHP_IMMUTABLE_CACHE_MUTEX=no
+        ],[
+          IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
+          PHP_ADD_LIBRARY(pthread)
+          PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
+    ])
+    LIBS="$orig_LIBS"
   fi
-  
+
   if test "$PHP_IMMUTABLE_CACHE_RWLOCKS" = "no"; then
    if test "$PHP_IMMUTABLE_CACHE_MUTEX" = "no"; then
     if test "$PHP_IMMUTABLE_CACHE_SPINLOCK" != "no"; then
@@ -188,7 +188,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
     fi
    fi
   fi
-	
+
   AC_CHECK_FUNCS(sigaction)
   AC_CACHE_CHECK(for union semun, php_cv_semun,
   [
@@ -215,8 +215,8 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
     PHP_IMMUTABLE_CACHE_VALGRIND=no
   ], [
     PHP_IMMUTABLE_CACHE_VALGRIND=yes
-    AC_CHECK_HEADER(valgrind/memcheck.h, 
-  		[AC_DEFINE([HAVE_VALGRIND_MEMCHECK_H],1, [enable valgrind memchecks])])
+    AC_CHECK_HEADER(valgrind/memcheck.h,
+      [AC_DEFINE([HAVE_VALGRIND_MEMCHECK_H],1, [enable valgrind memchecks])])
   ])
 
   for i in -Wall -Wextra -Wno-unused-parameter; do
@@ -233,7 +233,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
                  immutable_cache_time.c \
                  immutable_cache_iterator.c \
                  immutable_cache_persist.c"
-							   
+
   PHP_CHECK_LIBRARY(rt, shm_open, [PHP_ADD_LIBRARY(rt,,IMMUTABLE_CACHE_SHARED_LIBADD)])
   PHP_NEW_EXTENSION(immutable_cache, $immutable_cache_sources, $ext_shared,, \\$(IMMUTABLE_CACHE_CFLAGS))
   PHP_SUBST(IMMUTABLE_CACHE_SHARED_LIBADD)
@@ -251,7 +251,7 @@ if test "$PHP_COVERAGE" = "yes"; then
   if test "$GCC" != "yes"; then
     AC_MSG_ERROR([GCC is required for --enable-coverage])
   fi
-  
+
   dnl Check if ccache is being used
   case `$php_shtool path $CC` in
     *ccache*[)] gcc_ccache=yes;;
@@ -259,10 +259,10 @@ if test "$PHP_COVERAGE" = "yes"; then
   esac
 
   if test "$gcc_ccache" = "yes" && (test -z "$CCACHE_DISABLE" || test "$CCACHE_DISABLE" != "1"); then
-    AC_MSG_ERROR([ccache must be disabled when --enable-coverage option is used. You can disable ccache by setting environment variable 
+    AC_MSG_ERROR([ccache must be disabled when --enable-coverage option is used. You can disable ccache by setting environment variable
 CCACHE_DISABLE=1.])
   fi
-  
+
   lcov_version_list="1.5 1.6 1.7 1.9"
 
   AC_CHECK_PROG(LCOV, lcov, lcov)
@@ -281,7 +281,7 @@ CCACHE_DISABLE=1.])
       done
     ])
   else
-    lcov_msg="To enable code coverage reporting you must have one of the following LCOV versions installed: $lcov_version_list"      
+    lcov_msg="To enable code coverage reporting you must have one of the following LCOV versions installed: $lcov_version_list"
     AC_MSG_ERROR([$lcov_msg])
   fi
 
@@ -309,4 +309,4 @@ CCACHE_DISABLE=1.])
   CFLAGS="$CFLAGS -O0 -ggdb -fprofile-arcs -ftest-coverage"
   CXXFLAGS="$CXXFLAGS -ggdb -O0 -fprofile-arcs -ftest-coverage"
 fi
-dnl vim: set ts=2 
+dnl vim: set ts=2

@@ -314,7 +314,7 @@ static PHP_RINIT_FUNCTION(immutable_cache)
 	IMMUTABLE_CACHE_G(request_time) = 0;
 	if (IMMUTABLE_CACHE_G(enabled)) {
 		if (IMMUTABLE_CACHE_G(serializer_name)) {
-			/* Avoid race conditions between RINIT of apc and serializer exts like igbinary */
+			/* Avoid race conditions between RINIT of immutable_cache and serializer exts like igbinary */
 			immutable_cache_cache_serializer(immutable_cache_user_cache, IMMUTABLE_CACHE_G(serializer_name));
 		}
 
@@ -331,9 +331,10 @@ PHP_FUNCTION(immutable_cache_cache_info)
 {
 	zend_bool limited = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &limited) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(0,1)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_BOOL(limited)
+	ZEND_PARSE_PARAMETERS_END();
 
 	if (!immutable_cache_cache_info(return_value, immutable_cache_user_cache, limited)) {
 		php_error_docref(NULL, E_WARNING, "No immutable_cache info available.  Perhaps immutable_cache is not enabled? Check immutable_cache.enabled in your ini file");
@@ -347,9 +348,9 @@ PHP_FUNCTION(immutable_cache_key_info)
 {
 	zend_string *key;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "S", &key) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_STR(key)
+	ZEND_PARSE_PARAMETERS_END();
 
 	immutable_cache_cache_stat(immutable_cache_user_cache, key, return_value);
 } /* }}} */
@@ -362,9 +363,10 @@ PHP_FUNCTION(immutable_cache_sma_info)
 	int i;
 	zend_bool limited = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &limited) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(0, 1)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_BOOL(limited)
+	ZEND_PARSE_PARAMETERS_END();
 
 	info = immutable_cache_sma_info(&immutable_cache_sma, limited);
 
@@ -487,9 +489,11 @@ PHP_FUNCTION(immutable_cache_fetch) {
 	time_t t;
 	int result;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|z", &key, &success) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(1, 2)
+		Z_PARAM_ZVAL(key)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_ZVAL(success)
+	ZEND_PARSE_PARAMETERS_END();
 
 	t = immutable_cache_time();
 
@@ -538,9 +542,9 @@ PHP_FUNCTION(immutable_cache_exists) {
 	zval *key;
 	time_t t;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &key) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_ZVAL(key)
+	ZEND_PARSE_PARAMETERS_END();
 
 	t = immutable_cache_time();
 

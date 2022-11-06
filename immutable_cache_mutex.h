@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | APCu                                                                 |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2013 The PHP Group                                |
+  | Copyright (c) 2013 The PHP Group                                     |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -50,8 +50,8 @@ typedef immutable_cache_lock_t immutable_cache_mutex_t;
 
 // Fallback to normal locks
 
-#define IMMUTABLE_CACHE_MUTEX_INIT()          
-#define IMMUTABLE_CACHE_MUTEX_CLEANUP()       
+#define IMMUTABLE_CACHE_MUTEX_INIT()
+#define IMMUTABLE_CACHE_MUTEX_CLEANUP()
 
 #define IMMUTABLE_CACHE_CREATE_MUTEX(lock)    CREATE_LOCK(lock)
 #define IMMUTABLE_CACHE_DESTROY_MUTEX(lock)   DESTROY_LOCK(lock)
