@@ -3,7 +3,7 @@ skip_tags: true
 
 branches:
   only:
-    - master
+    - main
 
 clone_folder:  c:\projects\immutable_cache
 
