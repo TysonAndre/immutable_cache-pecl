@@ -10,22 +10,33 @@ immutable\_cache
 This is a work in progress PECL repo adding functionality similar to APCu,
 but with immutable values (an immutable serialized copy of mutable values is stored in the serializer)
 
-This is a fork of the original APCu source code from https://github.com/krakjoe/apcu
+This is a fork of the original [APCu PECL](https://github.com/krakjoe/apcu)
 
-Goals:
+Features:
 
-- Return the original persistent strings/arrays rather than a copy, on supported platforms.
+- Returns the original persistent strings/arrays rather than a copy (for arrays that don't contain objects or PHP references)
 
-  (Not implemented yet, not possible in a **mutable** in-memory pool with APCu)
+  (not possible in a **mutable** in-memory pool with [APCu](https://github.com/krakjoe/apcu) due to eviction always being possible in APCu)
+
+  This is instantaneous regardless of how large the array or strings are.
+- Reuses immutable values if they were fetched from immutable_cache and stored again.
+
+Planned but unimplemented features:
+
 - Aggressively deduplicate values across cache entries (not possible in APCu due to the need to cache entries separately)
 
 Benefits:
 
-- Can be certain that a value added to the cache doesn't get removed
+- Can be certain that a value added to the cache doesn't get removed.
 - Can efficiently fetch entire immutable arrays or strings without copying or using extra memory
   in cases where the serializer is not required.
 
   (apcu needs to make copies of all strings and arrays in case of a cache clear during a request)
+
+Caveats:
+
+- APCu will also clear the shared memory cache as a way to recover from deadlocks or processes crashing while holding the shared memory lock, which should be rare.
+  immutable_cache will never clear the shared memory cache.
 
 Features
 ========
@@ -47,10 +58,9 @@ Similar to https://www.php.net/manual/en/apcu.configuration.php
 
 - `immutable_cache.enabled` (bool, defaults to 1(on))
 - `immutable_cache.enable_cli` (bool, defaults to 0(off))
-- `immutable_cache.shm_size`
-- `immutable_cache.entries_hint`
-- `immutable_cache.shm_size`
-- `immutable_cache.serializer` (currently `php` or `default`. Defaults to `php`. This is used to serialize data that doesn't have an immutable representation (e.g. objects, references (for now, it isn't converted)))
+- `immutable_cache.shm_size` (defaults to 32M)
+- `immutable_cache.entries_hint` (size of the hash table. If this is too small, uses of the immutable cache will take longer from traversing a longer linked list to find the entries)
+- `immutable_cache.serializer` (currently `php` or `default`. Defaults to `default` (Assumes the bugs with `serializer=default` were fixed in the upstream APCu 5.1.20 release). This is used to serialize data that doesn't have an immutable representation (e.g. objects, references (for now, it isn't converted)))
 
 This is an immutable cache where entries can't be removed, so there is no need for ttl or gc_ttl.
 
@@ -67,6 +77,8 @@ Note that when the data is completely immutable (i.e. does not need to call the 
 it can be stored in shared memory and retrieved from
 `immutable_cache` without any modification (e.g. very large arrays, large strings, etc),
 and would have the same throughput.
+
+See [`benchmark_shm.php`](./benchmark_shm.php)
 
 ```
 E.g. to retrieve multiple versions of the fake cached config

@@ -1,5 +1,5 @@
 --TEST--
-APC: immutable_cache_fetch returns same array
+APC: immutable_cache_fetch returns same array with serializer=default
 --SKIPIF--
 <?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
 --INI--
