@@ -1,6 +1,7 @@
 /*
   +----------------------------------------------------------------------+
-  | APCu                                                                 |
+  | IMMUTABLE_CACHE                                                      |
+  | Fork of APCu                                                         |
   +----------------------------------------------------------------------+
   | Copyright (c) 2018 The PHP Group                                     |
   +----------------------------------------------------------------------+
@@ -79,6 +80,11 @@ typedef struct _immutable_cache_persist_context_t {
 
 static zend_bool immutable_cache_persist_calc_zval(immutable_cache_persist_context_t *ctxt, const zval *zv);
 static void immutable_cache_persist_copy_zval_impl(immutable_cache_persist_context_t *ctxt, zval *zv);
+
+/* Used to reduce hash collisions when using pointers in hash tables. (#175) */
+static inline zend_ulong immutable_cache_shr3(zend_ulong index) {
+	return (index >> 3) | (index << (SIZEOF_ZEND_LONG * 8 - 3));
+}
 
 static inline void immutable_cache_persist_copy_zval(immutable_cache_persist_context_t *ctxt, zval *zv) {
 	/* No data apart from the zval itself */
@@ -259,7 +265,7 @@ static zend_bool immutable_cache_persist_calc(immutable_cache_persist_context_t 
  * If ptr is found as a key in the already_allocated hash map, then it returns that. */
 static inline void *immutable_cache_persist_get_already_allocated(immutable_cache_persist_context_t *ctxt, void *ptr) {
 	if (immutable_cache_is_already_cached_for_persist_context(ctxt, ptr)) {
-		fprintf(stderr, "%s: returning already allocated %p\n", __func__, ptr);
+		// fprintf(stderr, "%s: returning already allocated %p\n", __func__, ptr);
 		return ptr;
 	}
 	if (ctxt->memoization_needed) {
@@ -352,7 +358,6 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 	/* Immutable arrays from opcache may lack a dtor and the apply protection flag. */
 	/* NOTE: immutable arrays immutable_cache should not have elements freed by design. This won't get called. */
 	ht->pDestructor = NULL; // ht->pDestructor = ZVAL_PTR_DTOR;
-	ht->nInternalPointer = 0;
 
 #if PHP_VERSION_ID < 70300
 	ht->u.flags |= HASH_FLAG_APPLY_PROTECTION;
@@ -374,11 +379,9 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 
 	ht->nNextFreeElement = 0;
 	ht->nInternalPointer = HT_INVALID_IDX;
-    /* NOTE: In opcache, APCu, and immutable_cache,
-     * they only need to allocate memory for the buckets that are used in shared memory */
-	HT_SET_DATA_ADDR(ht, COPY(HT_GET_DATA_ADDR(ht), HT_USED_SIZE(ht)));
 #if PHP_VERSION_ID >= 80200
 	if (HT_IS_PACKED(ht)) {
+		HT_SET_DATA_ADDR(ht, COPY(HT_GET_DATA_ADDR(ht), HT_PACKED_USED_SIZE(ht)));
 		for (idx = 0; idx < ht->nNumUsed; idx++) {
 			zval *val = ht->arPacked + idx;
 			if (Z_TYPE_P(val) == IS_UNDEF) continue;
@@ -396,6 +399,9 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 	} else
 #endif
 	{
+		/* NOTE: The extendsions opcache, APCu, and immutable_cache
+		 * only need to allocate memory for the buckets that are used in shared memory */
+		HT_SET_DATA_ADDR(ht, COPY(HT_GET_DATA_ADDR(ht), HT_USED_SIZE(ht)));
 		for (idx = 0; idx < ht->nNumUsed; idx++) {
 			Bucket *p = ht->arData + idx;
 			if (Z_TYPE(p->val) == IS_UNDEF) continue;
@@ -446,12 +452,11 @@ static void immutable_cache_persist_copy_zval_impl(immutable_cache_persist_conte
 	 * or is found in the hash map */
 	ptr = immutable_cache_persist_get_already_allocated(ctxt, Z_COUNTED_P(zv));
 	switch (Z_TYPE_P(zv)) {
-		case IS_STRING: {
+		case IS_STRING:
 			/* TODO check if string is already in cache */
 			if (!ptr) ptr = immutable_cache_persist_copy_zstr(ctxt, Z_STR_P(zv));
 			ZVAL_STR(zv, ptr);
 			return;
-		}
 		case IS_ARRAY:
 			if (!ptr) ptr = immutable_cache_persist_copy_ht(ctxt, Z_ARRVAL_P(zv));
 			ZVAL_ARR(zv, ptr);
@@ -578,11 +583,6 @@ static zend_bool immutable_cache_unpersist_serialized(
 	return 0;
 }
 
-/* Used to reduce hash collisions when using pointers in hash tables. (#175) */
-static zend_ulong immutable_cache_shr3(zend_ulong index) {
-    return (index >> 3) | (index << (SIZEOF_ZEND_LONG * 8 - 3));
-}
-
 /*
  * Returns the pointer if one was already copied from shared memory into emalloc
  */
@@ -647,7 +647,7 @@ static zend_array *immutable_cache_unpersist_ht(
 	}
 #endif
 
-	HT_SET_DATA_ADDR(ht, emalloc(HT_SIZE(ht)));
+	HT_SET_DATA_ADDR(ht, emalloc(immutable_cache_compute_ht_data_size(ht)));
 	memcpy(HT_GET_DATA_ADDR(ht), HT_GET_DATA_ADDR(orig_ht), HT_HASH_SIZE(ht->nTableMask));
 
 #if PHP_VERSION_ID >= 80200

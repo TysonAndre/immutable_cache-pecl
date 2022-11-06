@@ -58,8 +58,9 @@ function server_start_one($host, $port, $code = 'echo "Hello world";', $php_opts
 
 	// note: even when server prints 'Listening on localhost:8964...Press Ctrl-C to quit.'
 	//       it might not be listening yet...need to wait until fsockopen() call returns
+	// Let this wait for up to 10 seconds to avoid spurious failures with valgrind.
     $i = 0;
-    while (($i++ < 10) && !connection_test($host, $port)) {
+    while (($i++ < 100) && !connection_test($host, $port)) {
         usleep(100000);
     }
 
