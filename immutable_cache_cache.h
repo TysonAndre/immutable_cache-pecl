@@ -99,6 +99,7 @@ typedef struct _immmutable_cache_cache_t {
 	zend_long ttl;               /* if slot is needed and entry's access time is older than this ttl, remove it */
 	zend_long smart;             /* smart parameter for gc */
 	zend_bool defend;             /* defense parameter for runtime */
+	zend_bool loaded_serializer;
 } immutable_cache_cache_t; /* }}} */
 
 /* {{{ typedef: immutable_cache_cache_updater_t */

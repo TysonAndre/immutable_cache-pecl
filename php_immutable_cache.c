@@ -160,6 +160,28 @@ zend_bool immutable_cache_is_enabled(void)
 	return IMMUTABLE_CACHE_G(enabled);
 }
 
+/* {{{ immutable_cache_get_supported_serializer_names() */
+PHP_IMMUTABLE_CACHE_API zend_string* immutable_cache_get_supported_serializer_names(void)
+{
+	immutable_cache_serializer_t *serializer = immutable_cache_get_serializers();
+	smart_str names = {0,};
+
+	for (int i = 0; serializer->name != NULL; serializer++, i++) {
+		if (i != 0) {
+			smart_str_appends(&names, ", ");
+		}
+		smart_str_appends(&names, serializer->name);
+	}
+
+	if (!names.s) {
+		return zend_string_init("Broken", sizeof("Broken") - 1, 0);
+	}
+	smart_str_appends(&names, ", default");
+	smart_str_0(&names);
+	return names.s;
+}
+/* }}} */
+
 /* {{{ PHP_MINFO_FUNCTION(immutable_cache) */
 static PHP_MINFO_FUNCTION(immutable_cache)
 {
@@ -179,26 +201,9 @@ static PHP_MINFO_FUNCTION(immutable_cache)
 #endif
 
 	if (IMMUTABLE_CACHE_G(enabled)) {
-		immutable_cache_serializer_t *serializer = NULL;
-		smart_str names = {0,};
-		int i;
-
-		for( i = 0, serializer = immutable_cache_get_serializers();
-					serializer->name != NULL;
-					serializer++, i++) {
-			if (i != 0) {
-				smart_str_appends(&names, ", ");
-			}
-			smart_str_appends(&names, serializer->name);
-		}
-
-		if (names.s) {
-			smart_str_0(&names);
-			php_info_print_table_row(2, "Serialization Support", names.s->val);
-			smart_str_free(&names);
-		} else {
-			php_info_print_table_row(2, "Serialization Support", "Broken");
-		}
+		zend_string *names = immutable_cache_get_supported_serializer_names();
+		php_info_print_table_row(2, "Serialization Support", ZSTR_VAL(names));
+		zend_string_release(names);
 	} else {
 		php_info_print_table_row(2, "Serialization Support", "Disabled");
 	}
@@ -257,6 +262,15 @@ static PHP_MINIT_FUNCTION(immutable_cache)
 			/* register default serializer */
 			_immutable_cache_register_serializer(
 				"php", IMMUTABLE_CACHE_SERIALIZER_NAME(php), IMMUTABLE_CACHE_UNSERIALIZER_NAME(php), NULL);
+#ifdef IMMUTABLE_CACHE_IGBINARY
+			if (zend_hash_str_exists(&module_registry, "igbinary", sizeof("igbinary") - 1)) {
+				_immutable_cache_register_serializer(
+					"igbinary", IMMUTABLE_CACHE_SERIALIZER_NAME(igbinary), IMMUTABLE_CACHE_UNSERIALIZER_NAME(igbinary), NULL);
+			} else if (strcmp(IMMUTABLE_CACHE_G(serializer_name), "igbinary") == 0) {
+				/* Only warn if we're trying to use igbinary */
+				php_error_docref(NULL, E_WARNING, "immutable_cache failed to find igbinary. The igbinary extension must be loaded before immutable_cache.");
+			}
+#endif
 
 			/* test out the constant function pointer */
 			assert(immutable_cache_get_serializers()->name != NULL);
@@ -326,6 +340,7 @@ static PHP_RINIT_FUNCTION(immutable_cache)
 		if (IMMUTABLE_CACHE_G(serializer_name)) {
 			/* Avoid race conditions between RINIT of immutable_cache and serializer exts like igbinary */
 			immutable_cache_cache_serializer(immutable_cache_user_cache, IMMUTABLE_CACHE_G(serializer_name));
+			immutable_cache_user_cache->loaded_serializer = true;
 		}
 
 #if HAVE_SIGACTION
@@ -429,9 +444,10 @@ static void immutable_cache_store_helper(INTERNAL_FUNCTION_PARAMETERS)
 		return;
 	}
 
-	if (IMMUTABLE_CACHE_G(serializer_name)) {
+	if (immutable_cache_user_cache && !immutable_cache_user_cache->loaded_serializer && IMMUTABLE_CACHE_G(serializer_name)) {
 		/* Avoid race conditions between MINIT of apc and serializer exts like igbinary */
 		immutable_cache_cache_serializer(immutable_cache_user_cache, IMMUTABLE_CACHE_G(serializer_name));
+		immutable_cache_user_cache->loaded_serializer = true;
 	}
 
 	/* TODO: Port to array|string for PHP 8? */

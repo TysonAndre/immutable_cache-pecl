@@ -105,6 +105,10 @@ PHP_IMMUTABLE_CACHE_API int _immutable_cache_register_serializer(
         const char* name, immutable_cache_serialize_t serialize, immutable_cache_unserialize_t unserialize, void *config) {
 	int i;
 	immutable_cache_serializer_t *serializer;
+	if (strcmp(name, "default") == 0) {
+		php_error_docref(NULL, E_WARNING, "_immutable_cache_register_serializer: The serializer name 'default' is reserved.");
+		return 0;
+	}
 
 	for(i = 0; i < IMMUTABLE_CACHE_MAX_SERIALIZERS; i++) {
 		serializer = &immutable_cache_serializers[i];
@@ -139,6 +143,11 @@ PHP_IMMUTABLE_CACHE_API immutable_cache_serializer_t* immutable_cache_find_seria
 		if(serializer->name && (strcmp(serializer->name, name) == 0)) {
 			return serializer;
 		}
+	}
+	if (strcmp(name, "default") != 0) {
+		zend_string *names = immutable_cache_get_supported_serializer_names();
+		php_error_docref(NULL, E_WARNING, "Could not find immutable_cache.serializer='%s'. Supported serializers: %s", name, ZSTR_VAL(names));
+		zend_string_release(names);
 	}
 	return NULL;
 } /* }}} */

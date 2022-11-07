@@ -51,6 +51,10 @@
 #include "ext/standard/php_var.h"
 #include "zend_smart_str.h"
 
+#ifdef IMMUTABLE_CACHE_IGBINARY
+#include "igbinary/igbinary.h"
+#endif
+
 #if PHP_VERSION_ID < 70300
 # define GC_SET_REFCOUNT(ref, rc) (GC_REFCOUNT(ref) = (rc))
 # define GC_ADDREF(ref) GC_REFCOUNT(ref)++
@@ -191,6 +195,34 @@ PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CA
 	}
 	return 1;
 } /* }}} */
+
+#ifdef IMMUTABLE_CACHE_IGBINARY
+/* {{{ igbinary immutable_cache_serialize function */
+PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_SERIALIZER_NAME(igbinary) ( IMMUTABLE_CACHE_SERIALIZER_ARGS ) {
+	(void)config;
+
+	if (igbinary_serialize(buf, buf_len, (zval *)value) == 0) {
+		/* flipped semantics - We return 1 to indicate success to IMMUTABLE_CACHE_u (and 0 for failure) */
+		return 1;
+	}
+	return 0;
+}
+/* }}} */
+/* {{{ igbinary immutable_cache_unserialize function */
+PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(igbinary) ( IMMUTABLE_CACHE_UNSERIALIZER_ARGS ) {
+	(void)config;
+
+	if (igbinary_unserialize(buf, buf_len, value) == 0) {
+		/* flipped semantics - We return 1 to indicate success to IMMUTABLE_CACHE_u (and 0 for failure) */
+		return 1;
+	}
+	/* Failed. free return value */
+	zval_ptr_dtor(value);
+	ZVAL_NULL(value); /* and replace the incomplete value with null just in case IMMUTABLE_CACHE_u uses it in the future */
+	return 0;
+}
+/* }}} */
+#endif /* IMMUTABLE_CACHE_IGBINARY */
 
 /* {{{ immutable_cache_cache_create */
 PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(immutable_cache_sma_t* sma, immutable_cache_serializer_t* serializer, zend_long size_hint) {
@@ -769,8 +801,11 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_stat(immutable_cache_cache_t 
 
 /* {{{ immutable_cache_cache_serializer */
 PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_serializer(immutable_cache_cache_t* cache, const char* name) {
-	if (cache && !cache->serializer) {
+	if (cache && !cache->loaded_serializer && !cache->serializer) {
 		cache->serializer = immutable_cache_find_serializer(name);
+		if (cache->serializer || strcmp(name, "php") == 0) {
+			cache->loaded_serializer = true;
+		}
 	}
 } /* }}} */
 

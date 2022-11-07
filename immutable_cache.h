@@ -147,13 +147,19 @@ PHP_IMMUTABLE_CACHE_API immutable_cache_serializer_t* immutable_cache_get_serial
  finds a previously registered serializer by name */
 PHP_IMMUTABLE_CACHE_API immutable_cache_serializer_t* immutable_cache_find_serializer(const char* name); /* }}} */
 
+/* Returns a comma separated string representing the serializers that have been registered */
+PHP_IMMUTABLE_CACHE_API zend_string* immutable_cache_get_supported_serializer_names(void);
+
 /* {{{ default serializers */
 PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_SERIALIZER_NAME(php) (IMMUTABLE_CACHE_SERIALIZER_ARGS);
 PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS); /* }}} */
 
-/* {{{ eval serializers */
-PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_SERIALIZER_NAME(eval) (IMMUTABLE_CACHE_SERIALIZER_ARGS);
-PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(eval) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS); /* }}} */
+
+#ifdef IMMUTABLE_CACHE_IGBINARY
+/* {{{ optional igbinary serializer */
+PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_SERIALIZER_NAME(igbinary) (IMMUTABLE_CACHE_SERIALIZER_ARGS);
+PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(igbinary) (IMMUTABLE_CACHE_UNSERIALIZER_ARGS); /* }}} */
+#endif
 
 #define php_immutable_cache_try                        \
 {                                          \
