@@ -126,7 +126,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
           }
         ]])],[ dnl -Success-
           IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
-          PHP_ADD_LIBRARY(pthread)
+          PHP_ADD_LIBRARY(pthread,, IMMUTABLE_CACHE_SHARED_LIBADD)
           PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
           AC_DEFINE(IMMUTABLE_CACHE_NATIVE_RWLOCK, 1, [ ])
           AC_MSG_RESULT([yes])
@@ -135,7 +135,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
           PHP_IMMUTABLE_CACHE_RWLOCKS=no
         ],[
           IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
-          PHP_ADD_LIBRARY(pthread)
+          PHP_ADD_LIBRARY(pthread,, IMMUTABLE_CACHE_SHARED_LIBADD)
           PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
     ])
     LIBS="$orig_LIBS"
@@ -177,7 +177,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
         }
         ]])],[ dnl -Success-
           IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
-          PHP_ADD_LIBRARY(pthread)
+          PHP_ADD_LIBRARY(pthread,, IMMUTABLE_CACHE_SHARED_LIBADD)
           PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
           AC_MSG_RESULT([yes])
           AC_DEFINE(IMMUTABLE_CACHE_HAS_PTHREAD_MUTEX, 1, [ ])
@@ -186,7 +186,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
           PHP_IMMUTABLE_CACHE_MUTEX=no
         ],[
           IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
-          PHP_ADD_LIBRARY(pthread)
+          PHP_ADD_LIBRARY(pthread,, IMMUTABLE_CACHE_SHARED_LIBADD)
           PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
     ])
     LIBS="$orig_LIBS"
