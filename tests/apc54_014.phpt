@@ -2,10 +2,13 @@
 APC: Bug #61742 preload_path does not work due to incorrect string length (variant 1)
 --SKIPIF--
 <?php
-    require_once(dirname(__FILE__) . '/skipif.inc');
-	if(PHP_ZTS === 1) {
-		die('skip PHP non-ZTS only');
-	}
+require_once(dirname(__FILE__) . '/skipif.inc');
+if (PHP_ZTS === 1) {
+    die('skip PHP non-ZTS only');
+}
+if (getenv('USE_ZEND_ALLOC') === '0' && PHP_INT_SIZE === 4) {
+    die('skip https://bugs.launchpad.net/ubuntu/+source/valgrind/+bug/1877963');
+}
 ?>
 --CONFLICTS--
 server
