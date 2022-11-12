@@ -7,46 +7,48 @@ on:
     branches: [ main ]
 jobs:
   ubuntu:
-    strategy:
-      matrix:
-          version: ["8.0", "8.1", "8.2"]
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout immutable_cache
-        uses: actions/checkout@v2
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{matrix.version}}
-          extensions: igbinary
-      - name: phpize
-        run: phpize
-      - name: configure
-        run: ./configure --enable-immutable-cache-debug --enable-immutable-cache-igbinary
-      - name: make
-        run: make
-      - name: test
-        run: |
-            make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=default tests"
-            make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=php tests"
-            make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=default -d opcache.enable_cli=1 tests"
-            make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=php -d opcache.enable_cli=1 tests"
-      - name: test with igbinary
-        run: |
-            PECL_EXTENSION_DIR=$(php -r "echo ini_get('extension_dir');")
-            echo "Pecl extensions are installed in $PECL_EXTENSION_DIR"
-            cp "$PECL_EXTENSION_DIR/igbinary.so" modules/
 
-            php -d extension=modules/immutable_cache.so -d extension=modules/igbinary.so -d immutable_cache.serializer=igbinary -r 'phpinfo();' |grep -i immutable_cache.serializer
-            make test TESTS="-j$(nproc) --show-diff -d extension=$PWD/modules/igbinary.so -d immutable_cache.serializer=igbinary tests"
-      - name: test with valgrind
-        run: |
-            if php -r 'exit(PHP_VERSION_ID>=80100?0:1);'; then
-                sudo apt install -y valgrind
-                make test TESTS="-j$(nproc) --show-diff --show-mem -d immutable_cache.serializer=php tests -m"
-            else
-                echo 'Skip valgrind checks in php 8.0 because it has an unrelated warning about zend_string_equal_val due to its use of custom assembly.'
-            fi
+    # See https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-environment-variables-in-a-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+       include:
+         # NOTE: If this is not quoted, the yaml parser will convert 7.0 to the number 7,
+         # and the docker image `php:7` is the latest minor version of php 7.x (7.4).
+         - PHP_VERSION: '8.0'
+           PHP_VERSION_FULL: 8.0.22
+         - PHP_VERSION: '8.0'
+           PHP_VERSION_FULL: 8.0.22
+           DOCKER_ARCHITECTURE: i386
+         - PHP_VERSION: '8.1'
+           PHP_VERSION_FULL: 8.1.11
+         - PHP_VERSION: '8.2.0RC5'
+           PHP_VERSION_FULL: 8.2.0RC5
+         - PHP_VERSION: '8.2.0RC5'
+           PHP_VERSION_FULL: 8.2.0RC5
+           DOCKER_ARCHITECTURE: i386
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Build and test in docker
+        run: bash ci/test_dockerized.sh ${{ matrix.PHP_VERSION }} ${{ matrix.DOCKER_ARCHITECTURE }}
+
+      # We reuse the php base image because
+      # 1. It has any necessary dependencies installed for php 7.0-8.2
+      # 2. It is already downloaded
+      #
+      # We need to install valgrind then rebuild php from source with the configure option '--with-valgrind' to avoid valgrind false positives
+      # because php-src has inline assembly that causes false positives in valgrind when that option isn't used.
+      - name: Build and test in docker again with valgrind
+        run: bash ci/test_dockerized_valgrind.sh ${{ matrix.PHP_VERSION }} ${{ matrix.PHP_VERSION_FULL }} ${{ matrix.DOCKER_ARCHITECTURE }}
+      # NOTE: tests report false positives for zend_string_equals in php 7.3+
+      # due to the use of inline assembly in php-src. (not related to igbinary)
   windows:
     defaults:
       run:
