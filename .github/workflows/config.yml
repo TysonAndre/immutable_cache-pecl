@@ -39,9 +39,10 @@ jobs:
 
             php -d extension=modules/immutable_cache.so -d extension=modules/igbinary.so -d immutable_cache.serializer=igbinary -r 'phpinfo();' |grep -i immutable_cache.serializer
             make test TESTS="-j$(nproc) --show-diff -d extension=$PWD/modules/igbinary.so -d immutable_cache.serializer=igbinary tests"
+      - name: install valgrind
+        run: sudo apt install -y valgrind
       - name: test with valgrind
-        run: |
-            make test TESTS="-j$(nproc) --show-diff --show-mem -d immutable_cache.serializer=php tests -m"
+        run: make test TESTS="-j$(nproc) --show-diff --show-mem -d immutable_cache.serializer=php tests -m"
   windows:
     defaults:
       run:
