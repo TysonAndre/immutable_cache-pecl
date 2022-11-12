@@ -43,6 +43,10 @@
 #include "immutable_cache.h"
 #include "immutable_cache_globals.h"
 
+#if SIZEOF_SIZE_T > SIZEOF_ZEND_LONG
+#error immutable_cache does not support platforms where size_t > zend_long
+#endif
+
 #define PHP_IMMUTABLE_CACHE_VERSION "6.0.0beta3"
 #define PHP_IMMUTABLE_CACHE_EXTNAME "immutable_cache"
 

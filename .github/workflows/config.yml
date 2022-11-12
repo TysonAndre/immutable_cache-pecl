@@ -20,16 +20,16 @@ jobs:
          - PHP_VERSION: '8.0'
            PHP_VERSION_FULL: 8.0.22
          # TODO: Investigate the cause of the error on 32-bit php builds.
-         # - PHP_VERSION: '8.0'
-         #   PHP_VERSION_FULL: 8.0.22
-         #   DOCKER_ARCHITECTURE: i386
+         - PHP_VERSION: '8.0'
+           PHP_VERSION_FULL: 8.0.22
+           DOCKER_ARCHITECTURE: i386
          - PHP_VERSION: '8.1'
            PHP_VERSION_FULL: 8.1.11
          - PHP_VERSION: '8.2.0RC5'
            PHP_VERSION_FULL: 8.2.0RC5
-         # - PHP_VERSION: '8.2.0RC5'
-         #   PHP_VERSION_FULL: 8.2.0RC5
-         #   DOCKER_ARCHITECTURE: i386
+         - PHP_VERSION: '8.2.0RC5'
+           PHP_VERSION_FULL: 8.2.0RC5
+           DOCKER_ARCHITECTURE: i386
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
