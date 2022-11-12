@@ -93,8 +93,12 @@ static zend_bool immutable_cache_persist_calc_zval(immutable_cache_persist_conte
 static void immutable_cache_persist_copy_zval_impl(immutable_cache_persist_context_t *ctxt, zval *zv);
 
 /* Used to reduce hash collisions when using pointers in hash tables. (#175) */
-static inline zend_ulong immutable_cache_shr3(zend_ulong index) {
+static zend_always_inline zend_ulong immutable_cache_shr3(zend_ulong index) {
 	return (index >> 3) | (index << (SIZEOF_ZEND_LONG * 8 - 3));
+}
+
+static zend_always_inline zend_ulong immutable_cache_pointer_to_hash_key(const zval *ptr) {
+	return immutable_cache_shr3((zend_ulong)(uintptr_t)ptr);
 }
 
 static inline void immutable_cache_persist_copy_zval(immutable_cache_persist_context_t *ctxt, zval *zv) {
@@ -128,19 +132,30 @@ void immutable_cache_persist_destroy_context(immutable_cache_persist_context_t *
 	}
 }
 
-static zend_bool immutable_cache_persist_calc_memoize(immutable_cache_persist_context_t *ctxt, void *ptr) {
+static zend_bool immutable_cache_persist_calc_memoize(immutable_cache_persist_context_t *ctxt, const void *ptr) {
 	zval tmp;
 	if (!ctxt->memoization_needed) {
 		return 0;
 	}
 
-	if (zend_hash_index_exists(&ctxt->already_counted, (uintptr_t) ptr)) {
+	if (zend_hash_index_exists(&ctxt->already_counted, immutable_cache_pointer_to_hash_key(ptr))) {
 		return 1;
 	}
 
 	ZVAL_NULL(&tmp);
-	zend_hash_index_add_new(&ctxt->already_counted, (uintptr_t) ptr, &tmp);
+	zend_hash_index_add_new(&ctxt->already_counted, immutable_cache_pointer_to_hash_key(ptr), &tmp);
 	return 0;
+}
+
+static void immutable_cache_persist_calc_str(immutable_cache_persist_context_t *ctxt, const zend_string *str)
+{
+	if (immutable_cache_sma_contains_pointer(ctxt->sma, str)) {
+		return;
+	}
+	if (immutable_cache_persist_calc_memoize(ctxt, str)) {
+		return;
+	}
+	ADD_SIZE_STR(ZSTR_LEN(str));
 }
 
 static zend_bool immutable_cache_persist_calc_ht(immutable_cache_persist_context_t *ctxt, const HashTable *ht) {
@@ -180,12 +195,8 @@ static zend_bool immutable_cache_persist_calc_ht(immutable_cache_persist_context
 				return 0;
 			}
 
-			/* TODO These strings can be reused
-			if (p->key && !immutable_cache_persist_calc_is_handled(ctxt, (zend_refcounted *) p->key)) {
-				ADD_SIZE_STR(ZSTR_LEN(p->key));
-			}*/
 			if (p->key) {
-				ADD_SIZE_STR(ZSTR_LEN(p->key));
+				immutable_cache_persist_calc_str(ctxt, p->key);
 			}
 			if (!immutable_cache_persist_calc_zval(ctxt, &p->val)) {
 				return 0;
@@ -233,7 +244,6 @@ static zend_bool immutable_cache_persist_calc_zval(immutable_cache_persist_conte
 		return immutable_cache_persist_calc_serialize(ctxt, zv);
 	}
 	if (immutable_cache_sma_contains_pointer(ctxt->sma, Z_PTR_P(zv))) {
-		fprintf(stderr, "Already persisted this array\n");
 		ZEND_ASSERT(Z_TYPE_P(zv) == IS_STRING || Z_TYPE_P(zv) == IS_ARRAY);
 		return 1;
 	}
@@ -267,7 +277,7 @@ static zend_bool immutable_cache_persist_calc_zval(immutable_cache_persist_conte
 
 static zend_bool immutable_cache_persist_calc(immutable_cache_persist_context_t *ctxt, const immutable_cache_cache_entry_t *entry) {
 	ADD_SIZE(sizeof(immutable_cache_cache_entry_t));
-	ADD_SIZE_STR(ZSTR_LEN(entry->key));
+	immutable_cache_persist_calc_str(ctxt, entry->key);
 	return immutable_cache_persist_calc_zval(ctxt, &entry->val);
 }
 
@@ -280,7 +290,7 @@ static inline void *immutable_cache_persist_get_already_allocated(immutable_cach
 		return ptr;
 	}
 	if (ctxt->memoization_needed) {
-		return zend_hash_index_find_ptr(&ctxt->already_allocated, (uintptr_t) ptr);
+		return zend_hash_index_find_ptr(&ctxt->already_allocated, immutable_cache_pointer_to_hash_key(ptr));
 	}
 	return NULL;
 }
@@ -288,7 +298,7 @@ static inline void *immutable_cache_persist_get_already_allocated(immutable_cach
 static inline void immutable_cache_persist_add_already_allocated(
 		immutable_cache_persist_context_t *ctxt, const void *old_ptr, void *new_ptr) {
 	if (ctxt->memoization_needed) {
-		zend_hash_index_add_new_ptr(&ctxt->already_allocated, (uintptr_t) old_ptr, new_ptr);
+		zend_hash_index_add_new_ptr(&ctxt->already_allocated, immutable_cache_pointer_to_hash_key(old_ptr), new_ptr);
 	}
 }
 
@@ -307,6 +317,7 @@ static inline void *immutable_cache_persist_alloc_copy(
 	return ptr;
 }
 
+/* Creates an immutable zend_string in shared memory with the hash precomputed */
 static zend_string *immutable_cache_persist_copy_cstr(
 		immutable_cache_persist_context_t *ctxt, const char *orig_buf, size_t buf_len, zend_ulong hash) {
 	zend_string *str = ALLOC(_ZSTR_STRUCT_SIZE(buf_len));
@@ -323,15 +334,25 @@ static zend_string *immutable_cache_persist_copy_cstr(
 	return str;
 }
 
-static zend_string *immutable_cache_persist_copy_zstr_no_add(
-		immutable_cache_persist_context_t *ctxt, const zend_string *orig_str) {
-	return immutable_cache_persist_copy_cstr(
-		ctxt, ZSTR_VAL(orig_str), ZSTR_LEN(orig_str), ZSTR_H(orig_str));
+static inline zend_string *immutable_cache_persist_copy_zstr(
+		immutable_cache_persist_context_t *ctxt, zend_string *orig_str) {
+	zend_string *str = immutable_cache_persist_copy_cstr(
+		ctxt, ZSTR_VAL(orig_str), ZSTR_LEN(orig_str), ZSTR_HASH(orig_str));
+	immutable_cache_persist_add_already_allocated(ctxt, orig_str, str);
+	return str;
 }
 
-static inline zend_string *immutable_cache_persist_copy_zstr(
-		immutable_cache_persist_context_t *ctxt, const zend_string *orig_str) {
-	zend_string *str = immutable_cache_persist_copy_zstr_no_add(ctxt, orig_str);
+/* If the orig_str is already immutable in shared memory, then returns that.
+ * If an entry for this string was already added to shared memory for the entry being created, return that.
+ * Otherwise, create a new immutable string in shared memory and add it to the already allocated strings */
+static inline zend_string *immutable_cache_persist_get_or_copy_zstr(
+		immutable_cache_persist_context_t *ctxt, zend_string *orig_str) {
+	zend_string *str = immutable_cache_persist_get_already_allocated(ctxt, orig_str);
+	if (str) { return str; }
+
+	str = immutable_cache_persist_copy_cstr(
+		ctxt, ZSTR_VAL(orig_str), ZSTR_LEN(orig_str), ZSTR_H(orig_str));
+	/* TODO: Also create an entry for the string value? */
 	immutable_cache_persist_add_already_allocated(ctxt, orig_str, str);
 	return str;
 }
@@ -427,7 +448,7 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 			}
 
 			if (p->key) {
-				p->key = immutable_cache_persist_copy_zstr_no_add(ctxt, p->key);
+				p->key = immutable_cache_persist_get_or_copy_zstr(ctxt, p->key);
 			} else if ((zend_long) p->h >= (zend_long) ht->nNextFreeElement) {
 				ht->nNextFreeElement = p->h + 1;
 			}
@@ -468,8 +489,7 @@ static void immutable_cache_persist_copy_zval_impl(immutable_cache_persist_conte
 	ptr = immutable_cache_persist_get_already_allocated(ctxt, Z_COUNTED_P(zv));
 	switch (Z_TYPE_P(zv)) {
 		case IS_STRING:
-			/* TODO check if string is already in cache */
-			if (!ptr) ptr = immutable_cache_persist_copy_zstr(ctxt, Z_STR_P(zv));
+			if (!ptr) ptr = immutable_cache_persist_get_or_copy_zstr(ctxt, Z_STR_P(zv));
 			ZVAL_STR(zv, ptr);
 			return;
 		case IS_ARRAY:
@@ -494,7 +514,8 @@ static void immutable_cache_persist_copy_zval_impl(immutable_cache_persist_conte
 static immutable_cache_cache_entry_t *immutable_cache_persist_copy(
 		immutable_cache_persist_context_t *ctxt, const immutable_cache_cache_entry_t *orig_entry) {
 	immutable_cache_cache_entry_t *entry = COPY(orig_entry, sizeof(immutable_cache_cache_entry_t));
-	entry->key = immutable_cache_persist_copy_zstr_no_add(ctxt, entry->key);
+	/* entry->key may have been fetched from shared memory by a previous call to immutable_cache_fetch() */
+	entry->key = immutable_cache_persist_get_or_copy_zstr(ctxt, entry->key);
 	immutable_cache_persist_copy_zval(ctxt, &entry->val);
 	return entry;
 }
@@ -604,7 +625,7 @@ static zend_bool immutable_cache_unpersist_serialized(
  */
 static inline void *immutable_cache_unpersist_get_already_copied(immutable_cache_unpersist_context_t *ctxt, void *ptr) {
 	if (ctxt->memoization_needed) {
-		return zend_hash_index_find_ptr(&ctxt->already_copied, immutable_cache_shr3((zend_ulong)(uintptr_t)ptr));
+		return zend_hash_index_find_ptr(&ctxt->already_copied, immutable_cache_pointer_to_hash_key(ptr));
 	}
 	return NULL;
 }
@@ -612,7 +633,7 @@ static inline void *immutable_cache_unpersist_get_already_copied(immutable_cache
 static inline void immutable_cache_unpersist_add_already_copied(
 		immutable_cache_unpersist_context_t *ctxt, const void *old_ptr, void *new_ptr) {
 	if (ctxt->memoization_needed) {
-		zend_hash_index_add_new_ptr(&ctxt->already_copied, immutable_cache_shr3((zend_ulong)(uintptr_t)old_ptr), new_ptr);
+		zend_hash_index_add_new_ptr(&ctxt->already_copied, immutable_cache_pointer_to_hash_key(old_ptr), new_ptr);
 	}
 }
 

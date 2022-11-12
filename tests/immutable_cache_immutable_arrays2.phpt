@@ -36,7 +36,6 @@ array(1) {
   [0]=>
   float(NAN)
 }
-Already persisted this array
 bool(true)
 is same array?
 bool(true)
