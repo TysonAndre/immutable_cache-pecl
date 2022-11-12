@@ -39,7 +39,6 @@ jobs:
 
             php -d extension=modules/immutable_cache.so -d extension=modules/igbinary.so -d immutable_cache.serializer=igbinary -r 'phpinfo();' |grep -i immutable_cache.serializer
             make test TESTS="-j$(nproc) --show-diff -d extension=$PWD/modules/igbinary.so -d immutable_cache.serializer=igbinary tests"
-      - name: install valgrind
       - name: test with valgrind
         run: |
             if php -r 'exit(PHP_VERSION_ID>=80100?0:1);'; then
