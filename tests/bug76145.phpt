@@ -11,7 +11,7 @@ error_reporting=E_ALL&~E_DEPRECATED
 class Session implements \Serializable
 {
   public $session;
-  public function unserialize($serialized) { $this -> session = immutable_cache_fetch('session'); }
+  public function unserialize($serialized) { $this->session = immutable_cache_fetch('session'); }
   public function serialize() { return ''; }
 }
 

@@ -182,10 +182,13 @@ PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CA
 	int result;
 
 	/* Lock in case immutable_cache is accessed inside Serializer::unserialize() */
+	fprintf(stderr, "before serialize_lock=%d data=%.*s\n", BG(serialize_lock), (int)buf_len, (char*) buf);
 	BG(serialize_lock)++;
+	fprintf(stderr, "serialize_lock=%d data=%.*s\n", BG(serialize_lock), (int)buf_len, (char*) buf);
 	PHP_VAR_UNSERIALIZE_INIT(var_hash);
 	result = php_var_unserialize(value, &tmp, buf + buf_len, &var_hash);
 	PHP_VAR_UNSERIALIZE_DESTROY(var_hash);
+	fprintf(stderr, "end serialize_lock=%d\n", BG(serialize_lock));
 	BG(serialize_lock)--;
 
 	if (!result) {
