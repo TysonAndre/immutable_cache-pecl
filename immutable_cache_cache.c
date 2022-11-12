@@ -265,6 +265,7 @@ PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(im
 	cache->sma = sma;
 	cache->serializer = serializer;
 	cache->nslots = nslots;
+	cache->loaded_serializer = 0;
 
 	/* header lock */
 	CREATE_LOCK(&cache->header->lock);
@@ -704,7 +705,6 @@ PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_info(zval *info, immutab
 	php_immutable_cache_try {
 		array_init(info);
 		add_assoc_long(info, "num_slots", cache->nslots);
-		array_add_long(info, immutable_cache_str_ttl, cache->ttl);
 		array_add_double(info, immutable_cache_str_num_hits, (double) cache->header->nhits);
 		add_assoc_double(info, "num_misses", (double) cache->header->nmisses);
 		add_assoc_double(info, "num_inserts", (double) cache->header->ninserts);

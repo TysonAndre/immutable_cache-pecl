@@ -95,10 +95,6 @@ typedef struct _immmutable_cache_cache_t {
 	immutable_cache_sma_t* sma;               /* shared memory allocator */
 	immutable_cache_serializer_t* serializer; /* serializer */
 	size_t nslots;                /* number of slots in cache */
-	zend_long gc_ttl;            /* maximum time on GC list for a entry */
-	zend_long ttl;               /* if slot is needed and entry's access time is older than this ttl, remove it */
-	zend_long smart;             /* smart parameter for gc */
-	zend_bool defend;             /* defense parameter for runtime */
 	zend_bool loaded_serializer;
 } immutable_cache_cache_t; /* }}} */
 
