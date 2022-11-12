@@ -27,18 +27,21 @@ jobs:
         run: make
       - name: test
         run: |
-            make test TESTS="--show-diff -d immutable_cache.serializer=default tests"
-            make test TESTS="--show-diff -d immutable_cache.serializer=php tests"
-            make test TESTS="--show-diff -d immutable_cache.serializer=default -d opcache.enable_cli=1 tests"
-            make test TESTS="--show-diff -d immutable_cache.serializer=php -d opcache.enable_cli=1 tests"
-
-            # Test with igbinary
+            make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=default tests"
+            make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=php tests"
+            make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=default -d opcache.enable_cli=1 tests"
+            make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=php -d opcache.enable_cli=1 tests"
+      - name: test with igbinary
+        run: |
             PECL_EXTENSION_DIR=$(php -r "echo ini_get('extension_dir');")
             echo "Pecl extensions are installed in $PECL_EXTENSION_DIR"
             cp "$PECL_EXTENSION_DIR/igbinary.so" modules/
 
             php -d extension=modules/immutable_cache.so -d extension=modules/igbinary.so -d immutable_cache.serializer=igbinary -r 'phpinfo();' |grep -i immutable_cache.serializer
-            make test TESTS="--show-diff -d extension=$PWD/modules/igbinary.so -d immutable_cache.serializer=igbinary tests"
+            make test TESTS="-j$(nproc) --show-diff -d extension=$PWD/modules/igbinary.so -d immutable_cache.serializer=igbinary tests"
+      - name: test with valgrind
+        run: |
+            make test TESTS="-j$(nproc) --show-diff --show-mem -d immutable_cache.serializer=php tests -m"
   windows:
     defaults:
       run:
