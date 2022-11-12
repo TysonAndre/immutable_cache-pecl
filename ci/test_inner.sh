@@ -18,7 +18,7 @@ echo "Pecl extensions are installed in $PECL_EXTENSION_DIR"
 igbinary_path="$PECL_EXTENSION_DIR/igbinary.so"
 if [[ -f "$igbinary_path" ]]; then
 	cp "$PECL_EXTENSION_DIR/igbinary.so" modules/
-	php -d extension=modules/immutable_cache.so -d extension=modules/igbinary.so -d immutable_cache.serializer=igbinary -r 'phpinfo();' |grep -i immutable_cache.serializer
+	php -d extension=modules/immutable_cache.so -d extension=modules/igbinary.so -d immutable_cache.serializer=igbinary -r 'phpinfo();'
 	make test TESTS="-j$(nproc) --show-diff -d extension=$PWD/modules/igbinary.so -d immutable_cache.serializer=igbinary tests"
 fi
 
