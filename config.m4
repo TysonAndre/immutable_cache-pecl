@@ -24,6 +24,17 @@ AC_ARG_ENABLE(immutable-cache-debug,
 ])
 AC_MSG_RESULT($PHP_IMMUTABLE_CACHE_DEBUG)
 
+AC_MSG_CHECKING(if immutable_cache should be built with igbinary support)
+AC_ARG_ENABLE(immutable-cache-igbinary,
+[  --enable-immutable-cache-igbinary  Enable immutable_cache igbinary support],
+[
+  PHP_IMMUTABLE_CACHE_IGBINARY=$enableval
+],
+[
+  PHP_IMMUTABLE_CACHE_IGBINARY=no
+])
+AC_MSG_RESULT($PHP_IMMUTABLE_CACHE_IGBINARY)
+
 PHP_IMMUTABLE_CACHE_MMAP=yes
 AC_MSG_CHECKING([if immutable_cache will use mmap (or shm)])
 AC_ARG_ENABLE(immutable-cache-mmap,
@@ -68,6 +79,10 @@ fi
 if test "$PHP_IMMUTABLE_CACHE" != "no"; then
   if test "$PHP_IMMUTABLE_CACHE_DEBUG" != "no"; then
     AC_DEFINE(IMMUTABLE_CACHE_DEBUG, 1, [ ])
+  fi
+
+  if test "$PHP_IMMUTABLE_CACHE_IGBINARY" != "no"; then
+    AC_DEFINE(IMMUTABLE_CACHE_IGBINARY, 1, [ ])
   fi
 
   if test "$PHP_IMMUTABLE_CACHE_MMAP" != "no"; then

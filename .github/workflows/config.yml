@@ -1,5 +1,10 @@
 name: Build and Test
-on: [push, pull_request]
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 jobs:
   ubuntu:
     strategy:
@@ -13,10 +18,11 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{matrix.version}}
+          extensions: igbinary
       - name: phpize
         run: phpize
       - name: configure
-        run: ./configure --enable-immutable-cache-debug
+        run: ./configure --enable-immutable-cache-debug --enable-immutable-cache-igbinary
       - name: make
         run: make
       - name: test
@@ -25,6 +31,14 @@ jobs:
             make test TESTS="--show-diff -d immutable_cache.serializer=php tests"
             make test TESTS="--show-diff -d immutable_cache.serializer=default -d opcache.enable_cli=1 tests"
             make test TESTS="--show-diff -d immutable_cache.serializer=php -d opcache.enable_cli=1 tests"
+
+            # Test with igbinary
+            PECL_EXTENSION_DIR=$(php -r "echo ini_get('extension_dir');")
+            echo "Pecl extensions are installed in $PECL_EXTENSION_DIR"
+            cp "$PECL_EXTENSION_DIR/igbinary.so" modules/
+
+            php -d extension=modules/immutable_cache.so -d extension=modules/igbinary.so -d immutable_cache.serializer=igbinary -r 'phpinfo();' |grep -i immutable_cache.serializer
+            make test TESTS="--show-diff -d extension=$PWD/modules/igbinary.so -d immutable_cache.serializer=igbinary tests"
   windows:
     defaults:
       run:

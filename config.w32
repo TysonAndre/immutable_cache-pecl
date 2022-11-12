@@ -2,6 +2,7 @@
 
 ARG_ENABLE('immutable-cache', 'Whether to enable immutable_cache support', 'no');
 ARG_ENABLE('immutable-cache-debug', 'Whether to enable immutable_cache debugging', 'no');
+ARG_ENABLE('immutable-cache-igbinary', 'Whether to enable immutable_cache igbinary support', 'no');
 
 if(PHP_IMMUTABLE_CACHE != 'no')
 {
@@ -17,9 +18,13 @@ if(PHP_IMMUTABLE_CACHE != 'no')
 						'immutable_cache_iterator.c ' +
 						'immutable_cache_persist.c';
 
-	if(PHP_IMMUTABLE_CACHE_DEBUG != 'no')
+	if (PHP_IMMUTABLE_CACHE_DEBUG != 'no')
 	{
 		ADD_FLAG('CFLAGS_IMMUTABLE_CACHE', '/D IMMUTABLE_CACHE_DEBUG=1');
+	}
+	if (PHP_IMMUTABLE_CACHE_IGBINARY != 'no')
+	{
+		ADD_FLAG('CFLAGS_IMMUTABLE_CACHE', '/D IMMUTABLE_CACHE_IGBINARY=1');
 	}
 
 	/* XXX srwlock kernel as most BC compatible for now */
