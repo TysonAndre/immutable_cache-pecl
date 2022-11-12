@@ -78,8 +78,6 @@
     <file name="apc_015.phpt" role="test" />
     <file name="apc_016.phpt" role="test" />
     <file name="apc_017.phpt" role="test" />
-    <file name="apc_020.phpt" role="test" />
-    <file name="apc_022.phpt" role="test" />
     <file name="apc_023.phpt" role="test" />
     <file name="apc_024.phpt" role="test" />
     <file name="apc_025.phpt" role="test" />
