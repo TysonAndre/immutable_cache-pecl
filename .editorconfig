@@ -7,6 +7,8 @@ indent_size = 4
 trim_trailing_whitespace = true
 [*.{phpt,php}]
 indent_style = space
+[*.yml]
+indent_style = space
 [*.xml]
 indent_size = 1
 indent_style = space
