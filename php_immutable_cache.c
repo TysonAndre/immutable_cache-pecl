@@ -335,7 +335,6 @@ static PHP_RINIT_FUNCTION(immutable_cache)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 
-	IMMUTABLE_CACHE_G(request_time) = 0;
 	if (IMMUTABLE_CACHE_G(enabled)) {
 		if (IMMUTABLE_CACHE_G(serializer_name)) {
 			/* Avoid race conditions between RINIT of immutable_cache and serializer exts like igbinary */

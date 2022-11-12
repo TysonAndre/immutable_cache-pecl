@@ -10,7 +10,6 @@ if (!extension_loaded('pcntl')) {
 --INI--
 immutable_cache.enabled=1
 immutable_cache.enable_cli=1
-immutable_cache.use_request_time=1
 --FILE--
 <?php
 

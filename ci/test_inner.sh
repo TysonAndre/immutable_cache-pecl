@@ -8,8 +8,6 @@ php --version
 php --ini
 cp ci/run-tests-parallel.php run-tests.php
 export REPORT_EXIT_STATUS=1
-make test TESTS="-j$(nproc) -P -q --show-diff"
-
 make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=default tests"
 make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=php tests"
 make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=default -d opcache.enable_cli=1 tests"

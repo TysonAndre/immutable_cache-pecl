@@ -89,6 +89,18 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
     AC_DEFINE(IMMUTABLE_CACHE_MMAP, 1, [ ])
   fi
 
+  php_version=`$PHP_CONFIG --vernum`
+
+  if test -z "$php_version"; then
+    AC_MSG_ERROR([failed to detect PHP version, please report])
+  fi
+
+  if test "$php_version" -lt "80000"; then
+    AC_MSG_ERROR([You need at least PHP 8.0.0 to be able to use this version of immutable_cache. PHP $php_version found])
+  else
+    AC_MSG_RESULT([$php_version, ok])
+  fi
+
   if test "$PHP_IMMUTABLE_CACHE_RWLOCKS" != "no"; then
       orig_LIBS="$LIBS"
       LIBS="$LIBS -lpthread"

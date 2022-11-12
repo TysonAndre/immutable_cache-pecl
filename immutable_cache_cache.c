@@ -189,7 +189,7 @@ PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(php) (IMMUTABLE_CA
 	BG(serialize_lock)--;
 
 	if (!result) {
-		php_error_docref(NULL, E_NOTICE, "Error at offset %ld of %ld bytes", (zend_long)(tmp - buf), (zend_long)buf_len);
+		php_error_docref(NULL, E_NOTICE, "Error at offset " ZEND_LONG_FMT " of " ZEND_LONG_FMT " bytes", (zend_long)(tmp - buf), (zend_long)buf_len);
 		ZVAL_NULL(value);
 		return 0;
 	}

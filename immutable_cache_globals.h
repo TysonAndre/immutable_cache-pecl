@@ -61,8 +61,6 @@ ZEND_BEGIN_MODULE_GLOBALS(immutable_cache)
 
 	char *preload_path;          /* preload path */
 	zend_bool coredump_unmap;    /* trap signals that coredump and unmap shared memory */
-	zend_bool use_request_time;  /* use the SAPI request start time for TTL */
-	time_t request_time;         /* cached request time */
 
 	char *serializer_name;       /* the serializer config option */
 

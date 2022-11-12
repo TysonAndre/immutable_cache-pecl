@@ -39,13 +39,7 @@
 
 time_t immutable_cache_time(void)
 {
-	if (IMMUTABLE_CACHE_G(use_request_time)) {
-		if (!IMMUTABLE_CACHE_G(request_time))
-			IMMUTABLE_CACHE_G(request_time) = (time_t) sapi_get_request_time();
-		return IMMUTABLE_CACHE_G(request_time);
-	} else {
-		return time(0);
-	}
+	return time(0);
 }
 
 /*
