@@ -47,9 +47,13 @@
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
-- Remove unsupported $ttl from parameter list of immutable_cache_add.
+- Add support for immutable_cache.serializer=igbinary when configured with './configure --enable-immutable-cache-igbinary' and igbinary is installed and enabled.
+- Remove unsupported $ttl from parameter list of immutable_cache_add and returned arrays.
+- Remove debugging statement that printed to stderr when a value was already persisted.
 - Update documentation
-- TBD
+- Reuse strings in array keys and cache entry key when persisting to shared memory.
+- Speed up persisting large numbers of values by rotating pointers to avoid zend_array hash table collisions.
+- Fix the way that the pthread linker flag was added.
  </notes>
  <contents>
   <dir name="/">
