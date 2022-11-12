@@ -374,6 +374,8 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 	ht->u.flags |= HASH_FLAG_APPLY_PROTECTION;
 #endif
 
+
+	/* NOTE: Strings are always static keys here for serializer=default (immutable instead of refcounted), unlike APCu. */
 	ht->u.flags |= HASH_FLAG_STATIC_KEYS;
 	if (ht->nNumUsed == 0) {
 		/* TODO save memory (44 bytes per array padded to alignment) by storing a copy of the empty zend_array at a fixed position on startup */
@@ -390,11 +392,13 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 
 	ht->nNextFreeElement = 0;
 	ht->nInternalPointer = HT_INVALID_IDX;
+	const uint32_t nNumUsed = ht->nNumUsed;
 #if PHP_VERSION_ID >= 80200
 	if (HT_IS_PACKED(ht)) {
 		HT_SET_DATA_ADDR(ht, COPY(HT_GET_DATA_ADDR(ht), HT_PACKED_USED_SIZE(ht)));
-		for (idx = 0; idx < ht->nNumUsed; idx++) {
-			zval *val = ht->arPacked + idx;
+		zval *const arPacked = ht->arPacked;
+		for (idx = 0; idx < nNumUsed; idx++) {
+			zval *val = arPacked + idx;
 			if (Z_TYPE_P(val) == IS_UNDEF) continue;
 
 			if (ht->nInternalPointer == HT_INVALID_IDX) {
@@ -413,8 +417,9 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 		/* NOTE: The extendsions opcache, APCu, and immutable_cache
 		 * only need to allocate memory for the buckets that are used in shared memory */
 		HT_SET_DATA_ADDR(ht, COPY(HT_GET_DATA_ADDR(ht), HT_USED_SIZE(ht)));
-		for (idx = 0; idx < ht->nNumUsed; idx++) {
-			Bucket *p = ht->arData + idx;
+		Bucket *const arData = ht->arData;
+		for (idx = 0; idx < nNumUsed; idx++) {
+			Bucket *p = arData + idx;
 			if (Z_TYPE(p->val) == IS_UNDEF) continue;
 
 			if (ht->nInternalPointer == HT_INVALID_IDX) {
@@ -423,7 +428,6 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 
 			if (p->key) {
 				p->key = immutable_cache_persist_copy_zstr_no_add(ctxt, p->key);
-				ht->u.flags &= ~HASH_FLAG_STATIC_KEYS;
 			} else if ((zend_long) p->h >= (zend_long) ht->nNextFreeElement) {
 				ht->nNextFreeElement = p->h + 1;
 			}
