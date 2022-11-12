@@ -31,24 +31,33 @@ function test_immutablecache(int $n, $value) {
     printf("immutable_cache Elapsed: %.6f throughput %10.0f / second\n", $elapsed,  (1/$elapsed * $n));
     // printf("count=%d\n", count((array)apcu_fetch('key0', $value)));
 }
-const N = 400000;
-const NUM_PROCESSES = 4;
+define('N', (int)($_ENV['BENCHMARK_N'] ?? 400000));
+define('NUM_PROCESSES', (int)($_ENV['BENCHMARK_NUM_PROCESSES'] ?? 4));
+define('ARRAY_SIZE', (int)($_ENV['BENCHMARK_ARRAY_SIZE'] ?? 8));
+define('USE_STRING_INSTEAD', (int)($_ENV['BENCHMARK_USE_STRING_INSTEAD'] ?? 0));
 
-$value = [];
-for ($i = 0; $i < 8; $i++) {
-    $value["key$i"] = "myValue$i";
+if (USE_STRING_INSTEAD) {
+    $value = str_repeat('.', ARRAY_SIZE);
+} else {
+    $value = [];
+    for ($i = 0; $i < ARRAY_SIZE; $i++) {
+        $value["key$i"] = "myValue$i";
+    }
 }
 
-printf("Testing string->string array of size 8 with %d processes\n", NUM_PROCESSES);
+printf("Testing string->string array of size %d with %d forked processes\n", ARRAY_SIZE, NUM_PROCESSES);
 echo "Note that the immutable array and strings part of shared memory in immutable_cache, where apcu must make copies of strings and arrays to account for eviction (and php must free them)\n";
 echo json_encode($value), "\n\n";
+printf("apc.serializer = %s\nimmutable_cache.serializer = %s\n", ini_get('apc.serializer'), ini_get('immutable_cache.serializer'));
 
 $pids = [];
 for ($i = 0; $i < NUM_PROCESSES; $i++) {
     $result = pcntl_fork();
     if ($result <= 0) {
-        test_apcu(N, $value);
         test_immutablecache(N, $value);
+        if (extension_loaded('apcu')) {
+            test_apcu(N, $value);
+        }
         exit(0);
     } else {
         $pids[] = $result;
