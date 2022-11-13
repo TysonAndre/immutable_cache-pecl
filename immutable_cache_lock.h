@@ -76,6 +76,11 @@ typedef immutable_cache_windows_cs_rwlock_t immutable_cache_lock_t;
 # define IMMUTABLE_CACHE_LOCK_SHARED
 #endif
 
+#define IMMUTABLE_CACHE_PADDING_SIZE 64
+typedef union {
+	immutable_cache_lock_t lock;
+	uint64_t padding[8]; /* Pad to 64 bytes, a typical word size */
+} immutable_cache_padded_lock_t;
 /* {{{ functions */
 /*
   The following functions should be called once per process:

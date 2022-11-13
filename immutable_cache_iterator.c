@@ -65,7 +65,7 @@ static immutable_cache_iterator_item_t* immutable_cache_iterator_item_ctor(
 	array_init(&item->value);
 	ht = Z_ARRVAL(item->value);
 
-	item->key = zend_string_dup(entry->key, 0);
+	item->key = entry->key;
 
 	if (IMMUTABLE_CACHE_ITER_TYPE & iterator->format) {
 		ZVAL_STR_COPY(&zv, immutable_cache_str_user);
@@ -73,7 +73,7 @@ static immutable_cache_iterator_item_t* immutable_cache_iterator_item_ctor(
 	}
 
 	if (IMMUTABLE_CACHE_ITER_KEY & iterator->format) {
-		ZVAL_STR_COPY(&zv, item->key);
+		ZVAL_INTERNED_STR(&zv, item->key);
 		zend_hash_add_new(ht, immutable_cache_str_key, &zv);
 	}
 
@@ -106,7 +106,7 @@ static immutable_cache_iterator_item_t* immutable_cache_iterator_item_ctor(
 
 /* {{{ immutable_cache_iterator_item_dtor */
 static void immutable_cache_iterator_item_dtor(immutable_cache_iterator_item_t *item) {
-	zend_string_release(item->key);
+	ZEND_ASSERT(ZSTR_IS_INTERNED(item->key));
 	zval_ptr_dtor(&item->value);
 	efree(item);
 }
@@ -199,7 +199,7 @@ static size_t immutable_cache_iterator_fetch_active(immutable_cache_iterator_t *
 		immutable_cache_iterator_item_dtor(immutable_cache_stack_pop(iterator->stack));
 	}
 
-	if (!immutable_cache_cache_rlock(immutable_cache_user_cache)) {
+	if (!immutable_cache_cache_rlock_global(immutable_cache_user_cache)) {
 		return count;
 	}
 
@@ -220,7 +220,7 @@ static size_t immutable_cache_iterator_fetch_active(immutable_cache_iterator_t *
 		}
 	} php_immutable_cache_finally {
 		iterator->stack_idx = 0;
-		immutable_cache_cache_runlock(immutable_cache_user_cache);
+		immutable_cache_cache_runlock_global(immutable_cache_user_cache);
 	} php_immutable_cache_end_try();
 
 	return count;
@@ -229,7 +229,7 @@ static size_t immutable_cache_iterator_fetch_active(immutable_cache_iterator_t *
 
 /* {{{ immutable_cache_iterator_totals */
 static void immutable_cache_iterator_totals(immutable_cache_iterator_t *iterator) {
-	if (!immutable_cache_cache_rlock(immutable_cache_user_cache)) {
+	if (!immutable_cache_cache_rlock_global(immutable_cache_user_cache)) {
 		return;
 	}
 
@@ -249,7 +249,7 @@ static void immutable_cache_iterator_totals(immutable_cache_iterator_t *iterator
 		}
 	} php_immutable_cache_finally {
 		iterator->totals_flag = 1;
-		immutable_cache_cache_runlock(immutable_cache_user_cache);
+		immutable_cache_cache_runlock_global(immutable_cache_user_cache);
 	} php_immutable_cache_end_try();
 }
 /* }}} */

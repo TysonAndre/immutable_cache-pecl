@@ -59,7 +59,7 @@ struct immutable_cache_cache_slam_key_t {
 /* {{{ struct definition: immutable_cache_cache_entry_t */
 typedef struct immutable_cache_cache_entry_t immutable_cache_cache_entry_t;
 struct immutable_cache_cache_entry_t {
-    /* TODO Can this be made interned and const, similar to opcache */
+    /* This key is in shared memory, interned and const, similar to opcache */
 	zend_string *key;        /* entry key */
 	zval val;                /* the zval copied at store time */
 	immutable_cache_cache_entry_t *next; /* next entry in linked list */
@@ -70,20 +70,21 @@ struct immutable_cache_cache_entry_t {
 };
 /* }}} */
 
+#define IMMUTABLE_CACHE_CACHE_FINE_GRAINED_LOCK_COUNT 16
+
 /* {{{ struct definition: immutable_cache_cache_header_t
-   Any values that must be shared among processes should go in here. */
+   Any values that must be shared among processes should go in here.
+   This header is allocated aligned to a 64 byte boundary (common size of a processor cache line) */
 typedef struct _immmutable_cache_cache_header_t {
-	immutable_cache_lock_t lock;                /* header lock */
+	immutable_cache_padded_lock_t fine_grained_lock[IMMUTABLE_CACHE_CACHE_FINE_GRAINED_LOCK_COUNT];
+	immutable_cache_padded_lock_t lock;    /* header lock */
 	zend_long nhits;                /* hit count */
 	zend_long nmisses;              /* miss count */
 	zend_long ninserts;             /* insert count */
-	zend_long nexpunges;            /* expunge count */
 	zend_long nentries;             /* entry count */
 	zend_long mem_size;             /* used */
 	time_t stime;                   /* start time */
 	unsigned short state;           /* cache state */
-	immutable_cache_cache_slam_key_t lastkey;   /* last key inserted (not necessarily without error) */
-	immutable_cache_cache_entry_t *gc;          /* gc list */
 } immutable_cache_cache_header_t; /* }}} */
 
 /* {{{ struct definition: immutable_cache_cache_t */
@@ -202,6 +203,10 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_stat(immutable_cache_cache_t 
 */
 PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_serializer(immutable_cache_cache_t* cache, const char* name);
 
+static inline immutable_cache_lock_t* immutable_cache_cache_header_lookup_lock(immutable_cache_cache_header_t *header, const zend_ulong key_hash) {
+	return &header->fine_grained_lock[key_hash & (IMMUTABLE_CACHE_CACHE_FINE_GRAINED_LOCK_COUNT - 1)].lock;
+}
+
 /* immutable_cache_entry() holds a write lock on the cache while executing user code.
  * That code may call other immutable_cache_* functions, which also try to acquire a
  * read or write lock, which would deadlock. As such, don't try to acquire a
@@ -213,29 +218,50 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_serializer(immutable_cache_ca
  * immutable_cache_cache_t is a per-process structure.
  */
 
-static inline zend_bool immutable_cache_cache_wlock(immutable_cache_cache_t *cache) {
+static inline zend_bool immutable_cache_cache_wlock(immutable_cache_cache_t *cache, const zend_ulong key_hash) {
 	if (!IMMUTABLE_CACHE_G(entry_level)) {
-		return WLOCK(&cache->header->lock);
+		immutable_cache_cache_header_t *const header = cache->header;
+		if (!WLOCK(&header->lock.lock)) { return 0; }
+		if (!WLOCK(immutable_cache_cache_header_lookup_lock(header, key_hash))) {
+			WUNLOCK(&header->lock.lock);
+			return 0;
+		}
+		return 1;
 	}
 	return 1;
 }
 
-static inline void immutable_cache_cache_wunlock(immutable_cache_cache_t *cache) {
+static inline void immutable_cache_cache_wunlock(immutable_cache_cache_t *cache, zend_long key_hash) {
 	if (!IMMUTABLE_CACHE_G(entry_level)) {
-		WUNLOCK(&cache->header->lock);
+		immutable_cache_cache_header_t *const header = cache->header;
+		WUNLOCK(&cache->header->lock.lock);
+		WUNLOCK(immutable_cache_cache_header_lookup_lock(header, key_hash));
 	}
 }
 
-static inline zend_bool immutable_cache_cache_rlock(immutable_cache_cache_t *cache) {
+static inline zend_bool immutable_cache_cache_rlock(immutable_cache_cache_t *cache, zend_ulong key_hash) {
 	if (!IMMUTABLE_CACHE_G(entry_level)) {
-		return RLOCK(&cache->header->lock);
+		return RLOCK(immutable_cache_cache_header_lookup_lock(cache->header, key_hash));
 	}
 	return 1;
 }
 
-static inline void immutable_cache_cache_runlock(immutable_cache_cache_t *cache) {
+static inline void immutable_cache_cache_runlock(immutable_cache_cache_t *cache, zend_ulong key_hash) {
 	if (!IMMUTABLE_CACHE_G(entry_level)) {
-		RUNLOCK(&cache->header->lock);
+		RUNLOCK(immutable_cache_cache_header_lookup_lock(cache->header, key_hash));
+	}
+}
+
+static inline zend_bool immutable_cache_cache_rlock_global(immutable_cache_cache_t *cache) {
+	if (!IMMUTABLE_CACHE_G(entry_level)) {
+		return RLOCK(&cache->header->lock.lock);
+	}
+	return 1;
+}
+
+static inline void immutable_cache_cache_runlock_global(immutable_cache_cache_t *cache) {
+	if (!IMMUTABLE_CACHE_G(entry_level)) {
+		RUNLOCK(&cache->header->lock.lock);
 	}
 }
 

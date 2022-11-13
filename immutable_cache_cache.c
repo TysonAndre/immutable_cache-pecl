@@ -224,10 +224,16 @@ PHP_IMMUTABLE_CACHE_API int IMMUTABLE_CACHE_UNSERIALIZER_NAME(igbinary) ( IMMUTA
 /* }}} */
 #endif /* IMMUTABLE_CACHE_IGBINARY */
 
+static void* immutable_cache_cache_alloc_aligned_header(immutable_cache_sma_t* sma, size_t cache_size) {
+	void *shmaddr = immutable_cache_sma_malloc(sma, cache_size + 64);
+	return (void*) ((((uintptr_t)shmaddr) + (IMMUTABLE_CACHE_PADDING_SIZE - 1)) & ~(IMMUTABLE_CACHE_PADDING_SIZE - 1));
+
+}
+
 /* {{{ immutable_cache_cache_create */
 PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(immutable_cache_sma_t* sma, immutable_cache_serializer_t* serializer, zend_long size_hint) {
 	immutable_cache_cache_t* cache;
-	zend_long cache_size;
+	size_t cache_size;
 	size_t nslots;
 
 	/* calculate number of slots */
@@ -240,7 +246,7 @@ PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(im
 	cache_size = sizeof(immutable_cache_cache_header_t) + nslots*sizeof(immutable_cache_cache_entry_t *);
 
 	/* allocate shm */
-	cache->shmaddr = immutable_cache_sma_malloc(sma, cache_size);
+	cache->shmaddr = immutable_cache_cache_alloc_aligned_header(sma, cache_size);
 
 	if (!cache->shmaddr) {
 		zend_error_noreturn(E_CORE_ERROR, "Unable to allocate %zu bytes of shared memory for cache structures. Either immutable_cache.shm_size is too small or immutable_cache.entries_hint too large", cache_size);
@@ -256,7 +262,6 @@ PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(im
 	cache->header->nhits = 0;
 	cache->header->nmisses = 0;
 	cache->header->nentries = 0;
-	cache->header->gc = NULL;
 	cache->header->stime = time(NULL);
 	cache->header->state = 0;
 
@@ -268,14 +273,17 @@ PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(im
 	cache->loaded_serializer = 0;
 
 	/* header lock */
-	CREATE_LOCK(&cache->header->lock);
+	CREATE_LOCK(&cache->header->lock.lock);
+	for (int i = 0; i < IMMUTABLE_CACHE_CACHE_FINE_GRAINED_LOCK_COUNT; i++) {
+		CREATE_LOCK(&cache->header->fine_grained_lock[i].lock);
+	}
 
 	return cache;
 } /* }}} */
 
 static inline zend_bool immutable_cache_cache_wlocked_insert_exclusive(
 		immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *new_entry) {
-	zend_string *key = new_entry->key;
+	zend_string *key = (zend_string *)new_entry->key;
 
 	/* make the insertion */
 	{
@@ -412,8 +420,10 @@ PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_store(
 		return 0;
 	}
 
+	const zend_ulong h = ZSTR_HASH(key);
+
 	/* execute an insertion */
-	if (!immutable_cache_cache_wlock(cache)) {
+	if (!immutable_cache_cache_wlock(cache, h)) {
 		free_entry(cache, entry);
 		return 0;
 	}
@@ -421,7 +431,7 @@ PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_store(
 	php_immutable_cache_try {
 		ret = immutable_cache_cache_wlocked_insert_exclusive(cache, entry);
 	} php_immutable_cache_finally {
-		immutable_cache_cache_wunlock(cache);
+		immutable_cache_cache_wunlock(cache, h);
 	} php_immutable_cache_end_try();
 
 	if (!ret) {
@@ -574,12 +584,14 @@ PHP_IMMUTABLE_CACHE_API immutable_cache_cache_entry_t *immutable_cache_cache_fin
 		return NULL;
 	}
 
-	if (!immutable_cache_cache_rlock(cache)) {
+	const zend_ulong h = ZSTR_HASH(key);
+
+	if (!immutable_cache_cache_rlock(cache, h)) {
 		return NULL;
 	}
 
 	entry = immutable_cache_cache_rlocked_find_incref(cache, key, t);
-	immutable_cache_cache_runlock(cache);
+	immutable_cache_cache_runlock(cache, h);
 
 	return entry;
 }
@@ -595,12 +607,13 @@ PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_fetch(immutable_cache_ca
 		return 0;
 	}
 
-	if (!immutable_cache_cache_rlock(cache)) {
+	const zend_ulong h = ZSTR_HASH(key);
+	if (!immutable_cache_cache_rlock(cache, h)) {
 		return 0;
 	}
 
 	entry = immutable_cache_cache_rlocked_find_incref(cache, key, t);
-	immutable_cache_cache_runlock(cache);
+	immutable_cache_cache_runlock(cache, h);
 
 	if (!entry) {
 		return 0;
@@ -620,12 +633,13 @@ PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_exists(immutable_cache_c
 		return 0;
 	}
 
-	if (!immutable_cache_cache_rlock(cache)) {
+	const zend_ulong h = ZSTR_HASH(key);
+	if (!immutable_cache_cache_rlock(cache, h)) {
 		return 0;
 	}
 
 	entry = immutable_cache_cache_rlocked_find_nostat(cache, key, t);
-	immutable_cache_cache_runlock(cache);
+	immutable_cache_cache_runlock(cache, h);
 
 	return entry != NULL;
 }
@@ -672,7 +686,7 @@ static zval immutable_cache_cache_link_info(immutable_cache_cache_t *cache, immu
 	zval link, zv;
 	array_init(&link);
 
-	ZVAL_STR(&zv, zend_string_dup(p->key, 0));
+	ZVAL_INTERNED_STR(&zv, (zend_string *)p->key);
 	zend_hash_add_new(Z_ARRVAL(link), immutable_cache_str_info, &zv);
 
 	array_add_double(&link, immutable_cache_str_num_hits, (double) p->nhits);
@@ -688,7 +702,6 @@ static zval immutable_cache_cache_link_info(immutable_cache_cache_t *cache, immu
 PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_info(zval *info, immutable_cache_cache_t *cache, zend_bool limited)
 {
 	zval list;
-	zval gc;
 	zval slots;
 	immutable_cache_cache_entry_t *p;
 	zend_ulong j;
@@ -698,7 +711,7 @@ PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_info(zval *info, immutab
 		return 0;
 	}
 
-	if (!immutable_cache_cache_rlock(cache)) {
+	if (!immutable_cache_cache_rlock_global(cache)) {
 		return 0;
 	}
 
@@ -738,20 +751,11 @@ PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_info(zval *info, immutab
 				}
 			}
 
-			/* For each slot pending deletion */
-			array_init(&gc);
-
-			for (p = cache->header->gc; p != NULL; p = p->next) {
-				zval link = immutable_cache_cache_link_info(cache, p);
-				add_next_index_zval(&gc, &link);
-			}
-
 			add_assoc_zval(info, "cache_list", &list);
-			add_assoc_zval(info, "deleted_list", &gc);
 			add_assoc_zval(info, "slot_distribution", &slots);
 		}
 	} php_immutable_cache_finally {
-		immutable_cache_cache_runlock(cache);
+		immutable_cache_cache_runlock_global(cache);
 	} php_immutable_cache_end_try();
 
 	return 1;
@@ -773,7 +777,7 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_stat(immutable_cache_cache_t 
 	/* calculate hash and slot */
 	immutable_cache_cache_hash_slot(cache, key, &h, &s);
 
-	if (!immutable_cache_cache_rlock(cache)) {
+	if (!immutable_cache_cache_rlock(cache, h)) {
 		return;
 	}
 
@@ -795,7 +799,7 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_stat(immutable_cache_cache_t 
 			entry = entry->next;
 		}
 	} php_immutable_cache_finally {
-		immutable_cache_cache_runlock(cache);
+		immutable_cache_cache_runlock(cache, h);
 	} php_immutable_cache_end_try();
 }
 

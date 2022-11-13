@@ -131,24 +131,24 @@ i.e. these benchmarks have the same throughput regardless of the size of the dat
 using `immutable_cache.serializer=default`.
 
 This benchmarks unserializing a 1000 element array of the form `{...,"key999":"myValue999"}` with 4 concurrently running processes,
-and is around 160 times faster than APCu.
+and is around 240 times faster than APCu.
 
 ```
 apc.serializer = default
 immutable_cache.serializer = default
-immutable_cache Elapsed: 0.015765 throughput    2537333 / second
-immutable_cache Elapsed: 0.015875 throughput    2519646 / second
-immutable_cache Elapsed: 0.016964 throughput    2357950 / second
-immutable_cache Elapsed: 0.016239 throughput    2463244 / second
-APCu            Elapsed: 1.712923 throughput      23352 / second
-APCu            Elapsed: 1.714969 throughput      23324 / second
-APCu            Elapsed: 1.717264 throughput      23293 / second
-APCu            Elapsed: 1.723197 throughput      23213 / second
+immutable_cache Elapsed: 0.007205 throughput    5551667 / second
+immutable_cache Elapsed: 0.007373 throughput    5425447 / second
+immutable_cache Elapsed: 0.007700 throughput    5195134 / second
+immutable_cache Elapsed: 0.007252 throughput    5515629 / second
+APCu            Elapsed: 1.787497 throughput      22378 / second
+APCu            Elapsed: 1.788314 throughput      22367 / second
+APCu            Elapsed: 1.791437 throughput      22328 / second
+APCu            Elapsed: 1.796633 throughput      22264 / second
 ```
 
 ### Fetching an associative array of size 8
 
-Running [`benchmark_shm.php`](./benchmark_shm.php), this is around 1.9 times as fast
+Running [`benchmark_shm.php`](./benchmark_shm.php), this is around 3.7 times as fast
 
 ```
 E.g. to retrieve multiple versions of the fake cached config
@@ -157,32 +157,31 @@ as a php array with 4 processes, repeatedly (with immutable_cache.enable_cli=1, 
 
 apc.serializer = default
 immutable_cache.serializer = default
-immutable_cache Elapsed: 0.167426 throughput    2389114 / second
-immutable_cache Elapsed: 0.169782 throughput    2355968 / second
-immutable_cache Elapsed: 0.174654 throughput    2290245 / second
-immutable_cache Elapsed: 0.173102 throughput    2310777 / second
-APCu            Elapsed: 0.324330 throughput    1233312 / second
-APCu            Elapsed: 0.321877 throughput    1242712 / second
-APCu            Elapsed: 0.326048 throughput    1226812 / second
-APCu            Elapsed: 0.328191 throughput    1218803 / second
+immutable_cache Elapsed: 0.083897 throughput    4767745 / second
+immutable_cache Elapsed: 0.083710 throughput    4778405 / second
+immutable_cache Elapsed: 0.085307 throughput    4688932 / second
+immutable_cache Elapsed: 0.085654 throughput    4669966 / second
+APCu            Elapsed: 0.317105 throughput    1261412 / second
+APCu            Elapsed: 0.320551 throughput    1247850 / second
+APCu            Elapsed: 0.322219 throughput    1241391 / second
+APCu            Elapsed: 0.331782 throughput    1205612 / second
 ```
 
 ### Fetching a string of size 100000
 
 `BENCHMARK_ARRAY_SIZE=100000 BENCHMARK_USE_STRING_INSTEAD=1 php benchmark_shm.php`
-was over 9 times faster for retrieving strings of size 100000 with 4 processes running in parallel.
+was 20 times faster for retrieving strings of size 100000 with 4 processes running in parallel.
 (APCu must copy the entire string when retrieving strings in case of a cache clear.)
 
 ```
-
-immutable_cache Elapsed: 0.168997 throughput    2366900 / second
-immutable_cache Elapsed: 0.171390 throughput    2333865 / second
-immutable_cache Elapsed: 0.171556 throughput    2331601 / second
-immutable_cache Elapsed: 0.173951 throughput    2299503 / second
-APCu            Elapsed: 1.634494 throughput     244724 / second
-APCu            Elapsed: 1.638565 throughput     244116 / second
-APCu            Elapsed: 1.637397 throughput     244290 / second
-APCu            Elapsed: 1.638053 throughput     244192 / second
+immutable_cache Elapsed: 0.081627 throughput    4900352 / second
+immutable_cache Elapsed: 0.082891 throughput    4825640 / second
+immutable_cache Elapsed: 0.081830 throughput    4888166 / second
+immutable_cache Elapsed: 0.082876 throughput    4826462 / second
+APCu            Elapsed: 1.655446 throughput     241627 / second
+APCu            Elapsed: 1.657670 throughput     241303 / second
+APCu            Elapsed: 1.662154 throughput     240652 / second
+APCu            Elapsed: 1.684609 throughput     237444 / second
 ```
 
 Installing
