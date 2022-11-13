@@ -9,7 +9,7 @@ ADD ci/install_php_custom.sh ci/generate_php_install_dir.sh ci/
 ARG PHP_VERSION_FULL
 ARG PHP_CONFIGURE_ARGS="--disable-all --enable-zts --enable-debug --enable-cgi --enable-session --enable-json --with-curl"
 ARG CFLAGS="-DZEND_RC_DEBUG=1 -g"
-ENV export CFLAGS; PHP_CONFIGURE_ARGS=$PHP_CONFIGURE_ARGS PHP_CUSTOM_VERSION=$PHP_VERSION_FULL CFLAGS=$CFLAGS
+ENV PHP_CONFIGURE_ARGS=$PHP_CONFIGURE_ARGS PHP_CUSTOM_VERSION=$PHP_VERSION_FULL CFLAGS=$CFLAGS
 RUN ci/install_php_custom.sh
 
 # Assume compilation will be the time consuming step.
