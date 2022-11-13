@@ -5,7 +5,7 @@ immutable\_cache
 [![Build status (Windows)](https://ci.appveyor.com/api/projects/status/7kccfd2a5i4q58ku/branch/main?svg=true)](https://ci.appveyor.com/project/TysonAndre/immutable-cache-pecl/branch/main)
 
 This adds functionality similar to APCu,
-but with immutable values (an immutable serialized copy of mutable values is stored in the serializer)
+but with immutable values (either the values themselves or an immutable serialized copy of mutable values is stored in the shared memory region)
 
 See [the installing section](#installing) for installation instructions.
 
