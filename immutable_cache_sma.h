@@ -44,14 +44,12 @@
 */
 
 #include "immutable_cache.h"
+#include "immutable_cache_lock.h"
 
 /* {{{ struct definition: immutable_cache_segment_t */
 typedef struct _immutable_cache_segment_t {
 	size_t size;            /* size of this segment */
 	void* shmaddr;          /* address of shared memory */
-#ifdef IMMUTABLE_CACHE_MEMPROTECT
-	void* roaddr;           /* read only (mprotect'd) address */
-#endif
 } immutable_cache_segment_t; /* }}} */
 
 /* {{{ struct definition: immutable_cache_sma_link_t */
@@ -117,16 +115,6 @@ PHP_IMMUTABLE_CACHE_API void *immutable_cache_sma_malloc_ex(
 PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_free(immutable_cache_sma_t* sma, void* p);
 
 /*
-* immutable_cache_sma_api_protect will protect p (which should be a pointer to a block allocated from sma)
-*/
-PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void* p);
-
-/*
-* immutable_cache_sma_api_protect will uprotect p (which should be a pointer to a block allocated from sma)
-*/
-PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void *p);
-
-/*
 * immutable_cache_sma_api_info returns information about the allocator
 */
 PHP_IMMUTABLE_CACHE_API immutable_cache_sma_info_t* immutable_cache_sma_info(immutable_cache_sma_t* sma, zend_bool limited);
@@ -162,5 +150,10 @@ typedef union { void* p; int i; long l; double d; void (*f)(void); } immutable_c
 #define ALIGNWORD(x) ALIGNSIZE(x, sizeof(immutable_cache_word_t))
 /* }}} */
 
-#endif
+zend_bool SMA_LOCK(immutable_cache_sma_t *sma, int32_t last);
+zend_bool SMA_UNLOCK(immutable_cache_sma_t *sma, int32_t last);
+zend_bool SMA_RLOCK(immutable_cache_sma_t *sma, int32_t last);
+zend_bool SMA_RUNLOCK(immutable_cache_sma_t *sma, int32_t last);
+immutable_cache_lock_t* immutable_cache_sma_lookup_fine_grained_lock(immutable_cache_sma_t *sma, const zend_ulong key_hash);
 
+#endif

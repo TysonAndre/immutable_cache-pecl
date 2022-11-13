@@ -4,11 +4,10 @@ immutable\_cache
 [![Build Status](https://github.com/TysonAndre/immutable_cache-pecl/actions/workflows/config.yml/badge.svg?branch=main)](https://github.com/TysonAndre/immutable_cache-pecl/actions/workflows/config.yml?query=branch%3Amain)
 [![Build status (Windows)](https://ci.appveyor.com/api/projects/status/7kccfd2a5i4q58ku/branch/main?svg=true)](https://ci.appveyor.com/project/TysonAndre/immutable-cache-pecl/branch/main)
 
-
-**This is currently a prototype. Error handling and API design will likely change in subsequent releases. Features from APCu not mentioned in this README are likely unsupported and dropped later. There may be bugs.**
-
-This is a work in progress PECL repo adding functionality similar to APCu,
+This adds functionality similar to APCu,
 but with immutable values (an immutable serialized copy of mutable values is stored in the serializer)
+
+See [the installing section](#installing) for installation instructions.
 
 This is a fork of the original [APCu PECL](https://github.com/krakjoe/apcu)
 
@@ -27,15 +26,15 @@ Planned but unimplemented features:
 
 Benefits:
 
-- Can be certain that a value added to the cache doesn't get removed.
-- Can efficiently fetch entire immutable arrays or strings without copying or using extra memory
+- You can be certain that a value added to the cache doesn't get removed.
+- You can efficiently fetch entire immutable arrays or strings without copying or using extra memory
   in cases where the serializer is not required.
 
-  (apcu needs to make copies of all strings and arrays in case of a cache clear during a request)
+  (APCu needs to make copies of all strings and arrays in case of a cache clear during a request)
 
 Caveats:
 
-- APCu will also clear the shared memory cache as a way to recover from deadlocks or processes crashing while holding the shared memory lock, which should be rare.
+- APCu will also clear the shared memory cache as a way to recover from deadlocks or processes crashing while holding the shared memory lock, which should be rare (e.g. a process getting killed or crashing while copying values).
   immutable_cache will never clear the shared memory cache.
 
 Features
@@ -103,9 +102,11 @@ Similar to https://www.php.net/manual/en/apcu.configuration.php
 
 - `immutable_cache.enabled` (bool, defaults to 1(on))
 - `immutable_cache.enable_cli` (bool, defaults to 0(off))
-- `immutable_cache.shm_size` (defaults to 32M)
+- `immutable_cache.shm_size` (defaults to 256M)
 - `immutable_cache.entries_hint` (size of the hash table. If this is too small, uses of the immutable cache will take longer from traversing a longer linked list to find the entries)
 - `immutable_cache.serializer` (currently `php` or `default`. Defaults to `default` (Assumes the bugs with `serializer=default` were fixed in the upstream APCu 5.1.20 release). This is used to serialize data that doesn't have an immutable representation (e.g. objects, references (for now, it isn't converted)))
+
+
 
 This is an immutable cache where entries can't be removed, so there is no need for ttl or gc_ttl.
 
@@ -134,7 +135,7 @@ Note that arrays of non-objects/non-references will take longer to decode when u
 
 When using `immutable_cache.serializer=default`, `immutable_cache` will reuse arrays/strings that were fetched from `immutable_cache` with `immutable_cache_fetch` (i.e. in the shared memory region managed by `immutable_cache`), because they're guaranteed to be immutable.
 
-So for example,
+So for this example, `myarrayclone` is using very little memory apart from managing the cache entry.
 
 ```php
 <?php
@@ -159,6 +160,10 @@ myarrayclone memory usage: 160 bytes
 Note that opcache does not expose any APIs (that I know of) to check if an immutable array/string is from opcache's shared memory, which would allow further memory sharing.
 
 ### Preloading
+
+Similarly to APCu, `immutable_cache.preload=/path/to/directory` can point to files in `/path/to/directory/*.data` containing PHP [serialize()d](https://www.php.net/serialize) data to unserialize before running the application.
+
+This can be useful if you have large objects you want in the cache before a web server starts responding to requests.
 
 Benchmarks
 ==========
@@ -244,6 +249,30 @@ APCu            Elapsed: 0.194570 throughput    2055819 / second
 APCu            Elapsed: 0.198471 throughput    2015405 / second
 APCu            Elapsed: 0.198798 throughput    2012093 / second
 APCu            Elapsed: 0.199741 throughput    2002590 / second
+```
+
+### Fetching with `immutable_cache.protect_memory=1`
+
+`php -d immutable_cache.protect_memory=1 benchmark_shm.php` was used to run immutable_cache with the option to protect memory for debugging (this will mark the memory as read-only when not in use.
+A side effect of this is that
+
+1. Read operations stop incrementing counters for cache hits, last access times, etc.
+   So those operations are sped up because processors do less work and caches aren't invalidated by changing these.
+2. Write operations are slower, because mprotect is called.
+
+```
+Testing string->string array of size 8 with 4 forked processes
+Note that the immutable array and strings part of shared memory in immutable_cache, where apcu must make copies of strings and arrays to account for eviction (and php must free them)
+{"key0":"myValue0","key1":"myValue1","key2":"myValue2","key3":"myValue3","key4":"myValue4","key5":"myValue5","key6":"myValue6","key7":"myValue7"}
+
+immutable_cache Elapsed: 0.053691 throughput    7450103 / second
+immutable_cache Elapsed: 0.056164 throughput    7121941 / second
+immutable_cache Elapsed: 0.054956 throughput    7278549 / second
+immutable_cache Elapsed: 0.059204 throughput    6756267 / second
+APCu            Elapsed: 0.318515 throughput    1255828 / second
+APCu            Elapsed: 0.314734 throughput    1270913 / second
+APCu            Elapsed: 0.320162 throughput    1249368 / second
+APCu            Elapsed: 0.327550 throughput    1221189 / second
 ```
 
 Installing

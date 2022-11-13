@@ -59,20 +59,42 @@ enum {
 
 typedef struct sma_header_t sma_header_t;
 struct sma_header_t {
-	immutable_cache_mutex_t sma_lock;    /* segment lock */
+	immutable_cache_padded_lock_t sma_lock; /* Lock for general cache operations */
+	immutable_cache_padded_lock_t fine_grained_lock[IMMUTABLE_CACHE_CACHE_FINE_GRAINED_LOCK_COUNT];
 	size_t segsize;         /* size of entire segment */
 	size_t avail;           /* bytes available (not necessarily contiguous) */
 };
 
 #define SMA_HDR(sma, i)  ((sma_header_t*)((sma->segs[i]).shmaddr))
 #define SMA_ADDR(sma, i) ((char*)(SMA_HDR(sma, i)))
-#define SMA_RO(sma, i)   ((char*)(sma->segs[i]).roaddr)
-#define SMA_LCK(sma, i)  ((SMA_HDR(sma, i))->sma_lock)
+#define SMA_LCK(sma, i)  ((SMA_HDR(sma, i))->sma_lock.lock)
 
 #define SMA_CREATE_LOCK  IMMUTABLE_CACHE_CREATE_MUTEX
 #define SMA_DESTROY_LOCK IMMUTABLE_CACHE_DESTROY_MUTEX
-#define SMA_LOCK(sma, i) IMMUTABLE_CACHE_MUTEX_LOCK(&SMA_LCK(sma, i))
-#define SMA_UNLOCK(sma, i) IMMUTABLE_CACHE_MUTEX_UNLOCK(&SMA_LCK(sma, i))
+/* Use a lock that isn't in a protected memory region */
+zend_bool SMA_LOCK(immutable_cache_sma_t *sma, int32_t last) {
+	if (!WLOCK(&SMA_LCK(sma, sma->num))) {
+		return 0;
+	}
+	IMMUTABLE_CACHE_SMA_UNPROTECT_MEMORY(sma);
+	return 1;
+}
+zend_bool SMA_UNLOCK(immutable_cache_sma_t *sma, int32_t last) {
+	IMMUTABLE_CACHE_SMA_PROTECT_MEMORY(sma);
+	WUNLOCK(&SMA_LCK(sma, sma->num));
+	return 1;
+}
+zend_bool SMA_RLOCK(immutable_cache_sma_t *sma, int32_t last) {
+	return RLOCK(&SMA_LCK(sma, sma->num));
+}
+zend_bool SMA_RUNLOCK(immutable_cache_sma_t *sma, int32_t last) {
+	RUNLOCK(&SMA_LCK(sma, sma->num));
+	return 1;
+}
+
+immutable_cache_lock_t* immutable_cache_sma_lookup_fine_grained_lock(immutable_cache_sma_t *sma, const zend_ulong key_hash) {
+	return &(SMA_HDR(sma, sma->num)->fine_grained_lock[key_hash & (IMMUTABLE_CACHE_CACHE_FINE_GRAINED_LOCK_COUNT - 1)].lock);
+}
 
 #if 0
 /* global counter for identifying blocks
@@ -325,36 +347,40 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_init(immutable_cache_sma_t* sma
 
 	sma->size = size > 0 ? size : DEFAULT_SEGSIZE;
 
-	sma->segs = (immutable_cache_segment_t*) pemalloc(sma->num * sizeof(immutable_cache_segment_t), 1);
+	sma->segs = (immutable_cache_segment_t*) pemalloc((sma->num + 1) * sizeof(immutable_cache_segment_t), 1);
 
-	for (i = 0; i < sma->num; i++) {
+	for (i = 0; i < sma->num + 1; i++) {
 		sma_header_t*   header;
 		block_t     *first, *empty, *last;
 		void*       shmaddr;
 
+		const size_t segment_size = i < sma->num ? sma->size : 65536;
 #if IMMUTABLE_CACHE_MMAP
-		sma->segs[i] = immutable_cache_mmap(mask, sma->size);
+		sma->segs[i] = immutable_cache_mmap(mask, segment_size);
 		if(sma->num != 1)
 			memcpy(&mask[strlen(mask)-6], "XXXXXX", 6);
 #else
 		{
-			int j = immutable_cache_shm_create(i, sma->size);
+			int j = immutable_cache_shm_create(i, segment_size);
 #if PHP_WIN32
 			/* TODO remove the line below after 7.1 EOL. */
 			SetLastError(0);
 #endif
-			sma->segs[i] = immutable_cache_shm_attach(j, sma->size);
+			sma->segs[i] = immutable_cache_shm_attach(j, segment_size);
 		}
 #endif
 
-		sma->segs[i].size = sma->size;
+		sma->segs[i].size = segment_size;
 
 		shmaddr = sma->segs[i].shmaddr;
 
 		header = (sma_header_t*) shmaddr;
-		SMA_CREATE_LOCK(&header->sma_lock);
-		header->segsize = sma->size;
-		header->avail = sma->size - ALIGNWORD(sizeof(sma_header_t)) - ALIGNWORD(sizeof(block_t)) - ALIGNWORD(sizeof(block_t));
+		CREATE_LOCK(&header->sma_lock.lock);
+		for (int i = 0; i < IMMUTABLE_CACHE_CACHE_FINE_GRAINED_LOCK_COUNT; i++) {
+			CREATE_LOCK(&header->fine_grained_lock[i].lock);
+		}
+		header->segsize = segment_size;
+		header->avail = segment_size - ALIGNWORD(sizeof(sma_header_t)) - ALIGNWORD(sizeof(block_t)) - ALIGNWORD(sizeof(block_t));
 
 		first = BLOCKAT(ALIGNWORD(sizeof(sma_header_t)));
 		first->size = 0;
@@ -395,7 +421,7 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_detach(immutable_cache_sma_t* s
 	assert(sma->initialized);
 	sma->initialized = 0;
 
-	for (i = 0; i < sma->num; i++) {
+	for (i = 0; i < sma->num + 1; i++) {
 #if IMMUTABLE_CACHE_MMAP
 		immutable_cache_unmap(&sma->segs[i]);
 #else
@@ -490,63 +516,6 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_free(immutable_cache_sma_t* sma
 
 	immutable_cache_error("immutable_cache_sma_free: could not locate address %p", p);
 }
-
-#ifdef IMMUTABLE_CACHE_MEMPROTECT
-PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void* p) {
-	unsigned int i = 0;
-	size_t offset;
-
-	if (p == NULL) {
-		return NULL;
-	}
-
-	if(SMA_RO(sma, sma->last) == NULL) return p;
-
-	offset = (size_t)((char *)p - SMA_ADDR(sma, sma->last));
-
-	if(p >= (void*)SMA_ADDR(sma, sma->last) && offset < sma->size) {
-		return SMA_RO(sma, sma->last) + offset;
-	}
-
-	for (i = 0; i < sma->num; i++) {
-		offset = (size_t)((char *)p - SMA_ADDR(sma, i));
-		if (p >= (void*)SMA_ADDR(sma, i) && offset < sma->size) {
-			return SMA_RO(sma, i) + offset;
-		}
-	}
-
-	return NULL;
-}
-
-PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void* p){
-	unsigned int i = 0;
-	size_t offset;
-
-	if (p == NULL) {
-		return NULL;
-	}
-
-	if(SMA_RO(sma, sma->last) == NULL) return p;
-
-	offset = (size_t)((char *)p - SMA_RO(sma, sma->last));
-
-	if(p >= (void*)SMA_RO(sma, sma->last) && offset < sma->size) {
-		return SMA_ADDR(sma, sma->last) + offset;
-	}
-
-	for (i = 0; i < sma->num; i++) {
-		offset = (size_t)((char *)p - SMA_RO(sma, i));
-		if (p >= (void*)SMA_RO(sma, i) && offset < sma->size) {
-			return SMA_ADDR(sma, i) + offset;
-		}
-	}
-
-	return NULL;
-}
-#else
-PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_protect(immutable_cache_sma_t* sma, void *p) { return p; }
-PHP_IMMUTABLE_CACHE_API void* immutable_cache_sma_unprotect(immutable_cache_sma_t* sma, void *p) { return p; }
-#endif
 
 PHP_IMMUTABLE_CACHE_API immutable_cache_sma_info_t *immutable_cache_sma_info(immutable_cache_sma_t* sma, zend_bool limited) {
 	immutable_cache_sma_info_t *info;

@@ -253,6 +253,8 @@ PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(im
 		return NULL;
 	}
 
+	IMMUTABLE_CACHE_SMA_UNPROTECT_MEMORY(sma);
+
 	/* zero cache header and hash slots */
 	memset(cache->shmaddr, 0, cache_size);
 
@@ -273,10 +275,7 @@ PHP_IMMUTABLE_CACHE_API immutable_cache_cache_t* immutable_cache_cache_create(im
 	cache->loaded_serializer = 0;
 
 	/* header lock */
-	CREATE_LOCK(&cache->header->lock.lock);
-	for (int i = 0; i < IMMUTABLE_CACHE_CACHE_FINE_GRAINED_LOCK_COUNT; i++) {
-		CREATE_LOCK(&cache->header->fine_grained_lock[i].lock);
-	}
+	IMMUTABLE_CACHE_SMA_PROTECT_MEMORY(cache->sma);
 
 	return cache;
 } /* }}} */
@@ -378,9 +377,11 @@ static inline immutable_cache_cache_entry_t *immutable_cache_cache_rlocked_find(
 	while (entry) {
 		/* check for a matching key by has and identifier */
 		if (immutable_cache_entry_key_equals(entry, key, h)) {
-			ATOMIC_INC_RLOCKED(cache->header->nhits);
-			ATOMIC_INC_RLOCKED(entry->nhits);
-			entry->atime = t;
+			if (!IMMUTABLE_CACHE_SHOULD_PROTECT_MEMORY()) {
+				ATOMIC_INC_RLOCKED(cache->header->nhits);
+				ATOMIC_INC_RLOCKED(entry->nhits);
+				entry->atime = t;
+			}
 
 			return entry;
 		}
@@ -388,7 +389,9 @@ static inline immutable_cache_cache_entry_t *immutable_cache_cache_rlocked_find(
 		entry = entry->next;
 	}
 
-	ATOMIC_INC_RLOCKED(cache->header->nmisses);
+	if (!IMMUTABLE_CACHE_SHOULD_PROTECT_MEMORY()) {
+		ATOMIC_INC_RLOCKED(cache->header->nmisses);
+	}
 	return NULL;
 }
 

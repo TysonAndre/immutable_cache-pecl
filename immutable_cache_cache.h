@@ -45,6 +45,10 @@
 #include "immutable_cache_globals.h"
 #include "TSRM.h"
 
+#ifdef HAVE_MPROTECT
+#include <sys/mman.h>
+#endif
+
 typedef struct immutable_cache_cache_slam_key_t immutable_cache_cache_slam_key_t;
 struct immutable_cache_cache_slam_key_t {
 	zend_ulong hash;         /* hash of the key */
@@ -76,8 +80,6 @@ struct immutable_cache_cache_entry_t {
    Any values that must be shared among processes should go in here.
    This header is allocated aligned to a 64 byte boundary (common size of a processor cache line) */
 typedef struct _immmutable_cache_cache_header_t {
-	immutable_cache_padded_lock_t fine_grained_lock[IMMUTABLE_CACHE_CACHE_FINE_GRAINED_LOCK_COUNT];
-	immutable_cache_padded_lock_t lock;    /* header lock */
 	zend_long nhits;                /* hit count */
 	zend_long nmisses;              /* miss count */
 	zend_long ninserts;             /* insert count */
@@ -203,10 +205,6 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_stat(immutable_cache_cache_t 
 */
 PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_serializer(immutable_cache_cache_t* cache, const char* name);
 
-static inline immutable_cache_lock_t* immutable_cache_cache_header_lookup_lock(immutable_cache_cache_header_t *header, const zend_ulong key_hash) {
-	return &header->fine_grained_lock[key_hash & (IMMUTABLE_CACHE_CACHE_FINE_GRAINED_LOCK_COUNT - 1)].lock;
-}
-
 /* immutable_cache_entry() holds a write lock on the cache while executing user code.
  * That code may call other immutable_cache_* functions, which also try to acquire a
  * read or write lock, which would deadlock. As such, don't try to acquire a
@@ -218,12 +216,14 @@ static inline immutable_cache_lock_t* immutable_cache_cache_header_lookup_lock(i
  * immutable_cache_cache_t is a per-process structure.
  */
 
+/* Use 0 as a valid segment number regardless of which segment would be used. mmap has only 1 segment for cache data. */
+#define PLACEHOLDER_SMA_SEGMENT_NUM 0
+
 static inline zend_bool immutable_cache_cache_wlock(immutable_cache_cache_t *cache, const zend_ulong key_hash) {
 	if (!IMMUTABLE_CACHE_G(entry_level)) {
-		immutable_cache_cache_header_t *const header = cache->header;
-		if (!WLOCK(&header->lock.lock)) { return 0; }
-		if (!WLOCK(immutable_cache_cache_header_lookup_lock(header, key_hash))) {
-			WUNLOCK(&header->lock.lock);
+		if (UNEXPECTED(!SMA_LOCK(cache->sma, PLACEHOLDER_SMA_SEGMENT_NUM))) { return 0; }
+		if (UNEXPECTED(!WLOCK(immutable_cache_sma_lookup_fine_grained_lock(cache->sma, key_hash)))) {
+			SMA_UNLOCK(cache->sma, PLACEHOLDER_SMA_SEGMENT_NUM);
 			return 0;
 		}
 		return 1;
@@ -233,39 +233,65 @@ static inline zend_bool immutable_cache_cache_wlock(immutable_cache_cache_t *cac
 
 static inline void immutable_cache_cache_wunlock(immutable_cache_cache_t *cache, zend_long key_hash) {
 	if (!IMMUTABLE_CACHE_G(entry_level)) {
-		immutable_cache_cache_header_t *const header = cache->header;
-		WUNLOCK(&cache->header->lock.lock);
-		WUNLOCK(immutable_cache_cache_header_lookup_lock(header, key_hash));
+		WUNLOCK(immutable_cache_sma_lookup_fine_grained_lock(cache->sma, key_hash));
+		SMA_UNLOCK(cache->sma, PLACEHOLDER_SMA_SEGMENT_NUM);
 	}
 }
 
 static inline zend_bool immutable_cache_cache_rlock(immutable_cache_cache_t *cache, zend_ulong key_hash) {
 	if (!IMMUTABLE_CACHE_G(entry_level)) {
-		return RLOCK(immutable_cache_cache_header_lookup_lock(cache->header, key_hash));
+		return RLOCK(immutable_cache_sma_lookup_fine_grained_lock(cache->sma, key_hash));
 	}
 	return 1;
 }
 
 static inline void immutable_cache_cache_runlock(immutable_cache_cache_t *cache, zend_ulong key_hash) {
 	if (!IMMUTABLE_CACHE_G(entry_level)) {
-		RUNLOCK(immutable_cache_cache_header_lookup_lock(cache->header, key_hash));
+		RUNLOCK(immutable_cache_sma_lookup_fine_grained_lock(cache->sma, key_hash));
 	}
 }
 
 static inline zend_bool immutable_cache_cache_rlock_global(immutable_cache_cache_t *cache) {
 	if (!IMMUTABLE_CACHE_G(entry_level)) {
-		return RLOCK(&cache->header->lock.lock);
+		return SMA_RLOCK(cache->sma, PLACEHOLDER_SMA_SEGMENT_NUM);
 	}
 	return 1;
 }
 
 static inline void immutable_cache_cache_runlock_global(immutable_cache_cache_t *cache) {
 	if (!IMMUTABLE_CACHE_G(entry_level)) {
-		RUNLOCK(&cache->header->lock.lock);
+		SMA_RUNLOCK(cache->sma, PLACEHOLDER_SMA_SEGMENT_NUM);
 	}
 }
 
+/* {{{ immutable_cache_sma_protect_memory(cache, protect_memory)
+ * Based on zend_accel_shared_protect. */
+static zend_always_inline void immutable_cache_sma_protect_memory(immutable_cache_sma_t *sma, zend_bool protect_memory) {
+	ZEND_ASSERT(sma);
+#ifdef HAVE_MPROTECT
+	if (!IMMUTABLE_CACHE_SHOULD_PROTECT_MEMORY()) {
+		return;
+	}
+	const int mode = protect_memory ? PROT_READ : (PROT_READ|PROT_WRITE);
+	for (int32_t i = 0; i < sma->num; i++) {
+		mprotect(sma->segs[i].shmaddr, sma->segs[i].size, mode);
+	}
+#elif defined(ZEND_WIN32)
+	if (!IMMUTABLE_CACHE_SHOULD_PROTECT_MEMORY()) {
+		return;
+	}
+	const int mode = protect_memory ? PAGE_READONLY : PAGE_READWRITE;
+
+	for (int32_t i = 0; i < sma->num; i++) {
+		DWORD oldProtect;
+		if (!VirtualProtect(sma->segs[i].shmaddr, sma->segs[i].size, mode, &oldProtect)) {
+			zend_error_noreturn(E_CORE_ERROR, "immutable_cache VirtualProtect failed to protect memory");
+		}
+	}
 #endif
+} /* }}} */
+#define IMMUTABLE_CACHE_SMA_UNPROTECT_MEMORY(sma) do { immutable_cache_sma_protect_memory((sma), 0); } while (0)
+#define IMMUTABLE_CACHE_SMA_PROTECT_MEMORY(sma) do { immutable_cache_sma_protect_memory((sma), 1); } while (0)
 
 /*
  * Local variables:
@@ -275,3 +301,5 @@ static inline void immutable_cache_cache_runlock_global(immutable_cache_cache_t 
  * vim>600: noexpandtab sw=4 ts=4 sts=4 fdm=marker
  * vim<600: noexpandtab sw=4 ts=4 sts=4
  */
+
+#endif /* IMMUTABLE_CACHE_CACHE_H */

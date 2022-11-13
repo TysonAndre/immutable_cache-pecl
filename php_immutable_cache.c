@@ -142,13 +142,14 @@ static PHP_INI_MH(OnUpdateShmSize) /* {{{ */
 PHP_INI_BEGIN()
 STD_PHP_INI_BOOLEAN("immutable_cache.enabled",      "1",    PHP_INI_SYSTEM, OnUpdateBool,              enabled,          zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_ENTRY("immutable_cache.shm_segments",   "1",    PHP_INI_SYSTEM, OnUpdateShmSegments,       shm_segments,     zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("immutable_cache.shm_size",       "256M",  PHP_INI_SYSTEM, OnUpdateShmSize,           shm_size,         zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.shm_size",       "256M", PHP_INI_SYSTEM, OnUpdateShmSize,           shm_size,         zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_ENTRY("immutable_cache.entries_hint",   "4096", PHP_INI_SYSTEM, OnUpdateLong,              entries_hint,     zend_immutable_cache_globals, immutable_cache_globals)
 #if IMMUTABLE_CACHE_MMAP
 STD_PHP_INI_ENTRY("immutable_cache.mmap_file_mask",  NULL,  PHP_INI_SYSTEM, OnUpdateString,            mmap_file_mask,   zend_immutable_cache_globals, immutable_cache_globals)
 #endif
 STD_PHP_INI_BOOLEAN("immutable_cache.enable_cli",   "0",    PHP_INI_SYSTEM, OnUpdateBool,              enable_cli,       zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("immutable_cache.preload_path", (char*)NULL,              PHP_INI_SYSTEM, OnUpdateString,       preload_path,  zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_BOOLEAN("immutable_cache.protect_memory", "0",  PHP_INI_SYSTEM, OnUpdateBool,              protect_memory,       zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.preload_path", (char*)NULL, PHP_INI_SYSTEM, OnUpdateString,         preload_path,  zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_BOOLEAN("immutable_cache.coredump_unmap", "0", PHP_INI_SYSTEM, OnUpdateBool, coredump_unmap, zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_ENTRY("immutable_cache.serializer", "php", PHP_INI_SYSTEM, OnUpdateStringUnempty, serializer_name, zend_immutable_cache_globals, immutable_cache_globals)
 PHP_INI_END()
@@ -302,6 +303,21 @@ static PHP_MSHUTDOWN_FUNCTION(immutable_cache)
 #define X(str) zend_string_release(immutable_cache_str_ ## str);
 	IMMUTABLE_CACHE_STRINGS
 #undef X
+	if (IMMUTABLE_CACHE_G(enabled)) {
+		if (IMMUTABLE_CACHE_G(initialized)) {
+			/* Detach cache and shared memory allocator from shared memory. */
+
+			/* In windows builds, php-src/TSRM/tsrm_win32 defines a polyfill for sma helpers.
+			 * That polyfill only works for the process (on ZTS builds, it will be shared among the threads)
+			 *
+			 * And it shares the block memory for the page with the metadata.
+			 * So to work around a windows crash, make the shared memory writable before releasing it.
+			 *
+			 * So after module shutdown, nothing else will be using this anonymously mapped memory for long.
+			 */
+			IMMUTABLE_CACHE_SMA_UNPROTECT_MEMORY(&immutable_cache_sma);
+		}
+	}
 
 	/* locks shutdown regardless of settings */
 	immutable_cache_lock_cleanup();
@@ -311,6 +327,12 @@ static PHP_MSHUTDOWN_FUNCTION(immutable_cache)
 	if (IMMUTABLE_CACHE_G(enabled)) {
 		if (IMMUTABLE_CACHE_G(initialized)) {
 			/* Detach cache and shared memory allocator from shared memory. */
+
+			/* In windows builds, php-src/TSRM/tsrm_win32 defines a polyfill for sma helpers.
+			 * That polyfill only works for the process (on ZTS builds, it will be shared among the threads)
+			 * So after module shutdown, nothing else will be using this anonymously mapped memory for long. */
+			IMMUTABLE_CACHE_SMA_UNPROTECT_MEMORY(&immutable_cache_sma);
+
 			immutable_cache_cache_detach(immutable_cache_user_cache);
 			immutable_cache_sma_detach(&immutable_cache_sma);
 

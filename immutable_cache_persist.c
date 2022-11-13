@@ -567,11 +567,13 @@ immutable_cache_cache_entry_t *immutable_cache_persist(
 		return NULL;
 	}
 
+	IMMUTABLE_CACHE_SMA_UNPROTECT_MEMORY(sma);
 	entry = immutable_cache_persist_copy(&ctxt, orig_entry);
 	// fprintf(stderr, "alloc_size=%d size=%d\n", (int)(ctxt.alloc_cur-ctxt.alloc), (int)ctxt.size);
 	ZEND_ASSERT(ctxt.alloc_cur == ctxt.alloc + ctxt.size);
 
 	entry->mem_size = ctxt.size;
+	IMMUTABLE_CACHE_SMA_PROTECT_MEMORY(sma);
 
 	immutable_cache_persist_destroy_context(&ctxt);
 	return entry;
