@@ -115,6 +115,51 @@ Immutability allows `immutable_cache` to keep strings and arrays in shared memor
 Different processes (e.g. from apache worker pools) or threads (in ZTS builds) would
 all be performing read-only access to the same constant arrays (like they would with opcache)
 
+Optimizations
+=============
+
+### Reducing memory usage
+
+To reduce the total memory this uses, compile this with support for the igbinary PECL and enable `immutable_cache.serializer=igbinary`. See https://github.com/igbinary/igbinary#igbinary and https://github.com/igbinary/igbinary#installing
+
+1. Install `igbinary`
+2. Compile and install `immutable_cache`, configuring it `configure --enable-immutable-cache-igbinary`
+3. Set `immutable_cache.serializer=igbinary` in your php.ini settings.
+
+If this is done properly, `phpinfo()` will show igbinary as an available serializer.
+
+Note that arrays of non-objects/non-references will take longer to decode when using `php` or `igbinary` (faster than `php` in most cases) because they need to be unserialized.
+
+### Miscellaneous
+
+When using `immutable_cache.serializer=default`, `immutable_cache` will reuse arrays/strings that were fetched from `immutable_cache` with `immutable_cache_fetch` (i.e. in the shared memory region managed by `immutable_cache`), because they're guaranteed to be immutable.
+
+So for example,
+
+```php
+<?php
+printf("immutable_cache.serializer=%s\n", ini_get('immutable_cache.serializer'));
+$array = [];
+for ($i = 0; $i < 16; $i++) {
+    $array["key$i"] = "value$i";
+}
+
+immutable_cache_add('myarray', $array);
+immutable_cache_add('myarrayclone', immutable_cache_fetch($array));
+foreach (immutable_cache_cache_info()['cache_list'] as $entry) {
+    printf("%12s memory usage: %d bytes\n", $entry['info'], $entry['mem_size']);
+}
+/*
+immutable_cache.serializer=default
+     myarray memory usage: 1816 bytes
+myarrayclone memory usage: 160 bytes
+ */
+```
+
+Note that opcache does not expose any APIs (that I know of) to check if an immutable array/string is from opcache's shared memory, which would allow further memory sharing.
+
+### Preloading
+
 Benchmarks
 ==========
 
