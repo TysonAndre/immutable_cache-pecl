@@ -142,7 +142,7 @@ static PHP_INI_MH(OnUpdateShmSize) /* {{{ */
 PHP_INI_BEGIN()
 STD_PHP_INI_BOOLEAN("immutable_cache.enabled",      "1",    PHP_INI_SYSTEM, OnUpdateBool,              enabled,          zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_ENTRY("immutable_cache.shm_segments",   "1",    PHP_INI_SYSTEM, OnUpdateShmSegments,       shm_segments,     zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("immutable_cache.shm_size",       "32M",  PHP_INI_SYSTEM, OnUpdateShmSize,           shm_size,         zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.shm_size",       "256M",  PHP_INI_SYSTEM, OnUpdateShmSize,           shm_size,         zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_ENTRY("immutable_cache.entries_hint",   "4096", PHP_INI_SYSTEM, OnUpdateLong,              entries_hint,     zend_immutable_cache_globals, immutable_cache_globals)
 #if IMMUTABLE_CACHE_MMAP
 STD_PHP_INI_ENTRY("immutable_cache.mmap_file_mask",  NULL,  PHP_INI_SYSTEM, OnUpdateString,            mmap_file_mask,   zend_immutable_cache_globals, immutable_cache_globals)
