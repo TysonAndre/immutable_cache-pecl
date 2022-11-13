@@ -401,8 +401,8 @@ PHP_FUNCTION(immutable_cache_sma_info)
 	array_init(return_value);
 
 	add_assoc_long(return_value, "num_seg", info->num_seg);
-	add_assoc_double(return_value, "seg_size", (double)info->seg_size);
-	add_assoc_double(return_value, "avail_mem", (double)immutable_cache_sma_get_avail_mem(&immutable_cache_sma));
+	add_assoc_long(return_value, "seg_size", info->seg_size);
+	add_assoc_long(return_value, "avail_mem", immutable_cache_sma_get_avail_mem(&immutable_cache_sma));
 
 	if (limited) {
 		immutable_cache_sma_free_info(&immutable_cache_sma, info);

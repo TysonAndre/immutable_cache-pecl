@@ -43,8 +43,6 @@ Features
 
 `immutable_cache` is an in-memory key-value store for PHP. Keys are of type string and values can be any PHP variables.
 
-`immutable_cache` only supports userland caching of immutable representations of keys.
-
 ### API reference
 
 This provides an API similar to a subset of the functions in https://php.net/apcu , but does not allow for modifying, deleting, incrementing, etc. on a created key.

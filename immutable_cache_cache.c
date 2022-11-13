@@ -674,12 +674,6 @@ static inline void array_add_long(zval *array, zend_string *key, zend_long lval)
 	zend_hash_add_new(Z_ARRVAL_P(array), key, &zv);
 }
 
-static inline void array_add_double(zval *array, zend_string *key, double dval) {
-	zval zv;
-	ZVAL_DOUBLE(&zv, dval);
-	zend_hash_add_new(Z_ARRVAL_P(array), key, &zv);
-}
-
 /* {{{ immutable_cache_cache_link_info */
 static zval immutable_cache_cache_link_info(immutable_cache_cache_t *cache, immutable_cache_cache_entry_t *p)
 {
@@ -689,7 +683,7 @@ static zval immutable_cache_cache_link_info(immutable_cache_cache_t *cache, immu
 	ZVAL_INTERNED_STR(&zv, (zend_string *)p->key);
 	zend_hash_add_new(Z_ARRVAL(link), immutable_cache_str_info, &zv);
 
-	array_add_double(&link, immutable_cache_str_num_hits, (double) p->nhits);
+	array_add_long(&link, immutable_cache_str_num_hits, p->nhits);
 	array_add_long(&link, immutable_cache_str_creation_time, p->ctime);
 	array_add_long(&link, immutable_cache_str_access_time, p->atime);
 	array_add_long(&link, immutable_cache_str_mem_size, p->mem_size);
@@ -718,12 +712,12 @@ PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_cache_info(zval *info, immutab
 	php_immutable_cache_try {
 		array_init(info);
 		add_assoc_long(info, "num_slots", cache->nslots);
-		array_add_double(info, immutable_cache_str_num_hits, (double) cache->header->nhits);
-		add_assoc_double(info, "num_misses", (double) cache->header->nmisses);
-		add_assoc_double(info, "num_inserts", (double) cache->header->ninserts);
+		array_add_long(info, immutable_cache_str_num_hits, cache->header->nhits);
+		add_assoc_long(info, "num_misses", cache->header->nmisses);
+		add_assoc_long(info, "num_inserts",  cache->header->ninserts);
 		add_assoc_long(info,   "num_entries", cache->header->nentries);
 		add_assoc_long(info, "start_time", cache->header->stime);
-		array_add_double(info, immutable_cache_str_mem_size, (double) cache->header->mem_size);
+		array_add_long(info, immutable_cache_str_mem_size, cache->header->mem_size);
 
 #if IMMUTABLE_CACHE_MMAP
 		add_assoc_stringl(info, "memory_type", "mmap", sizeof("mmap")-1);

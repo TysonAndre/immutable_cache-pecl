@@ -17,17 +17,17 @@ array(3) {
   ["num_seg"]=>
   int(1)
   ["seg_size"]=>
-  float(%s)
+  int(%s)
   ["avail_mem"]=>
-  float(%s)
+  int(%s)
 }
 array(4) {
   ["num_seg"]=>
   int(1)
   ["seg_size"]=>
-  float(%s)
+  int(%s)
   ["avail_mem"]=>
-  float(%s)
+  int(%s)
   ["block_lists"]=>
   array(1) {
     [0]=>
