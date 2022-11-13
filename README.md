@@ -123,6 +123,8 @@ values can be stored in shared memory and retrieved in constant time from
 `immutable_cache` without any modification (e.g. very large arrays, large strings, etc).
 i.e. these benchmarks have the same throughput regardless of the size of the data.
 
+Benchmarks were run with opcache enabled in php 8.2 on a computer with 4 physical cores and 8 logical cores (with hyperthreading).
+
 ### Fetching an associative array of size 1000
 
 [`BENCHMARK_N=40000 BENCHMARK_ARRAY_SIZE=1000 php benchmark_shm.php`](./benchmark_shm.php)

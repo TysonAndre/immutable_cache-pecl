@@ -59,7 +59,7 @@ struct immutable_cache_cache_slam_key_t {
 /* {{{ struct definition: immutable_cache_cache_entry_t */
 typedef struct immutable_cache_cache_entry_t immutable_cache_cache_entry_t;
 struct immutable_cache_cache_entry_t {
-    /* This key is in shared memory, interned and const, similar to opcache */
+	/* This key is in shared memory, interned and const, similar to opcache */
 	zend_string *key;        /* entry key */
 	zval val;                /* the zval copied at store time */
 	immutable_cache_cache_entry_t *next; /* next entry in linked list */

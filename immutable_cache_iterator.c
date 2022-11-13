@@ -254,7 +254,7 @@ static void immutable_cache_iterator_totals(immutable_cache_iterator_t *iterator
 }
 /* }}} */
 
-void immutable_cache_iterator_obj_init(immutable_cache_iterator_t *iterator, zval *search, zend_long format, size_t chunk_size, zend_long list)
+void immutable_cache_iterator_obj_init(immutable_cache_iterator_t *iterator, zval *search, zend_ulong format, size_t chunk_size, zend_long list)
 {
 	if (!IMMUTABLE_CACHE_G(enabled)) {
 		zend_throw_error(NULL, "ImmutableCache must be enabled to use ImmutableCacheIterator");

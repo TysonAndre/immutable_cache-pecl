@@ -56,7 +56,7 @@
 /* {{{ immutable_cache_iterator_t */
 typedef struct _immmutable_cache_iterator_t {
 	short int initialized;   /* sanity check in case __construct failed */
-	zend_long format;             /* format bitmask of the return values ie: key, value, info */
+	zend_ulong format;             /* format bitmask of the return values ie: key, value, info */
 	size_t (*fetch)(struct _immmutable_cache_iterator_t *iterator);
 							 /* fetch callback to fetch items from cache slots or lists */
 	size_t slot_idx;           /* index to the slot array or linked list */
@@ -91,7 +91,7 @@ typedef struct _immmutable_cache_iterator_item_t {
 PHP_IMMUTABLE_CACHE_API void immutable_cache_iterator_obj_init(
 	immutable_cache_iterator_t *iterator,
 	zval *search,
-	zend_long format,
+	zend_ulong format,
 	size_t chunk_size,
 	zend_long list);
 PHP_IMMUTABLE_CACHE_API zend_class_entry* immutable_cache_iterator_get_ce(void);

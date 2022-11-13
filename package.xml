@@ -36,10 +36,10 @@
   <email>tandre@php.net</email>
   <active>yes</active>
  </lead>
- <date>2022-11-12</date>
+ <date>2022-11-13</date>
  <version>
-  <release>6.0.0beta3</release>
-  <api>6.0.0beta3</api>
+  <release>6.0.2beta4</release>
+  <api>6.0.2beta4</api>
  </version>
  <stability>
   <release>beta</release>
@@ -47,13 +47,13 @@
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
-- Add support for immutable_cache.serializer=igbinary when configured with './configure --enable-immutable-cache-igbinary' and igbinary is installed and enabled.
-- Remove unsupported $ttl from parameter list of immutable_cache_add and returned arrays.
-- Remove debugging statement that printed to stderr when a value was already persisted.
-- Update documentation
-- Reuse strings in array keys and cache entry key when persisting to shared memory.
-- Speed up persisting large numbers of values by rotating pointers to avoid zend_array hash table collisions.
-- Fix the way that the pthread linker flag was added.
+- Make extension version consistent with GitHub release version of 6.0.2
+- Add fine-grained locking with 16 different read locks based on key_hash % 16 to allow for higher parallel throughput
+  (A single pthread rwlock seemed to have a read bottleneck of around 10 million operations per second total on a laptop due to memory contention)
+- Align and pad shared memory locks to common sizes for cache lines (64 bytes) to fit in a cache line. https://lwn.net/Articles/531254/
+- Convert doubles to integers in immutable_cache_cache_info() and other debugging functions.
+- Raise the default immutable_cache.shm_size from '32M' to '256M'.
+- Fix detection of negative format bit flags in ImmutableCacheIterator
  </notes>
  <contents>
   <dir name="/">
@@ -184,6 +184,27 @@
   <configureoption name="enable-immutable-cache-debug" default="no" prompt="Enable internal debugging in immutable_cache" />
  </extsrcrelease>
  <changelog>
+  <release>
+   <date>2022-11-12</date>
+   <version>
+    <release>6.0.0beta3</release>
+    <api>6.0.0beta3</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+- Add support for immutable_cache.serializer=igbinary when configured with './configure --enable-immutable-cache-igbinary' and igbinary is installed and enabled.
+- Remove unsupported $ttl from parameter list of immutable_cache_add and returned arrays.
+- Remove debugging statement that printed to stderr when a value was already persisted.
+- Update documentation
+- Reuse strings in array keys and cache entry key when persisting to shared memory.
+- Speed up persisting large numbers of values by rotating pointers to avoid zend_array hash table collisions.
+- Fix the way that the pthread linker flag was added.
+   </notes>
+  </release>
   <release>
    <date>2022-11-06</date>
    <version>
