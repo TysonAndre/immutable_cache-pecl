@@ -184,6 +184,23 @@ APCu            Elapsed: 1.662154 throughput     240652 / second
 APCu            Elapsed: 1.684609 throughput     237444 / second
 ```
 
+### Fetching a scalar
+
+`BENCHMARK_USE_SCALAR_INSTEAD=1 php benchmark_shm.php` was used to fetch an integer from
+16 different cache keys. Because of the use of fine-grained locks in immutable_cache to avoid contention,
+there was still a performance improvement (around 2.5x) compared to APCu.
+
+```
+immutable_cache Elapsed: 0.078275 throughput    5110164 / second
+immutable_cache Elapsed: 0.080960 throughput    4940725 / second
+immutable_cache Elapsed: 0.080830 throughput    4948671 / second
+immutable_cache Elapsed: 0.080430 throughput    4973270 / second
+APCu            Elapsed: 0.194570 throughput    2055819 / second
+APCu            Elapsed: 0.198471 throughput    2015405 / second
+APCu            Elapsed: 0.198798 throughput    2012093 / second
+APCu            Elapsed: 0.199741 throughput    2002590 / second
+```
+
 Installing
 ==========
 

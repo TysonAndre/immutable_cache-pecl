@@ -35,8 +35,11 @@ define('N', (int)($_ENV['BENCHMARK_N'] ?? 400000));
 define('NUM_PROCESSES', (int)($_ENV['BENCHMARK_NUM_PROCESSES'] ?? 4));
 define('ARRAY_SIZE', (int)($_ENV['BENCHMARK_ARRAY_SIZE'] ?? 8));
 define('USE_STRING_INSTEAD', (int)($_ENV['BENCHMARK_USE_STRING_INSTEAD'] ?? 0));
+define('USE_SCALAR_INSTEAD', (int)($_ENV['BENCHMARK_USE_SCALAR_INSTEAD'] ?? 0));
 
-if (USE_STRING_INSTEAD) {
+if (USE_SCALAR_INSTEAD) {
+    $value = 42;
+} else if (USE_STRING_INSTEAD) {
     $value = str_repeat('.', ARRAY_SIZE);
 } else {
     $value = [];
