@@ -47,7 +47,7 @@
 #error immutable_cache does not support platforms where size_t > zend_long
 #endif
 
-#define PHP_IMMUTABLE_CACHE_VERSION "6.0.2beta4"
+#define PHP_IMMUTABLE_CACHE_VERSION "6.0.2"
 #define PHP_IMMUTABLE_CACHE_EXTNAME "immutable_cache"
 
 PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_is_enabled(void);

@@ -38,22 +38,21 @@
  </lead>
  <date>2022-11-13</date>
  <version>
-  <release>6.0.2beta4</release>
-  <api>6.0.2beta4</api>
+  <release>6.0.2</release>
+  <api>6.0.2</api>
  </version>
  <stability>
-  <release>beta</release>
-  <api>beta</api>
+  <release>stable</release>
+  <api>stable</api>
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
-- Make extension version consistent with GitHub release version of 6.0.2
-- Add fine-grained locking with 16 different read locks based on key_hash % 16 to allow for higher parallel throughput
-  (A single pthread rwlock seemed to have a read bottleneck of around 10 million operations per second total on a laptop due to memory contention)
-- Align and pad shared memory locks to common sizes for cache lines (64 bytes) to fit in a cache line. https://lwn.net/Articles/531254/
-- Convert doubles to integers in immutable_cache_cache_info() and other debugging functions.
-- Raise the default immutable_cache.shm_size from '32M' to '256M'.
-- Fix detection of negative format bit flags in ImmutableCacheIterator
+- Add support for `immutable_cache.protect_memory`, which will make the shared memory read-only (similar to https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.protect-memory)
+
+  This will slow down applications that do a lot of writes.
+
+  However, as a side effect of how it's implemented (disables statistics tracking such as number of cache hits/misses, access times, etc), read-heavy applications would see a moderate performance boost.
+- Fix conflicts with other extensions when using shmget and IPC_PRIVATE on Windows. Work around bugs in php-src/TSRM/tsrm_win32.c's polyfill of shmget.
  </notes>
  <contents>
   <dir name="/">
@@ -184,6 +183,27 @@
   <configureoption name="enable-immutable-cache-debug" default="no" prompt="Enable internal debugging in immutable_cache" />
  </extsrcrelease>
  <changelog>
+  <release>
+   <date>2022-11-13</date>
+   <version>
+    <release>6.0.2beta4</release>
+    <api>6.0.2beta4</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+- Make extension version consistent with GitHub release version of 6.0.2
+- Add fine-grained locking with 16 different read locks based on key_hash % 16 to allow for higher parallel throughput
+  (A single pthread rwlock seemed to have a read bottleneck of around 10 million operations per second total on a laptop due to memory contention)
+- Align and pad shared memory locks to common sizes for cache lines (64 bytes) to fit in a cache line. https://lwn.net/Articles/531254/
+- Convert doubles to integers in immutable_cache_cache_info() and other debugging functions.
+- Raise the default immutable_cache.shm_size from '32M' to '256M'.
+- Fix detection of negative format bit flags in ImmutableCacheIterator
+   </notes>
+  </release>
   <release>
    <date>2022-11-12</date>
    <version>
