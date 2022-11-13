@@ -303,6 +303,21 @@ static PHP_MSHUTDOWN_FUNCTION(immutable_cache)
 #define X(str) zend_string_release(immutable_cache_str_ ## str);
 	IMMUTABLE_CACHE_STRINGS
 #undef X
+	if (IMMUTABLE_CACHE_G(enabled)) {
+		if (IMMUTABLE_CACHE_G(initialized)) {
+			/* Detach cache and shared memory allocator from shared memory. */
+
+			/* In windows builds, php-src/TSRM/tsrm_win32 defines a polyfill for sma helpers.
+			 * That polyfill only works for the process (on ZTS builds, it will be shared among the threads)
+			 *
+			 * And it shares the block memory for the page with the metadata.
+			 * So to work around a windows crash, make the shared memory writable before releasing it.
+			 *
+			 * So after module shutdown, nothing else will be using this anonymously mapped memory for long.
+			 */
+			IMMUTABLE_CACHE_SMA_UNPROTECT_MEMORY(&immutable_cache_sma);
+		}
+	}
 
 	/* locks shutdown regardless of settings */
 	immutable_cache_lock_cleanup();
@@ -312,6 +327,12 @@ static PHP_MSHUTDOWN_FUNCTION(immutable_cache)
 	if (IMMUTABLE_CACHE_G(enabled)) {
 		if (IMMUTABLE_CACHE_G(initialized)) {
 			/* Detach cache and shared memory allocator from shared memory. */
+
+			/* In windows builds, php-src/TSRM/tsrm_win32 defines a polyfill for sma helpers.
+			 * That polyfill only works for the process (on ZTS builds, it will be shared among the threads)
+			 * So after module shutdown, nothing else will be using this anonymously mapped memory for long. */
+			IMMUTABLE_CACHE_SMA_UNPROTECT_MEMORY(&immutable_cache_sma);
+
 			immutable_cache_cache_detach(immutable_cache_user_cache);
 			immutable_cache_sma_detach(&immutable_cache_sma);
 
