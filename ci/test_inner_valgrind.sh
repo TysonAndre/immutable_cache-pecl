@@ -14,6 +14,7 @@ make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=default te
 make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=php tests"
 make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=default -d opcache.enable_cli=1 tests"
 make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=php -d opcache.enable_cli=1 tests"
+make test TESTS="-j$(nproc) --show-diff -d immutable_cache.serializer=php -d immutable_cache.protect_memory=1 -d opcache.enable_cli=1 tests"
 
 echo "re-running tests in valgrind"
 make test TESTS="-j$(nproc) -P -q --show-diff -m --show-mem"

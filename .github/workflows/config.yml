@@ -55,6 +55,7 @@ jobs:
       run:
         shell: cmd
     strategy:
+      fail-fast: false
       matrix:
           version: ["8.0", "8.1", "8.2"]
           arch: [x64]
@@ -83,6 +84,8 @@ jobs:
         run: nmake
       - name: test
         run: nmake test TESTS="--show-diff tests"
+      - name: test (protect memory)
+        run: nmake test TESTS="--show-diff -d immutable_cache.protect_memory=1 tests"
       - name: package
         run: |
           md .install

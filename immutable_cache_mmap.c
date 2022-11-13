@@ -67,9 +67,6 @@ immutable_cache_segment_t immutable_cache_mmap(char *file_mask, size_t size)
 
 	int fd = -1;
 	int flags = MAP_SHARED | MAP_NOSYNC;
-#ifdef IMMUTABLE_CACHE_MEMPROTECT
-	int remap = 1;
-#endif
 
 	/* If no filename was provided, do an anonymous mmap */
 	if(!file_mask || (file_mask && !strlen(file_mask))) {
@@ -78,13 +75,10 @@ immutable_cache_segment_t immutable_cache_mmap(char *file_mask, size_t size)
 #else
 		fd = -1;
 		flags = MAP_SHARED | MAP_ANON;
-#ifdef IMMUTABLE_CACHE_MEMPROTECT
-		remap = 0;
-#endif
 #endif
 
 #if 0
-	// This conflicts with immutable_cache
+	// This conflicts with APCu
 	} else if(!strcmp(file_mask,"/dev/zero")) {
 		/* See https://man7.org/linux/man-pages/man2/mmap.2.html for description of mmap options
 		 * When pages are read, they're read as 0, and nothing is written to the file.
@@ -93,9 +87,6 @@ immutable_cache_segment_t immutable_cache_mmap(char *file_mask, size_t size)
 		if(fd == -1) {
 			zend_error_noreturn(E_CORE_ERROR, "immutable_cache_mmap: open on /dev/zero failed");
 		}
-#ifdef IMMUTABLE_CACHE_MEMPROTECT
-		remap = 0; /* cannot remap */
-#endif
 
 #endif
 	} else {
@@ -117,14 +108,6 @@ immutable_cache_segment_t immutable_cache_mmap(char *file_mask, size_t size)
 	segment.shmaddr = (void *)mmap(NULL, size, PROT_READ | PROT_WRITE, flags, fd, 0);
 	segment.size = size;
 
-#ifdef IMMUTABLE_CACHE_MEMPROTECT
-	if(remap) {
-		segment.roaddr = (void *)mmap(NULL, size, PROT_READ, flags, fd, 0);
-	} else {
-		segment.roaddr = NULL;
-	}
-#endif
-
 	if ((long)segment.shmaddr == -1) {
 		zend_error_noreturn(E_CORE_ERROR, "immutable_cache_mmap: Failed to mmap %zu bytes. Is your immutable_cache.shm_size too large?", size);
 	}
@@ -145,13 +128,6 @@ void immutable_cache_unmap(immutable_cache_segment_t *segment)
 	if (munmap(segment->shmaddr, segment->size) < 0) {
 		immutable_cache_warning("immutable_cache_unmap: munmap failed");
 	}
-
-#ifdef IMMUTABLE_CACHE_MEMPROTECT
-	if (segment->roaddr && munmap(segment->roaddr, segment->size) < 0) {
-		immutable_cache_warning("immutable_cache_unmap: munmap failed");
-	}
-#endif
-
 }
 
 #endif

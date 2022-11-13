@@ -216,6 +216,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
    fi
   fi
 
+  AC_CHECK_FUNCS(mprotect)
   AC_CHECK_FUNCS(sigaction)
   AC_CACHE_CHECK(for union semun, php_cv_semun,
   [

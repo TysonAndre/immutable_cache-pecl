@@ -46,7 +46,6 @@
 
 ZEND_BEGIN_MODULE_GLOBALS(immutable_cache)
 	/* configuration parameters */
-	zend_bool enabled;      /* if true, apc is enabled (defaults to true) */
 	zend_long shm_segments;      /* number of shared memory segments to use */
 	zend_long shm_size;          /* size of each shared memory segment (in MB) */
 	zend_long entries_hint;      /* hint at the number of entries expected */
@@ -57,7 +56,9 @@ ZEND_BEGIN_MODULE_GLOBALS(immutable_cache)
 
 	/* module variables */
 	zend_bool initialized;       /* true if module was initialized */
-	zend_bool enable_cli;        /* Flag to override turning APC off for CLI */
+	zend_bool enable_cli;        /* Flag to override turning immutable_cache off for CLI */
+	zend_bool protect_memory;    /* Flag to protect memory with mprotect */
+	zend_bool enabled;      /* if true, apc is enabled (defaults to true) */
 
 	char *preload_path;          /* preload path */
 	zend_bool coredump_unmap;    /* trap signals that coredump and unmap shared memory */
@@ -75,6 +76,12 @@ ZEND_EXTERN_MODULE_GLOBALS(immutable_cache)
 # define IMMUTABLE_CACHE_G(v) TSRMG(immutable_cache_globals_id, zend_immutable_cache_globals *, v)
 #else
 # define IMMUTABLE_CACHE_G(v) (immutable_cache_globals.v)
+#endif
+
+#if defined(HAVE_MPROTECT) || defined(ZEND_WIN32)
+#define IMMUTABLE_CACHE_SHOULD_PROTECT_MEMORY() IMMUTABLE_CACHE_G(protect_memory)
+#else
+#define IMMUTABLE_CACHE_SHOULD_PROTECT_MEMORY() (0)
 #endif
 
 extern struct _immmutable_cache_cache_t* immutable_cache_user_cache;

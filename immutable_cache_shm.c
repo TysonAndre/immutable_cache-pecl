@@ -46,6 +46,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
+#include <ext/standard/php_rand.h>
 #endif
 
 #ifndef SHM_R
@@ -59,11 +60,28 @@ int immutable_cache_shm_create(int proj, size_t size)
 {
 	int shmid;			/* shared memory id */
 	int oflag;			/* permissions on shm */
-	key_t key = IPC_PRIVATE;	/* shm key */
 
 	oflag = IPC_CREAT | SHM_R | SHM_A;
+
+	/* This should call shm_get with a brand new key id that isn't used yet. See https://man7.org/linux/man-pages/man2/shmget.2.html
+	 * Because shmop_open can be used in userland to attach to shared memory segments, use high positive numbers to avoid accidentally conflicting with userland. */
+#ifdef PHP_WIN32
+	key_t key = (php_rand() & 0x1fffffff) + 0x20000007;
+	for (int attempts = 0; attempts < 1000; attempts++) {
+		struct shm_ids;
+		struct shmid_ds out_buf;
+		if (shmctl(key, IPC_STAT, &out_buf) == -1) {
+			break;
+		}
+		/* This key already exists according to windows polyfill for shmget */
+		key = (php_rand() & 0x1fffffff) + 0x20000007;
+		attempts++;
+	}
+#else
+	key_t key = IPC_PRIVATE;	/* shm key */
+#endif
 	if ((shmid = shmget(key, size, oflag)) < 0) {
-		zend_error_noreturn(E_CORE_ERROR, "immutable_cache_shm_create: shmget(%d, %zd, %d) failed: %s. It is possible that the chosen SHM segment size is higher than the operation system allows. Linux has usually a default limit of 32MB per segment.", key, size, oflag, strerror(errno));
+		zend_error_noreturn(E_CORE_ERROR, "immutable_cache_shm_create: shmget(%d, %zd, %d) failed: %s. It is possible that the chosen SHM segment size is higher than the operating system allows. Linux has usually a default limit of 32MB per segment.", key, size, oflag, strerror(errno));
 	}
 
 	return shmid;
@@ -83,14 +101,6 @@ immutable_cache_segment_t immutable_cache_shm_attach(int shmid, size_t size)
 		zend_error_noreturn(E_CORE_ERROR, "immutable_cache_shm_attach: shmat failed:");
 	}
 
-#ifdef IMMUTABLE_CACHE_MEMPROTECT
-
-	if ((zend_long)(segment.roaddr = shmat(shmid, 0, SHM_RDONLY)) == -1) {
-		segment.roaddr = NULL;
-	}
-
-#endif
-
 	segment.size = size;
 
 	/*
@@ -106,12 +116,6 @@ void immutable_cache_shm_detach(immutable_cache_segment_t* segment)
 	if (shmdt(segment->shmaddr) < 0) {
 		immutable_cache_warning("immutable_cache_shm_detach: shmdt failed:");
 	}
-
-#ifdef IMMUTABLE_CACHE_MEMPROTECT
-	if (segment->roaddr && shmdt(segment->roaddr) < 0) {
-		immutable_cache_warning("immutable_cache_shm_detach: shmdt failed:");
-	}
-#endif
 }
 
 /*
