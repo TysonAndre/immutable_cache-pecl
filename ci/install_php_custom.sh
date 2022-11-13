@@ -49,6 +49,7 @@ fi
 
 tar xjf $PHP_TAR_FILE
 
+export CFLAGS
 pushd $PHP_FOLDER
 ./configure $PHP_CONFIGURE_ARGS --prefix="$PHP_INSTALL_DIR"
 make -j5

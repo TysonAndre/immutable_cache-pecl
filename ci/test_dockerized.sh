@@ -15,6 +15,8 @@ ARCHITECTURE=${2:-}
 CFLAGS="-O2"
 
 if [[ "$ARCHITECTURE" == i386 ]]; then
+	echo "skip i386 is not the same as compiling on 64-bit with -m32 cflags for all word sizes"
+	exit 0
 	PHP_IMAGE="$ARCHITECTURE/php"
 	DOCKER_IMAGE="immutable-cache-test-runner:$ARCHITECTURE-$PHP_VERSION"
 	CFLAGS="$CFLAGS -m32"
