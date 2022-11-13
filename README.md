@@ -148,7 +148,7 @@ APCu            Elapsed: 1.723197 throughput      23213 / second
 
 ### Fetching an associative array of size 8
 
-See [`benchmark_shm.php`](./benchmark_shm.php)
+Running [`benchmark_shm.php`](./benchmark_shm.php), this is around 1.9 times as fast
 
 ```
 E.g. to retrieve multiple versions of the fake cached config
