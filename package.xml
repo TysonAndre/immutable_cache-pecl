@@ -36,10 +36,10 @@
   <email>tandre@php.net</email>
   <active>yes</active>
  </lead>
- <date>2022-11-13</date>
+ <date>2022-11-29</date>
  <version>
-  <release>6.0.2</release>
-  <api>6.0.2</api>
+  <release>6.1.0</release>
+  <api>6.1.0</api>
  </version>
  <stability>
   <release>stable</release>
@@ -47,12 +47,8 @@
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
-- Add support for `immutable_cache.protect_memory`, which will make the shared memory read-only (similar to https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.protect-memory)
-
-  This will slow down applications that do a lot of writes.
-
-  However, as a side effect of how it's implemented (disables statistics tracking such as number of cache hits/misses, access times, etc), read-heavy applications would see a moderate performance boost.
-- Fix conflicts with other extensions when using shmget and IPC_PRIVATE on Windows. Work around bugs in php-src/TSRM/tsrm_win32.c's polyfill of shmget.
+- Extend minimum supported php version from php 8.0 to 7.2
+- Work around bug adding '-lpthread' as a shared library dependency in php before 7.4.14. Related to https://bugs.php.net/bug.php?id=80402
  </notes>
  <contents>
   <dir name="/">
@@ -171,7 +167,7 @@
  <dependencies>
   <required>
    <php>
-    <min>8.0.0</min>
+    <min>7.2.0</min>
    </php>
    <pearinstaller>
     <min>1.10</min>
@@ -183,6 +179,26 @@
   <configureoption name="enable-immutable-cache-debug" default="no" prompt="Enable internal debugging in immutable_cache" />
  </extsrcrelease>
  <changelog>
+  <release>
+   <date>2022-11-13</date>
+   <version>
+    <release>6.0.2</release>
+    <api>6.0.2</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+- Add support for `immutable_cache.protect_memory`, which will make the shared memory read-only (similar to https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.protect-memory)
+
+  This will slow down applications that do a lot of writes.
+
+  However, as a side effect of how it's implemented (disables statistics tracking such as number of cache hits/misses, access times, etc), read-heavy applications would see a moderate performance boost.
+- Fix conflicts with other extensions when using shmget and IPC_PRIVATE on Windows. Work around bugs in php-src/TSRM/tsrm_win32.c's polyfill of shmget.
+   </notes>
+  </release>
   <release>
    <date>2022-11-13</date>
    <version>
