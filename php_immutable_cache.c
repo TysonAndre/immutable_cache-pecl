@@ -361,7 +361,7 @@ static PHP_RINIT_FUNCTION(immutable_cache)
 		if (IMMUTABLE_CACHE_G(serializer_name)) {
 			/* Avoid race conditions between RINIT of immutable_cache and serializer exts like igbinary */
 			immutable_cache_cache_serializer(immutable_cache_user_cache, IMMUTABLE_CACHE_G(serializer_name));
-			immutable_cache_user_cache->loaded_serializer = true;
+			immutable_cache_user_cache->loaded_serializer = 1;
 		}
 
 #if HAVE_SIGACTION
@@ -468,7 +468,7 @@ static void immutable_cache_store_helper(INTERNAL_FUNCTION_PARAMETERS)
 	if (immutable_cache_user_cache && !immutable_cache_user_cache->loaded_serializer && IMMUTABLE_CACHE_G(serializer_name)) {
 		/* Avoid race conditions between MINIT of apc and serializer exts like igbinary */
 		immutable_cache_cache_serializer(immutable_cache_user_cache, IMMUTABLE_CACHE_G(serializer_name));
-		immutable_cache_user_cache->loaded_serializer = true;
+		immutable_cache_user_cache->loaded_serializer = 1;
 	}
 
 	/* TODO: Port to array|string for PHP 8? */

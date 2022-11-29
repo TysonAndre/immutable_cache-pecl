@@ -58,7 +58,7 @@ ZEND_BEGIN_MODULE_GLOBALS(immutable_cache)
 	zend_bool initialized;       /* true if module was initialized */
 	zend_bool enable_cli;        /* Flag to override turning immutable_cache off for CLI */
 	zend_bool protect_memory;    /* Flag to protect memory with mprotect */
-	zend_bool enabled;      /* if true, apc is enabled (defaults to true) */
+	zend_bool enabled;           /* if true, immutable_cache is enabled (defaults to true) */
 
 	char *preload_path;          /* preload path */
 	zend_bool coredump_unmap;    /* trap signals that coredump and unmap shared memory */

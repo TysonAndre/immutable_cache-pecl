@@ -95,8 +95,8 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
     AC_MSG_ERROR([failed to detect PHP version, please report])
   fi
 
-  if test "$php_version" -lt "80000"; then
-    AC_MSG_ERROR([You need at least PHP 8.0.0 to be able to use this version of immutable_cache. PHP $php_version found])
+  if test "$php_version" -lt "70200"; then
+    AC_MSG_ERROR([You need at least PHP 7.2.0 to be able to use this version of immutable_cache. PHP $php_version found])
   else
     AC_MSG_RESULT([$php_version, ok])
   fi

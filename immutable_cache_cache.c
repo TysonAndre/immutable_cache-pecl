@@ -805,7 +805,7 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_cache_serializer(immutable_cache_ca
 	if (cache && !cache->loaded_serializer && !cache->serializer) {
 		cache->serializer = immutable_cache_find_serializer(name);
 		if (cache->serializer || strcmp(name, "php") == 0) {
-			cache->loaded_serializer = true;
+			cache->loaded_serializer = 1;
 		}
 	}
 } /* }}} */
