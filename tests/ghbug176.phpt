@@ -2,12 +2,9 @@
 APC: GH Bug #176 preload_path segfaults with bad data
 --SKIPIF--
 <?php
-require_once(dirname(__FILE__) . '/skipif.inc');
+require_once(dirname(__FILE__) . '/server_skipif.inc');
 if (PHP_ZTS === 1) {
     die('skip PHP non-ZTS only');
-}
-if (getenv('USE_ZEND_ALLOC') === '0' && PHP_INT_SIZE === 4) {
-    die('skip https://bugs.launchpad.net/ubuntu/+source/valgrind/+bug/1877963');
 }
 ?>
 --CONFLICTS--

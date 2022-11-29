@@ -1,8 +1,8 @@
 --TEST--
-APC: Bug #63224 error in __sleep whit reference to other classes
+APC: Bug #63224 error in __sleep with reference to other classes
 --SKIPIF--
 <?php
-require_once(dirname(__FILE__) . '/skipif.inc'); 
+require_once(dirname(__FILE__) . '/server_skipif.inc');
 if (!extension_loaded("session")) die("skip session extension missing");
 if (getenv('USE_ZEND_ALLOC') === '0') die("skip not for valgrind");
 ?>
@@ -17,7 +17,7 @@ session_start();
 
 class A{
 	public \$b;
-	
+
 	public function __sleep(){
 		\$this->b->f();
 		return array('b');
@@ -73,6 +73,7 @@ for ($i = 0; $i < 10; $i++) {
 	}
 }
 echo 'done';
+?>
 --EXPECT--
 no session yet, first run
 <pre>A Object
