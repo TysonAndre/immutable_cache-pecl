@@ -95,8 +95,8 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
     AC_MSG_ERROR([failed to detect PHP version, please report])
   fi
 
-  if test "$php_version" -lt "80000"; then
-    AC_MSG_ERROR([You need at least PHP 8.0.0 to be able to use this version of immutable_cache. PHP $php_version found])
+  if test "$php_version" -lt "70200"; then
+    AC_MSG_ERROR([You need at least PHP 7.2.0 to be able to use this version of immutable_cache. PHP $php_version found])
   else
     AC_MSG_RESULT([$php_version, ok])
   fi
@@ -139,6 +139,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
         ]])],[ dnl -Success-
           IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
           PHP_ADD_LIBRARY(pthread,, IMMUTABLE_CACHE_SHARED_LIBADD)
+          IMMUTABLE_CACHE_SHARED_LIBADD="$IMMUTABLE_CACHE_SHARED_LIBADD -lpthread"
           PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
           AC_DEFINE(IMMUTABLE_CACHE_NATIVE_RWLOCK, 1, [ ])
           AC_MSG_RESULT([yes])
@@ -148,6 +149,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
         ],[
           IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
           PHP_ADD_LIBRARY(pthread,, IMMUTABLE_CACHE_SHARED_LIBADD)
+          IMMUTABLE_CACHE_SHARED_LIBADD="$IMMUTABLE_CACHE_SHARED_LIBADD -lpthread"
           PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
     ])
     LIBS="$orig_LIBS"
@@ -190,6 +192,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
         ]])],[ dnl -Success-
           IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
           PHP_ADD_LIBRARY(pthread,, IMMUTABLE_CACHE_SHARED_LIBADD)
+          IMMUTABLE_CACHE_SHARED_LIBADD="$IMMUTABLE_CACHE_SHARED_LIBADD -lpthread"
           PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
           AC_MSG_RESULT([yes])
           AC_DEFINE(IMMUTABLE_CACHE_HAS_PTHREAD_MUTEX, 1, [ ])
@@ -199,6 +202,7 @@ if test "$PHP_IMMUTABLE_CACHE" != "no"; then
         ],[
           IMMUTABLE_CACHE_CFLAGS="-D_GNU_SOURCE -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
           PHP_ADD_LIBRARY(pthread,, IMMUTABLE_CACHE_SHARED_LIBADD)
+          IMMUTABLE_CACHE_SHARED_LIBADD="$IMMUTABLE_CACHE_SHARED_LIBADD -lpthread"
           PHP_LDFLAGS="$PHP_LDFLAGS -lpthread"
     ])
     LIBS="$orig_LIBS"

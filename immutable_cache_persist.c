@@ -35,18 +35,14 @@
 #if PHP_VERSION_ID < 70300
 # define GC_SET_REFCOUNT(ref, rc) (GC_REFCOUNT(ref) = (rc))
 # define GC_ADDREF(ref) GC_REFCOUNT(ref)++
-# define GC_SET_PERSISTENT_TYPE(ref, type) (GC_TYPE_INFO(ref) = type)
-# if PHP_VERSION_ID < 70200
-#  define GC_ARRAY IS_ARRAY
-# else
-#  define GC_ARRAY (IS_ARRAY | (GC_COLLECTABLE << GC_FLAGS_SHIFT))
-# endif
+# define GC_ARRAY_HAS_IMMUTABLE_PERSISTENT_FLAGS(ref) ((GC_FLAGS((ref)) & (IS_ARRAY_IMMUTABLE)) == IS_ARRAY_IMMUTABLE)
+# define GC_STR_HAS_IMMUTABLE_PERSISTENT_FLAGS(ref) ((GC_FLAGS((ref)) & (IS_STR_INTERNED|IS_STR_PERSISTENT)) == (IS_STR_INTERNED|IS_STR_PERSISTENT))
 #else
 # define GC_SET_PERSISTENT_TYPE(ref, type) \
 	(GC_TYPE_INFO(ref) = type | (GC_PERSISTENT << GC_FLAGS_SHIFT))
 # define GC_IMMUTABLE_PERSISTENT_FLAGS (GC_IMMUTABLE | GC_PERSISTENT)
-# define GC_SET_IMMUTABLE_PERMANENT_TYPE(ref, type) \
-	(GC_TYPE_INFO(ref) = type | (GC_IMMUTABLE_PERSISTENT_FLAGS << GC_FLAGS_SHIFT))
+# define GC_ARRAY_HAS_IMMUTABLE_PERSISTENT_FLAGS(ref) ((GC_FLAGS((ref)) & GC_IMMUTABLE_PERSISTENT_FLAGS) == GC_IMMUTABLE_PERSISTENT_FLAGS)
+# define GC_STR_HAS_IMMUTABLE_PERSISTENT_FLAGS(ref) ((GC_FLAGS((ref)) & GC_IMMUTABLE_PERSISTENT_FLAGS) == GC_IMMUTABLE_PERSISTENT_FLAGS)
 #endif
 
 #if PHP_VERSION_ID < 80000
@@ -161,13 +157,11 @@ static void immutable_cache_persist_calc_str(immutable_cache_persist_context_t *
 static zend_bool immutable_cache_persist_calc_ht(immutable_cache_persist_context_t *ctxt, const HashTable *ht) {
 	uint32_t idx;
 
+	ADD_SIZE(sizeof(HashTable));
 	if (ht->nNumUsed == 0) {
-#if PHP_VERSION_ID >= 70300
-		ADD_SIZE(sizeof(HashTable));
-#endif
+		/* TODO reuse an immutable empty array in shared memory */
 		return 1;
 	}
-	ADD_SIZE(sizeof(HashTable));
 
 	/* TODO Too sparse hashtables could be compacted here */
 #if PHP_VERSION_ID >= 80200
@@ -323,7 +317,11 @@ static zend_string *immutable_cache_persist_copy_cstr(
 	zend_string *str = ALLOC(_ZSTR_STRUCT_SIZE(buf_len));
 
 	GC_SET_REFCOUNT(str, 2);
-	GC_SET_IMMUTABLE_PERMANENT_TYPE(str, IS_STRING);
+#if PHP_VERSION_ID >= 70300
+	GC_TYPE_INFO(str) = IS_STRING | (GC_IMMUTABLE_PERSISTENT_FLAGS << GC_FLAGS_SHIFT);
+#else
+	GC_TYPE_INFO(str) = IS_STRING | ((IS_STR_INTERNED|IS_STR_PERSISTENT) << GC_FLAGS_SHIFT);
+#endif
 
 	ZSTR_H(str) = hash;
 	ZSTR_LEN(str) = buf_len;
@@ -385,14 +383,19 @@ static zend_array *immutable_cache_persist_copy_ht(immutable_cache_persist_conte
 	immutable_cache_persist_add_already_allocated(ctxt, orig_ht, ht);
 
 	GC_SET_REFCOUNT(ht, 2);
-	GC_SET_IMMUTABLE_PERMANENT_TYPE(ht, GC_ARRAY);
+#if PHP_VERSION_ID >= 70300
+	GC_TYPE_INFO(ht) = IS_ARRAY | (GC_IMMUTABLE_PERSISTENT_FLAGS << GC_FLAGS_SHIFT);
+#else
+	GC_TYPE_INFO(ht) = IS_ARRAY | (IS_ARRAY_IMMUTABLE << GC_FLAGS_SHIFT);
+#endif
 
 	/* Immutable arrays from opcache may lack a dtor and the apply protection flag. */
 	/* NOTE: immutable arrays immutable_cache should not have elements freed by design. This won't get called. */
 	ht->pDestructor = NULL; // ht->pDestructor = ZVAL_PTR_DTOR;
 
 #if PHP_VERSION_ID < 70300
-	ht->u.flags |= HASH_FLAG_APPLY_PROTECTION;
+	/* Unlike APCu, this is immutable and does not need protection */
+	ht->u.flags &= ~HASH_FLAG_APPLY_PROTECTION;
 #endif
 
 
@@ -643,7 +646,7 @@ static zend_string *immutable_cache_unpersist_zstr(immutable_cache_unpersist_con
 	/* TODO: Mark strings as persistent and immutable, and avoid allocating a new string entirely */
 	// TODO: Implement immutable_cache_is_already_cached_for_unpersist_context, add fields to it
 	// ZEND_ASSERT(immutable_cache_is_already_cached_for_unpersist_context(ctxt, orig_str));
-	ZEND_ASSERT((GC_FLAGS(orig_str) & GC_IMMUTABLE_PERSISTENT_FLAGS) == GC_IMMUTABLE_PERSISTENT_FLAGS);
+	ZEND_ASSERT(GC_STR_HAS_IMMUTABLE_PERSISTENT_FLAGS(orig_str));
 	return (zend_string *)orig_str;
 }
 
@@ -667,7 +670,7 @@ static zend_reference *immutable_cache_unpersist_ref(
 
 static zend_array *immutable_cache_unpersist_ht(
 		immutable_cache_unpersist_context_t *ctxt, const HashTable *orig_ht) {
-	ZEND_ASSERT((GC_FLAGS(orig_ht) & GC_IMMUTABLE_PERSISTENT_FLAGS) == GC_IMMUTABLE_PERSISTENT_FLAGS);
+	ZEND_ASSERT(GC_ARRAY_HAS_IMMUTABLE_PERSISTENT_FLAGS(orig_ht));
 	return (HashTable *)orig_ht;
 	/* Original implementation for copying the hash table. TODO: Restore when ready to test mixes of references and immutables in mutable arrays */
 #if 0

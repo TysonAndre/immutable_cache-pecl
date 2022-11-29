@@ -151,7 +151,7 @@ STD_PHP_INI_BOOLEAN("immutable_cache.enable_cli",   "0",    PHP_INI_SYSTEM, OnUp
 STD_PHP_INI_BOOLEAN("immutable_cache.protect_memory", "0",  PHP_INI_SYSTEM, OnUpdateBool,              protect_memory,       zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_ENTRY("immutable_cache.preload_path", (char*)NULL, PHP_INI_SYSTEM, OnUpdateString,         preload_path,  zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_BOOLEAN("immutable_cache.coredump_unmap", "0", PHP_INI_SYSTEM, OnUpdateBool, coredump_unmap, zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("immutable_cache.serializer", "php", PHP_INI_SYSTEM, OnUpdateStringUnempty, serializer_name, zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.serializer", "default", PHP_INI_SYSTEM, OnUpdateStringUnempty, serializer_name, zend_immutable_cache_globals, immutable_cache_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -361,7 +361,7 @@ static PHP_RINIT_FUNCTION(immutable_cache)
 		if (IMMUTABLE_CACHE_G(serializer_name)) {
 			/* Avoid race conditions between RINIT of immutable_cache and serializer exts like igbinary */
 			immutable_cache_cache_serializer(immutable_cache_user_cache, IMMUTABLE_CACHE_G(serializer_name));
-			immutable_cache_user_cache->loaded_serializer = true;
+			immutable_cache_user_cache->loaded_serializer = 1;
 		}
 
 #if HAVE_SIGACTION
@@ -468,7 +468,7 @@ static void immutable_cache_store_helper(INTERNAL_FUNCTION_PARAMETERS)
 	if (immutable_cache_user_cache && !immutable_cache_user_cache->loaded_serializer && IMMUTABLE_CACHE_G(serializer_name)) {
 		/* Avoid race conditions between MINIT of apc and serializer exts like igbinary */
 		immutable_cache_cache_serializer(immutable_cache_user_cache, IMMUTABLE_CACHE_G(serializer_name));
-		immutable_cache_user_cache->loaded_serializer = true;
+		immutable_cache_user_cache->loaded_serializer = 1;
 	}
 
 	/* TODO: Port to array|string for PHP 8? */

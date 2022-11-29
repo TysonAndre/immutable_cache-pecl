@@ -142,7 +142,7 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_check_integrity(immutable_cache
 /**
  * Check if ptr is within the shared memory region(s) managed by the immutable cache
  */
-PHP_IMMUTABLE_CACHE_API bool immutable_cache_sma_contains_pointer(const immutable_cache_sma_t *sma, const void *ptr);
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_sma_contains_pointer(const immutable_cache_sma_t *sma, const void *ptr);
 
 /* {{{ ALIGNWORD: pad up x, aligned to the system's word boundary */
 typedef union { void* p; int i; long l; double d; void (*f)(void); } immutable_cache_word_t;

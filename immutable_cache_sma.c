@@ -613,16 +613,16 @@ PHP_IMMUTABLE_CACHE_API void immutable_cache_sma_check_integrity(immutable_cache
 	/* dummy */
 }
 
-PHP_IMMUTABLE_CACHE_API bool immutable_cache_sma_contains_pointer(const immutable_cache_sma_t *sma, const void *ptr) {
+PHP_IMMUTABLE_CACHE_API zend_bool immutable_cache_sma_contains_pointer(const immutable_cache_sma_t *sma, const void *ptr) {
 	int i;
 
 	for (i = 0; i < sma->num; i++) {
 		const immutable_cache_segment_t *seg = &sma->segs[i];
 		if (ptr >= seg->shmaddr && ptr < (void *)(((const char*)seg->shmaddr) + seg->size)) {
-			return true;
+			return 1;
 		}
 	}
-	return false;
+	return 0;
 }
 
 /* }}} */
