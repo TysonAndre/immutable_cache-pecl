@@ -151,7 +151,7 @@ STD_PHP_INI_BOOLEAN("immutable_cache.enable_cli",   "0",    PHP_INI_SYSTEM, OnUp
 STD_PHP_INI_BOOLEAN("immutable_cache.protect_memory", "0",  PHP_INI_SYSTEM, OnUpdateBool,              protect_memory,       zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_ENTRY("immutable_cache.preload_path", (char*)NULL, PHP_INI_SYSTEM, OnUpdateString,         preload_path,  zend_immutable_cache_globals, immutable_cache_globals)
 STD_PHP_INI_BOOLEAN("immutable_cache.coredump_unmap", "0", PHP_INI_SYSTEM, OnUpdateBool, coredump_unmap, zend_immutable_cache_globals, immutable_cache_globals)
-STD_PHP_INI_ENTRY("immutable_cache.serializer", "php", PHP_INI_SYSTEM, OnUpdateStringUnempty, serializer_name, zend_immutable_cache_globals, immutable_cache_globals)
+STD_PHP_INI_ENTRY("immutable_cache.serializer", "default", PHP_INI_SYSTEM, OnUpdateStringUnempty, serializer_name, zend_immutable_cache_globals, immutable_cache_globals)
 PHP_INI_END()
 
 /* }}} */

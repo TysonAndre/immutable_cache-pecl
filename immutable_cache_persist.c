@@ -157,13 +157,11 @@ static void immutable_cache_persist_calc_str(immutable_cache_persist_context_t *
 static zend_bool immutable_cache_persist_calc_ht(immutable_cache_persist_context_t *ctxt, const HashTable *ht) {
 	uint32_t idx;
 
+	ADD_SIZE(sizeof(HashTable));
 	if (ht->nNumUsed == 0) {
-#if PHP_VERSION_ID >= 70300
-		ADD_SIZE(sizeof(HashTable));
-#endif
+		/* TODO reuse an immutable empty array in shared memory */
 		return 1;
 	}
-	ADD_SIZE(sizeof(HashTable));
 
 	/* TODO Too sparse hashtables could be compacted here */
 #if PHP_VERSION_ID >= 80200

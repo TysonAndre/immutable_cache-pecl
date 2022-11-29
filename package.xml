@@ -49,6 +49,7 @@
  <notes>
 - Extend minimum supported php version from php 8.0 to 7.2
 - Work around bug adding '-lpthread' as a shared library dependency in php before 7.4.14. Related to https://bugs.php.net/bug.php?id=80402
+- Switch default for immutable_cache.serializer to "default" (store the php arrays and strings and scalars in shared memory rather than serialization when added value is an array)
  </notes>
  <contents>
   <dir name="/">
