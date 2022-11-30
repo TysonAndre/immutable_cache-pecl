@@ -56,7 +56,7 @@ defaults('GRAPH_SIZE',200);                 // Image size
 
 
 // "define if not defined"
-function defaults($d,$v) {
+function defaults($d,$v): void {
     if (!defined($d)) define($d,$v); // or just @define(...)
 }
 
@@ -76,7 +76,7 @@ define('OB_USER_CACHE',2);
 define('OB_VERSION_CHECK',3);
 
 // check validity of input variables
-$vardom=array(
+$vardom=[
     'OB'    => '/^\d+$/',           // operational mode switch
     'CC'    => '/^[01]$/',          // clear cache requested
     'DU'    => '/^.*$/',            // Delete User Key
@@ -91,7 +91,7 @@ $vardom=array(
     'SORT2' => '/^[DA]$/',          // second sort key
     'AGGR'  => '/^\d+$/',           // aggregation by dir level
     'SEARCH'    => '~^[a-zA-Z0-9/_.-]*$~'           // aggregation by dir level
-);
+];
 
 // cache scope
 $scope_list=array(
@@ -113,7 +113,7 @@ if (empty($_REQUEST)) {
 }
 
 // check parameter syntax
-foreach($vardom as $var => $dom) {
+foreach ($vardom as $var => $dom) {
     if (!isset($_REQUEST[$var])) {
         $MYREQUEST[$var]=null;
     } else if (!is_array($_REQUEST[$var]) && preg_match($dom.'D',$_REQUEST[$var])) {
@@ -148,7 +148,7 @@ if (!USE_AUTHENTICATION) {
     $AUTHENTICATED=1;
 } else {
     $AUTHENTICATED=0;
-    if (ADMIN_PASSWORD!='password' && ($MYREQUEST['LO'] == 1 || isset($_SERVER['PHP_AUTH_USER']))) {
+    if (ADMIN_PASSWORD!='password' && ($MYREQUEST['LO'] === '1' || isset($_SERVER['PHP_AUTH_USER']))) {
 
         if (!isset($_SERVER['PHP_AUTH_USER']) ||
             !isset($_SERVER['PHP_AUTH_PW']) ||
@@ -197,7 +197,10 @@ header("Cache-Control: no-store, no-cache, must-revalidate");  // HTTP/1.1
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");                                    // HTTP/1.0
 
-function duration($ts) {
+/**
+ * Returns a representation of the duration $ts
+ */
+function duration($ts): string {
     global $time;
     $years = (int)((($time - $ts)/(7*86400))/52.177457);
     $rem = (int)(($time-$ts)-($years * 52.177457 * 7 * 86400));
@@ -274,10 +277,10 @@ if (isset($MYREQUEST['IMG']))
     function fill_box($im, $x, $y, $w, $h, $color1, $color2,$text='',$placeindex='') {
         global $col_black;
 
-        $x = round($x);
-        $y = round($y);
-        $w = round($w);
-        $h = round($h);
+        $x = (int)round($x);
+        $y = (int)round($y);
+        $w = (int)round($w);
+        $h = (int)round($h);
 
         $x1=$x+$w-1;
         $y1=$y+$h-1;
@@ -444,9 +447,10 @@ if (isset($MYREQUEST['IMG']))
     exit;
 }
 
-// pretty printer for byte values
-//
-function bsize($s) {
+/**
+ * pretty printer for byte values
+ */
+function bsize(int $s): string {
     foreach (array('','K','M','G') as $i => $k) {
         if ($s < 1024) break;
         $s/=1024;
@@ -946,7 +950,7 @@ EOB;
         "<option value=M",$MYREQUEST['SORT1']=='M' ? " selected":"",">Last modified</option>",
         "<option value=C",$MYREQUEST['SORT1']=='C' ? " selected":"",">Created at</option>",
         "<option value=D",$MYREQUEST['SORT1']=='D' ? " selected":"",">Deleted at</option>";
-    if($fieldname=='info') echo
+    if($fieldname==='info') echo
         "<option value=T",$MYREQUEST['SORT1']=='T' ? " selected":"",">Timeout</option>";
     echo
         '</select>',
@@ -996,7 +1000,8 @@ EOB;
 
     // builds list with alpha numeric sortable keys
     //
-    $list = array();
+    $list = [];
+    $i = [];
 
     foreach($cache[$scope_list[$MYREQUEST['SCOPE']]] as $i => $entry) {
         switch($MYREQUEST['SORT1']) {
