@@ -40,7 +40,7 @@ defaults('USE_AUTHENTICATION',1);           // Use (internal) authentication - b
                                             //  You need to change ADMIN_PASSWORD to make
                                             //  this work!
 defaults('ADMIN_USERNAME','cache');         // Admin Username
-defaults('ADMIN_PASSWORD','password');      // Admin Password - CHANGE THIS TO ENABLE!!!
+defaults('ADMIN_PASSWORD','cakepassword');      // Admin Password - CHANGE THIS TO ENABLE!!!
 
 // (beckerr) I'm using a clear text password here, because I've no good idea how to let
 //           users generate a md5 or crypt password in a easy way to fill it in above
@@ -60,6 +60,7 @@ function defaults($d,$v): void {
     if (!defined($d)) define($d,$v); // or just @define(...)
 }
 
+immutable_cache_add('x' . (time() - time() % 60), time());
 // rewrite $PHP_SELF to block XSS attacks
 //
 $PHP_SELF= isset($_SERVER['PHP_SELF']) ? htmlentities(strip_tags($_SERVER['PHP_SELF'],''), ENT_QUOTES, 'UTF-8') : '';
@@ -78,8 +79,6 @@ define('OB_VERSION_CHECK',3);
 // check validity of input variables
 $vardom=[
     'OB'    => '/^\d+$/',           // operational mode switch
-    'CC'    => '/^[01]$/',          // clear cache requested
-    'DU'    => '/^.*$/',            // Delete User Key
     'SH'    => '/^[a-z0-9]+$/',     // shared object description
 
     'IMG'   => '/^[123]$/',         // image to generate
@@ -96,7 +95,6 @@ $vardom=[
 // cache scope
 $scope_list=array(
     'A' => 'cache_list',
-    'D' => 'deleted_list'
 );
 
 // handle POST and GET requests
@@ -170,15 +168,6 @@ EOB;
             $AUTHENTICATED=1;
         }
     }
-}
-
-// clear cache
-if ($AUTHENTICATED && isset($MYREQUEST['CC']) && $MYREQUEST['CC']) {
-    immutable_cache_clear_cache();
-}
-
-if ($AUTHENTICATED && !empty($MYREQUEST['DU'])) {
-    immutable_cache_delete($MYREQUEST['DU']);
 }
 
 if(!function_exists('immutable_cache_cache_info')) {
@@ -539,7 +528,6 @@ div.head div.login {
     right: 1em;
     top: 1.2em;
     color:white;
-    width:6em;
     }
 div.head div.login a {
     position:absolute;
@@ -739,12 +727,6 @@ echo
     menu_entry(OB_HOST_STATS,'View Host Stats'),
     menu_entry(OB_USER_CACHE,'User Cache Entries'),
     menu_entry(OB_VERSION_CHECK,'Version Check');
-
-if ($AUTHENTICATED) {
-    echo <<<EOB
-        <li><a class="aright" href="$MY_SELF&CC=1&OB={$MYREQUEST['OB']}" onClick="javascript:return confirm('Are you sure?');">Clear Cache</a></li>
-EOB;
-}
 echo <<<EOB
     </ol>
 EOB;
@@ -811,7 +793,6 @@ EOB;
             <tr class=tr-0><td class=td-0>Hit Rate</td><td>$hit_rate_user cache requests/second</td></tr>
             <tr class=tr-1><td class=td-0>Miss Rate</td><td>$miss_rate_user cache requests/second</td></tr>
             <tr class=tr-0><td class=td-0>Insert Rate</td><td>$insert_rate_user cache requests/second</td></tr>
-            <tr class=tr-1><td class=td-0>Cache full count</td><td>{$cache['expunges']}</td></tr>
         </tbody>
         </table>
         </div>
@@ -934,25 +915,16 @@ case OB_USER_CACHE:
 
     $cols=6;
     echo <<<EOB
-        <div class=sorting><form>Scope:
+        <div class=sorting><form>
         <input type=hidden name=OB value={$MYREQUEST['OB']}>
-        <select name=SCOPE>
 EOB;
     echo
-        "<option value=A",$MYREQUEST['SCOPE']=='A' ? " selected":"",">Active</option>",
-        "<option value=D",$MYREQUEST['SCOPE']=='D' ? " selected":"",">Deleted</option>",
-        "</select>",
-        ", Sorting:<select name=SORT1>",
+        "Sorting:<select name=SORT1>",
         "<option value=H",$MYREQUEST['SORT1']=='H' ? " selected":"",">Hits</option>",
         "<option value=Z",$MYREQUEST['SORT1']=='Z' ? " selected":"",">Size</option>",
         "<option value=S",$MYREQUEST['SORT1']=='S' ? " selected":"",">$fieldheading</option>",
         "<option value=A",$MYREQUEST['SORT1']=='A' ? " selected":"",">Last accessed</option>",
-        "<option value=M",$MYREQUEST['SORT1']=='M' ? " selected":"",">Last modified</option>",
         "<option value=C",$MYREQUEST['SORT1']=='C' ? " selected":"",">Created at</option>",
-        "<option value=D",$MYREQUEST['SORT1']=='D' ? " selected":"",">Deleted at</option>";
-    if($fieldname==='info') echo
-        "<option value=T",$MYREQUEST['SORT1']=='T' ? " selected":"",">Timeout</option>";
-    echo
         '</select>',
         '<select name=SORT2>',
         '<option value=D',$MYREQUEST['SORT2']=='D' ? ' selected':'','>DESC</option>',
@@ -989,14 +961,7 @@ EOB;
         '<th>',sortheader('H','Hits',         "&OB=".$MYREQUEST['OB']),'</th>',
         '<th>',sortheader('Z','Size',         "&OB=".$MYREQUEST['OB']),'</th>',
         '<th>',sortheader('A','Last accessed',"&OB=".$MYREQUEST['OB']),'</th>',
-        '<th>',sortheader('M','Last modified',"&OB=".$MYREQUEST['OB']),'</th>',
         '<th>',sortheader('C','Created at',   "&OB=".$MYREQUEST['OB']),'</th>';
-
-    if($fieldname=='info') {
-        $cols+=2;
-         echo '<th>',sortheader('T','Timeout',"&OB=".$MYREQUEST['OB']),'</th>';
-    }
-    echo '<th>',sortheader('D','Deleted at',"&OB=".$MYREQUEST['OB']),'</th></tr>';
 
     // builds list with alpha numeric sortable keys
     //
@@ -1008,10 +973,7 @@ EOB;
             case 'A': $k=sprintf('%015d-',$entry['access_time']);        break;
             case 'H': $k=sprintf('%015d-',$entry['num_hits']);       break;
             case 'Z': $k=sprintf('%015d-',$entry['mem_size']);       break;
-            case 'M': $k=sprintf('%015d-',$entry['mtime']);  break;
             case 'C': $k=sprintf('%015d-',$entry['creation_time']);      break;
-            case 'T': $k=sprintf('%015d-',$entry['ttl']);            break;
-            case 'D': $k=sprintf('%015d-',$entry['deletion_time']);      break;
             case 'S': $k=$entry["info"];                     break;
         }
         if (!$AUTHENTICATED) {
@@ -1048,25 +1010,7 @@ EOB;
                     '<td class="td-n center">',$entry['num_hits'],'</td>',
                     '<td class="td-n right">',$entry['mem_size'],'</td>',
                     '<td class="td-n center">',date(DATE_FORMAT,$entry['access_time']),'</td>',
-                    '<td class="td-n center">',date(DATE_FORMAT,$entry['mtime']),'</td>',
                     '<td class="td-n center">',date(DATE_FORMAT,$entry['creation_time']),'</td>';
-
-                if($fieldname=='info') {
-                    if($entry['ttl']) {
-                        echo '<td class="td-n center">'.$entry['ttl'].' seconds</td>';
-                    } else {
-                        echo '<td class="td-n center">None</td>';
-                    }
-                }
-                if ($entry['deletion_time']) {
-                    echo '<td class="td-last center">', date(DATE_FORMAT,$entry['deletion_time']), '</td>';
-                } else if ($MYREQUEST['OB'] == OB_USER_CACHE) {
-                    echo '<td class="td-last center">';
-                    echo '[<a href="', $MY_SELF, '&OB=', $MYREQUEST['OB'], '&DU=', urlencode($entry[$fieldkey]), '">Delete Now</a>]';
-                    echo '</td>';
-                } else {
-                    echo '<td class="td-last center"> &nbsp; </td>';
-                }
                 echo '</tr>';
                 if ($sh == $MYREQUEST["SH"]) {
                     echo '<tr>';
