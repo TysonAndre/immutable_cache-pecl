@@ -60,7 +60,6 @@ function defaults($d,$v): void {
     if (!defined($d)) define($d,$v); // or just @define(...)
 }
 
-immutable_cache_add('x' . (time() - time() % 60), time());
 // rewrite $PHP_SELF to block XSS attacks
 //
 $PHP_SELF= isset($_SERVER['PHP_SELF']) ? htmlentities(strip_tags($_SERVER['PHP_SELF'],''), ENT_QUOTES, 'UTF-8') : '';
