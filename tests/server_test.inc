@@ -32,7 +32,7 @@ function server_start_one($host, $port, $code = 'echo "Hello world";', $php_opts
 	} else {
 		$php_args = "-d extension_dir=$doc_root/../modules";
 	}
-	$php_args = "$php_args -d extension=$ext";
+	$php_args = (getenv('TEST_PHP_ARGS') ?: "$php_args -d extension=$ext");
 
 	if ($php_opts) {
 		$php_args = "$php_args -d " . implode(' -d ', $php_opts);;
