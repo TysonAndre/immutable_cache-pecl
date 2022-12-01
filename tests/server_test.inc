@@ -23,7 +23,8 @@ function server_start_one($host, $port, $code = 'echo "Hello world";', $php_opts
 		2 => STDERR,
 	);
 
-	$ext = (substr(PHP_OS, 0, 3) == 'WIN') ? 'php_immutable_cache.dll' : 'immutable_cache.so';
+	$is_windows = substr(PHP_OS, 0, 3) == 'WIN';
+	$ext = $is_windows ? 'php_immutable_cache.dll' : 'immutable_cache.so';
 	if (substr(PHP_OS, 0, 3) == 'WIN') {
 		$part0 = 8 == PHP_INT_SIZE ? "x64" : "";
 		$part1 = ZEND_DEBUG_BUILD ? "Debug" : "Release";
@@ -32,7 +33,11 @@ function server_start_one($host, $port, $code = 'echo "Hello world";', $php_opts
 	} else {
 		$php_args = "-d extension_dir=$doc_root/../modules";
 	}
-	$php_args = (getenv('TEST_PHP_ARGS') ?: "$php_args -d extension=$ext");
+	$php_args = "$php_args -d extension=$ext";
+	if (extension_loaded('igbinary')) {
+		$igbinary_ext = $is_windows ? 'php_igbinary.dll' : 'igbinary.so';
+		$php_args = "$php_args -d extension=$igbinary_ext";
+	}
 
 	if ($php_opts) {
 		$php_args = "$php_args -d " . implode(' -d ', $php_opts);;
