@@ -4,7 +4,7 @@ immutable\_cache
 [![Build Status](https://github.com/TysonAndre/immutable_cache-pecl/actions/workflows/config.yml/badge.svg?branch=main)](https://github.com/TysonAndre/immutable_cache-pecl/actions/workflows/config.yml?query=branch%3Amain)
 [![Build status (Windows)](https://ci.appveyor.com/api/projects/status/7kccfd2a5i4q58ku/branch/main?svg=true)](https://ci.appveyor.com/project/TysonAndre/immutable-cache-pecl/branch/main)
 
-This adds functionality similar to APCu,
+The [`immutable_cache` PECL](https://pecl.php.net/package/immutable_cache) adds functionality similar to APCu,
 but with immutable values (either the values themselves or an immutable serialized copy of mutable values is stored in the shared memory region)
 
 See [the installing section](#installing) for installation instructions.
@@ -127,7 +127,7 @@ To reduce the total memory this uses, compile this with support for the igbinary
 2. Compile and install `immutable_cache`, configuring it `configure --enable-immutable-cache-igbinary`
 3. Set `immutable_cache.serializer=igbinary` in your php.ini settings.
 
-If this is done properly, `phpinfo()` will show igbinary as an available serializer.
+If this is done properly, `phpinfo()` will show igbinary as an available serializer for `immutable_cache`.
 
 Note that arrays of non-objects/non-references will take longer to decode when using `php` or `igbinary` (faster than `php` in most cases) because they need to be unserialized.
 
@@ -146,14 +146,14 @@ for ($i = 0; $i < 16; $i++) {
 }
 
 immutable_cache_add('myarray', $array);
-immutable_cache_add('myarrayclone', immutable_cache_fetch($array));
+immutable_cache_add('myarrayclone', immutable_cache_fetch('myarray'));
 foreach (immutable_cache_cache_info()['cache_list'] as $entry) {
     printf("%12s memory usage: %d bytes\n", $entry['info'], $entry['mem_size']);
 }
 /*
 immutable_cache.serializer=default
      myarray memory usage: 1816 bytes
-myarrayclone memory usage: 160 bytes
+myarrayclone memory usage: 104 bytes
  */
 ```
 
