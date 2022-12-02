@@ -625,10 +625,19 @@ PHP_FUNCTION(immutable_cache_exists) {
 }
 /* }}} */
 
+static const zend_module_dep immutable_cache_deps[] = {
+#ifdef IMMUTABLE_CACHE_IGBINARY
+	ZEND_MOD_REQUIRED("igbinary")
+#endif
+	ZEND_MOD_END
+};
+
 /* {{{ module definition structure */
 
 zend_module_entry immutable_cache_module_entry = {
-	STANDARD_MODULE_HEADER,
+	STANDARD_MODULE_HEADER_EX,
+	NULL,
+	immutable_cache_deps,
 	PHP_IMMUTABLE_CACHE_EXTNAME,
 	ext_functions,
 	PHP_MINIT(immutable_cache),
