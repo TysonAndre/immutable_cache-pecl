@@ -16,28 +16,13 @@ function server_start_one($host, $port, $code = 'echo "Hello world";', $php_opts
 	global $doc_root, $router, $handles, $ports;
 
 	$php_executable = getenv('TEST_PHP_EXECUTABLE');
+	$php_args = getenv('TEST_PHP_ARGS');
 
 	$descriptorspec = array(
 		0 => STDIN,
 		1 => STDOUT,
 		2 => STDERR,
 	);
-
-	$is_windows = substr(PHP_OS, 0, 3) == 'WIN';
-	$ext = $is_windows ? 'php_immutable_cache.dll' : 'immutable_cache.so';
-	if (substr(PHP_OS, 0, 3) == 'WIN') {
-		$part0 = 8 == PHP_INT_SIZE ? "x64" : "";
-		$part1 = ZEND_DEBUG_BUILD ? "Debug" : "Release";
-		$part1 = PHP_ZTS ? ($part1 . "_TS") : $part1;
-		$php_args = "-d extension_dir=$doc_root/../$part0/$part1";
-	} else {
-		$php_args = "-d extension_dir=$doc_root/../modules";
-	}
-	$php_args = "$php_args -d extension=$ext";
-	if (extension_loaded('igbinary')) {
-		$igbinary_ext = $is_windows ? 'php_igbinary.dll' : 'igbinary.so';
-		$php_args = "$php_args -d extension=$igbinary_ext";
-	}
 
 	if ($php_opts) {
 		$php_args = "$php_args -d " . implode(' -d ', $php_opts);;
