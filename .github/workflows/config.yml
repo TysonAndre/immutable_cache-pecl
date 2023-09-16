@@ -24,23 +24,23 @@ jobs:
          - PHP_VERSION: '7.4'
            PHP_VERSION_FULL: 7.4.30
          - PHP_VERSION: '8.0'
-           PHP_VERSION_FULL: 8.0.22
+           PHP_VERSION_FULL: 8.0.30
          # TODO: Investigate the cause of the error on 32-bit php builds.
          - PHP_VERSION: '8.0'
-           PHP_VERSION_FULL: 8.0.22
+           PHP_VERSION_FULL: 8.0.30
            DOCKER_ARCHITECTURE: i386
          - PHP_VERSION: '8.1'
-           PHP_VERSION_FULL: 8.1.11
-         - PHP_VERSION: '8.2.0RC5'
-           PHP_VERSION_FULL: 8.2.0RC5
-         - PHP_VERSION: '8.2.0RC5'
-           PHP_VERSION_FULL: 8.2.0RC5
+           PHP_VERSION_FULL: 8.1.23
+         - PHP_VERSION: '8.2'
+           PHP_VERSION_FULL: 8.2.10
+         - PHP_VERSION: '8.2'
+           PHP_VERSION_FULL: 8.2.10
            DOCKER_ARCHITECTURE: i386
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       # Runs a single command using the runners shell
       - name: Build and test in docker
