@@ -3,11 +3,13 @@ ARG PHP_VERSION
 FROM $PHP_IMAGE:$PHP_VERSION
 WORKDIR /code
 RUN apt-get update && apt-get install -y valgrind && apt-get clean
-RUN apt-get install -y libcurl4-openssl-dev
+# pecl(and curl) isn't needed in ci/test_inner_valgrind.sh
+# RUN apt-get install -y libcurl4-openssl-dev libssl-dev
+# Can also skip --with-curl
 
 ADD ci/install_php_custom.sh ci/generate_php_install_dir.sh ci/
 ARG PHP_VERSION_FULL
-ARG PHP_CONFIGURE_ARGS="--disable-all --enable-zts --enable-debug --enable-cgi --enable-session --enable-json --with-curl"
+ARG PHP_CONFIGURE_ARGS="--disable-all --enable-zts --enable-debug --enable-cgi --enable-session --enable-json"
 ARG CFLAGS="-DZEND_RC_DEBUG=1 -g"
 ENV PHP_CONFIGURE_ARGS=$PHP_CONFIGURE_ARGS PHP_CUSTOM_VERSION=$PHP_VERSION_FULL CFLAGS=$CFLAGS
 RUN ci/install_php_custom.sh
