@@ -27,7 +27,8 @@ ARCHITECTURE=${3:-}
 # In order to fix those false positives, a different set of images would be needed where (1) valgrind was installed before compiling php, and (2) php was compiled with support for valgrind (--with-valgrind) to avoid false positives
 # docker run --rm $DOCKER_IMAGE ci/test_inner_valgrind.sh
 CFLAGS="-DZEND_RC_DEBUG=1"
-PHP_CONFIGURE_ARGS="--disable-all --enable-zts --enable-debug --enable-cgi --enable-session --enable-json --with-curl"
+# Skip --with-curl because pecl isn't used in the valgrind version of these tests and no tests use curl.
+PHP_CONFIGURE_ARGS="--disable-all --enable-zts --enable-debug --enable-cgi --enable-session --enable-json"
 if [[ "$ARCHITECTURE" == i386 ]]; then
 	PHP_IMAGE="$ARCHITECTURE/php"
 	DOCKER_IMAGE_VALGRIND="immutable-cache-valgrind-test-runner:$ARCHITECTURE-$PHP_VERSION_FULL"
